@@ -1,14 +1,161 @@
-import { X, Info, MapPin, AlertTriangle, Lightbulb, Ruler, Weight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import {
+  AlertTriangle,
+  Download,
+  Info,
+  Lightbulb,
+  MapPin,
+  QrCode,
+  Ruler,
+  Volume2,
+  Weight,
+  X,
+} from 'lucide-react';
 import { Badge } from './ui/badge';
+import { Button } from './ui/button';
 import { Animal } from '../contexts/AnimalContext';
-import educationalPanelBg from 'figma:asset/5dae238f5bf37d694ddc8db6ba2998be0d5fc8d3.png';
 
 interface AnimalInfoPanelProps {
   animal: Animal;
   onClose: () => void;
 }
 
+const buildAnimalSummary = (animal: Animal) => {
+  return [
+    `Nombre: ${animal.name}`,
+    `Especie: ${animal.species}`,
+    `Hábitat: ${animal.habitat}`,
+    `Conservación: ${animal.conservation}`,
+    animal.activity ? `Actividad: ${animal.activity}` : '',
+    animal.diet ? `Dieta: ${animal.diet}` : '',
+    animal.lifespan ? `Esperanza de vida: ${animal.lifespan}` : '',
+    animal.distribution ? `Distribución: ${animal.distribution}` : '',
+    animal.description ? `Descripción: ${animal.description}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+};
+
+const getDriveFileId = (url?: string) => {
+  if (!url) {
+    return '';
+  }
+
+  const match =
+    url.match(/\/file\/d\/([^/]+)/) ??
+    url.match(/[?&]id=([^&]+)/) ??
+    url.match(/\/uc\?(?:export=[^&]+&)?id=([^&]+)/);
+
+  return match?.[1] ?? '';
+};
+
+const isMegaUrl = (url?: string) => Boolean(url && /mega\.(nz|io)\//i.test(url));
+const isDriveUrl = (url?: string) => Boolean(url && /drive\.google\.com/i.test(url));
+
+const toMegaEmbedUrl = (url: string) => {
+  return url.replace('/file/', '/embed/').replace('/folder/', '/embed/');
+};
+
+const toDrivePreviewUrl = (url: string) => {
+  const fileId = getDriveFileId(url);
+  return fileId ? `https://drive.google.com/file/d/${fileId}/preview` : url;
+};
+
+const getDriveImageSources = (url?: string) => {
+  if (!url) {
+    return [] as string[];
+  }
+
+  const fileId = getDriveFileId(url);
+  if (!fileId) {
+    return [] as string[];
+  }
+
+  return [
+    `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200`,
+    `https://drive.usercontent.google.com/uc?id=${fileId}&export=view`,
+    `https://lh3.googleusercontent.com/d/${fileId}=w1200`,
+  ];
+};
+
+const normalizeImageUrl = (url?: string) => {
+  if (!url) {
+    return '';
+  }
+
+  const trimmed = url.trim();
+
+  if (isDriveUrl(trimmed)) {
+    const driveSources = getDriveImageSources(trimmed);
+    return driveSources[0] ?? trimmed;
+  }
+
+  if (/dropbox\.com/i.test(trimmed)) {
+    return trimmed
+      .replace('www.dropbox.com', 'dl.dropboxusercontent.com')
+      .replace('?dl=0', '?raw=1')
+      .replace('&dl=0', '&raw=1')
+      .replace('?dl=1', '?raw=1');
+  }
+
+  return trimmed;
+};
+
+const normalizeAudioUrl = (url?: string) => {
+  if (!url) {
+    return '';
+  }
+
+  const trimmed = url.trim();
+
+  if (isDriveUrl(trimmed)) {
+    const fileId = getDriveFileId(trimmed);
+    if (fileId) {
+      return `https://drive.google.com/uc?export=download&id=${fileId}`;
+    }
+  }
+
+  if (/dropbox\.com/i.test(trimmed)) {
+    return trimmed
+      .replace('www.dropbox.com', 'dl.dropboxusercontent.com')
+      .replace('?dl=0', '?raw=1')
+      .replace('&dl=0', '&raw=1')
+      .replace('?dl=1', '?raw=1');
+  }
+
+  return trimmed;
+};
+
 export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
+  const [imageError, setImageError] = useState(false);
+  const [imageSourceIndex, setImageSourceIndex] = useState(0);
+  const [audioError, setAudioError] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+      window.speechSynthesis?.cancel();
+      setIsSpeaking(false);
+    };
+  }, [onClose]);
+
+  const handleClose = () => {
+    onClose();
+  };
+
   const getConservationColor = (status: string) => {
     switch (status) {
       case 'En Peligro':
@@ -26,135 +173,312 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
     return '☀️';
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
-      <div 
-        className="bg-gradient-to-br from-green-50 to-yellow-50 rounded-2xl overflow-hidden max-w-6xl w-full max-h-[95vh] shadow-2xl relative animate-in fade-in zoom-in duration-300"
-        onClick={(e) => e.stopPropagation()}
+  const animalSummary = buildAnimalSummary(animal);
+  const driveImageSources = getDriveImageSources(animal.imageUrl);
+  const normalizedImageUrl = normalizeImageUrl(animal.imageUrl);
+  const currentImageUrl = isDriveUrl(animal.imageUrl)
+    ? driveImageSources[imageSourceIndex] ?? normalizedImageUrl
+    : normalizedImageUrl;
+  const normalizedAudioUrl = normalizeAudioUrl(animal.audioUrl);
+  const usesMegaImage = isMegaUrl(animal.imageUrl);
+  const usesDriveImage = isDriveUrl(animal.imageUrl);
+  const usesMegaAudio = isMegaUrl(animal.audioUrl);
+  const usesDriveAudio = isDriveUrl(animal.audioUrl);
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(animalSummary)}`;
+  const fileName = animal.name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-');
+
+  const downloadAnimalInfo = () => {
+    const content = `${animalSummary}\n${
+      animal.funFacts?.length ? `\nDatos curiosos: ${animal.funFacts.join('; ')}` : ''
+    }${animal.threats?.length ? `\nAmenazas: ${animal.threats.join(', ')}` : ''}`;
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${fileName || 'animal'}-info.txt`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const downloadQr = async () => {
+    try {
+      const response = await fetch(qrUrl);
+      if (!response.ok) {
+        throw new Error('No se pudo descargar el QR');
+      }
+
+      const blob = await response.blob();
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${fileName || 'animal'}-qr.png`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch {
+      window.open(qrUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const openExternalLink = (url?: string) => {
+    if (!url) {
+      return;
+    }
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleSpeakSummary = () => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      return;
+    }
+
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(animalSummary);
+    utterance.lang = 'es-ES';
+    utterance.rate = 0.95;
+    utterance.pitch = 1;
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    const availableVoices = window.speechSynthesis.getVoices();
+    const spanishVoice = availableVoices.find((voice) => voice.lang.toLowerCase().startsWith('es'));
+    if (spanishVoice) {
+      utterance.voice = spanishVoice;
+    }
+
+    setIsSpeaking(true);
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const modalContent = (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" onMouseDown={handleClose}>
+      <div
+        className="relative max-h-[95vh] w-full max-w-6xl overflow-hidden rounded-2xl bg-gradient-to-br from-green-50 to-yellow-50 shadow-2xl animate-in fade-in zoom-in duration-300"
+        onMouseDown={(e) => e.stopPropagation()}
       >
-        <button 
-          onClick={onClose}
-          className="absolute top-4 right-4 z-10 p-2 bg-green-800 hover:bg-green-900 text-white rounded-full transition-colors shadow-lg"
+        <button
+          type="button"
+          onClick={handleClose}
+          className="absolute top-4 right-4 z-20 rounded-full bg-green-800 p-2 text-white shadow-lg transition-colors hover:bg-green-900"
+          aria-label="Cerrar ficha de la especie"
         >
-          <X className="w-5 h-5" />
+          <X className="h-5 w-5" />
         </button>
 
-        {/* Header con imagen de fondo */}
-        <div className="relative h-48 bg-gradient-to-r from-green-700 to-green-600 overflow-hidden">
+        <div className="relative h-48 overflow-hidden bg-gradient-to-r from-green-700 to-green-600">
           <div className="absolute inset-0 bg-black/30"></div>
           <div className="relative z-10 p-8 text-white">
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between gap-4">
               <div>
-                <h1 className="text-4xl font-bold mb-2 drop-shadow-lg">{animal.name}</h1>
+                <h1 className="mb-2 text-4xl font-bold drop-shadow-lg">{animal.name}</h1>
                 <p className="text-xl italic drop-shadow-md">({animal.species})</p>
               </div>
-              <Badge className={`${getConservationColor(animal.conservation)} text-white text-sm px-4 py-2 shadow-md`}>
+              <Badge className={`${getConservationColor(animal.conservation)} px-4 py-2 text-sm text-white shadow-md`}>
                 {animal.conservation}
               </Badge>
             </div>
           </div>
         </div>
 
-        <div className="overflow-y-auto max-h-[calc(95vh-12rem)] p-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            {/* Columna izquierda - Imagen y características principales */}
-            <div className="lg:col-span-1 space-y-4">
-              <div className="rounded-xl overflow-hidden shadow-lg border-4 border-yellow-400">
-                <img
-                  src={animal.imageUrl}
-                  alt={animal.name}
-                  className="w-full h-64 object-cover"
-                />
+        <div className="max-h-[calc(95vh-12rem)] overflow-y-auto p-8">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="space-y-4 lg:col-span-1">
+              <div className="overflow-hidden rounded-xl border-4 border-yellow-400 bg-white shadow-lg">
+                {usesMegaImage || usesDriveImage ? (
+                  <iframe
+                    src={usesMegaImage ? toMegaEmbedUrl(animal.imageUrl) : toDrivePreviewUrl(animal.imageUrl)}
+                    title={`Imagen de ${animal.name}`}
+                    className="h-64 w-full border-0"
+                  />
+                ) : imageError ? (
+                  <div className="flex h-64 flex-col items-center justify-center gap-3 bg-gray-100 p-4 text-center">
+                    <p className="text-sm text-gray-600">
+                      No se pudo mostrar esta imagen directamente. Verifica que el archivo en Drive esté compartido como "Cualquiera con el enlace".
+                    </p>
+                    {usesDriveImage && (
+                      <Button variant="outline" onClick={() => openExternalLink(toDrivePreviewUrl(animal.imageUrl))}>
+                        Ver imagen en Drive
+                      </Button>
+                    )}
+                    <Button variant="outline" onClick={() => openExternalLink(animal.imageUrl)}>
+                      Abrir imagen
+                    </Button>
+                  </div>
+                ) : (
+                  <img
+                    src={currentImageUrl}
+                    alt={animal.name}
+                    className="h-64 w-full object-contain bg-white"
+                    onError={() => {
+                      if (usesDriveImage && imageSourceIndex < driveImageSources.length - 1) {
+                        setImageSourceIndex((prev) => prev + 1);
+                        return;
+                      }
+                      setImageError(true);
+                    }}
+                  />
+                )}
               </div>
 
-              {/* Características principales en estilo panel educativo */}
-              <div className="bg-white rounded-xl shadow-md overflow-hidden border-2 border-green-600">
-                <div className="bg-gradient-to-r from-green-700 to-green-600 p-3">
-                  <h3 className="text-white font-bold text-center">CARACTERÍSTICAS</h3>
+              <div className="rounded-xl border-2 border-green-600 bg-white p-4 shadow-md">
+                <div className="mb-3 flex items-center gap-2 border-b border-green-100 pb-2">
+                  <Volume2 className="h-5 w-5 text-green-700" />
+                  <h3 className="font-bold text-green-800">AUDIO DE LA ESPECIE</h3>
                 </div>
-                <div className="p-4 space-y-3">
-                  <div className="bg-yellow-100 rounded-lg p-3 border-l-4 border-yellow-500">
-                    <div className="flex items-center gap-2 mb-1">
+                {animal.audioUrl ? (
+                  <>
+                    {usesMegaAudio || usesDriveAudio ? (
+                      <iframe
+                        src={usesMegaAudio ? toMegaEmbedUrl(animal.audioUrl) : toDrivePreviewUrl(animal.audioUrl)}
+                        title={`Audio de ${animal.name}`}
+                        className="h-24 w-full rounded-lg border border-green-100"
+                        allow="autoplay"
+                      />
+                    ) : audioError ? (
+                      <p className="rounded-md bg-yellow-50 p-3 text-sm text-gray-700">
+                        No se pudo reproducir el audio directamente desde este enlace.
+                      </p>
+                    ) : (
+                      <audio controls preload="none" className="w-full" onError={() => setAudioError(true)}>
+                        <source src={normalizedAudioUrl} />
+                        Tu navegador no soporta audio HTML5.
+                      </audio>
+                    )}
+                    <div className="mt-3">
+                      <Button variant="outline" className="w-full sm:w-auto" onClick={() => openExternalLink(animal.audioUrl)}>
+                        Abrir audio
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-700">
+                      Esta especie no tiene un archivo de audio cargado todavía. Puedes escuchar una narración automática con su información.
+                    </p>
+                    <Button className="bg-green-600 hover:bg-green-700" onClick={handleSpeakSummary}>
+                      <Volume2 className="mr-2 h-4 w-4" />
+                      {isSpeaking ? 'Detener narración' : 'Escuchar narración'}
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              <div className="overflow-hidden rounded-xl border-2 border-green-600 bg-white shadow-md">
+                <div className="bg-gradient-to-r from-green-700 to-green-600 p-3">
+                  <h3 className="text-center font-bold text-white">CARACTERÍSTICAS</h3>
+                </div>
+                <div className="space-y-3 p-4">
+                  <div className="rounded-lg border-l-4 border-yellow-500 bg-yellow-100 p-3">
+                    <div className="mb-1 flex items-center gap-2">
                       <span className="text-2xl">{getActivityIcon(animal.activity)}</span>
                       <h4 className="font-semibold text-green-800">ACTIVIDAD</h4>
                     </div>
-                    <p className="text-sm text-gray-700 ml-9">{animal.activity || 'No especificado'}</p>
+                    <p className="ml-9 text-sm text-gray-700">{animal.activity || 'No especificado'}</p>
                   </div>
 
-                  <div className="bg-yellow-100 rounded-lg p-3 border-l-4 border-yellow-500">
-                    <div className="flex items-center gap-2 mb-1">
+                  <div className="rounded-lg border-l-4 border-yellow-500 bg-yellow-100 p-3">
+                    <div className="mb-1 flex items-center gap-2">
                       <span className="text-2xl">🍽️</span>
                       <h4 className="font-semibold text-green-800">ALIMENTACIÓN</h4>
                     </div>
-                    <p className="text-sm text-gray-700 ml-9">{animal.diet || 'Variada'}</p>
+                    <p className="ml-9 text-sm text-gray-700">{animal.diet || 'Variada'}</p>
                   </div>
 
                   {animal.size && (
-                    <div className="bg-yellow-100 rounded-lg p-3 border-l-4 border-yellow-500">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Ruler className="w-5 h-5 text-green-700" />
+                    <div className="rounded-lg border-l-4 border-yellow-500 bg-yellow-100 p-3">
+                      <div className="mb-1 flex items-center gap-2">
+                        <Ruler className="h-5 w-5 text-green-700" />
                         <h4 className="font-semibold text-green-800">TAMAÑO</h4>
                       </div>
-                      <p className="text-sm text-gray-700 ml-7">{animal.size}</p>
+                      <p className="ml-7 text-sm text-gray-700">{animal.size}</p>
                     </div>
                   )}
 
                   {animal.weight && (
-                    <div className="bg-yellow-100 rounded-lg p-3 border-l-4 border-yellow-500">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Weight className="w-5 h-5 text-green-700" />
+                    <div className="rounded-lg border-l-4 border-yellow-500 bg-yellow-100 p-3">
+                      <div className="mb-1 flex items-center gap-2">
+                        <Weight className="h-5 w-5 text-green-700" />
                         <h4 className="font-semibold text-green-800">PESO</h4>
                       </div>
-                      <p className="text-sm text-gray-700 ml-7">{animal.weight}</p>
+                      <p className="ml-7 text-sm text-gray-700">{animal.weight}</p>
                     </div>
                   )}
 
-                  <div className="bg-yellow-100 rounded-lg p-3 border-l-4 border-yellow-500">
-                    <div className="flex items-center gap-2 mb-1">
+                  <div className="rounded-lg border-l-4 border-yellow-500 bg-yellow-100 p-3">
+                    <div className="mb-1 flex items-center gap-2">
                       <span className="text-2xl">⏱️</span>
                       <h4 className="font-semibold text-green-800">ESPERANZA DE VIDA</h4>
                     </div>
-                    <p className="text-sm text-gray-700 ml-9">{animal.lifespan || 'No especificado'}</p>
+                    <p className="ml-9 text-sm text-gray-700">{animal.lifespan || 'No especificado'}</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Columna derecha - Información detallada */}
-            <div className="lg:col-span-2 space-y-4">
-              
-              {/* Descripción */}
-              <div className="bg-white rounded-xl shadow-md p-6 border-2 border-green-600">
-                <div className="flex items-center gap-2 mb-4 pb-3 border-b-2 border-yellow-400">
-                  <Info className="w-6 h-6 text-green-700" />
+            <div className="space-y-4 lg:col-span-2">
+              <div className="rounded-xl border-2 border-green-600 bg-white p-6 shadow-md">
+                <div className="mb-4 flex items-center gap-2 border-b-2 border-yellow-400 pb-3">
+                  <Info className="h-6 w-6 text-green-700" />
                   <h3 className="text-xl font-bold text-green-800">SOBRE ESTA ESPECIE</h3>
                 </div>
-                <p className="text-gray-700 leading-relaxed">
+                <p className="leading-relaxed text-gray-700">
                   {animal.description || 'Información detallada sobre esta especie se encuentra en proceso de actualización.'}
                 </p>
               </div>
 
-              {/* Distribución */}
+              <div className="rounded-xl border-2 border-green-600 bg-white p-6 shadow-md">
+                <div className="mb-4 flex items-center gap-2 border-b-2 border-yellow-400 pb-3">
+                  <QrCode className="h-6 w-6 text-green-700" />
+                  <h3 className="text-xl font-bold text-green-800">QR DE INFORMACIÓN</h3>
+                </div>
+                <div className="flex flex-col items-center gap-4 md:flex-row md:items-start">
+                  <img
+                    src={qrUrl}
+                    alt={`QR de ${animal.name}`}
+                    className="h-40 w-40 rounded-lg border border-green-200 bg-white p-2"
+                  />
+                  <div className="flex-1">
+                    <p className="text-gray-700">
+                      Escanea este QR para ver un resumen de la especie. También puedes descargar la ficha en texto o guardar la imagen del QR.
+                    </p>
+                    <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                      <Button className="bg-green-600 hover:bg-green-700" onClick={downloadAnimalInfo}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Descargar ficha
+                      </Button>
+                      <Button variant="outline" onClick={() => void downloadQr()}>
+                        <QrCode className="mr-2 h-4 w-4" />
+                        Descargar QR
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {animal.distribution && (
-                <div className="bg-white rounded-xl shadow-md p-6 border-2 border-green-600">
-                  <div className="flex items-center gap-2 mb-4 pb-3 border-b-2 border-yellow-400">
-                    <MapPin className="w-6 h-6 text-green-700" />
+                <div className="rounded-xl border-2 border-green-600 bg-white p-6 shadow-md">
+                  <div className="mb-4 flex items-center gap-2 border-b-2 border-yellow-400 pb-3">
+                    <MapPin className="h-6 w-6 text-green-700" />
                     <h3 className="text-xl font-bold text-green-800">DISTRIBUCIÓN</h3>
                   </div>
                   <p className="text-gray-700">{animal.distribution}</p>
-                  <div className="mt-4 p-4 bg-green-100 rounded-lg">
-                    <p className="text-sm text-gray-600 italic">
-                      📍 Hábitat natural: {animal.habitat}
-                    </p>
+                  <div className="mt-4 rounded-lg bg-green-100 p-4">
+                    <p className="text-sm italic text-gray-600">📍 Hábitat natural: {animal.habitat}</p>
                   </div>
                 </div>
               )}
 
-              {/* Importancia */}
               {animal.importance && (
-                <div className="bg-white rounded-xl shadow-md p-6 border-2 border-green-600">
-                  <div className="flex items-center gap-2 mb-4 pb-3 border-b-2 border-yellow-400">
+                <div className="rounded-xl border-2 border-green-600 bg-white p-6 shadow-md">
+                  <div className="mb-4 flex items-center gap-2 border-b-2 border-yellow-400 pb-3">
                     <span className="text-2xl">⭐</span>
                     <h3 className="text-xl font-bold text-green-800">IMPORTANCIA</h3>
                   </div>
@@ -162,17 +486,16 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
                 </div>
               )}
 
-              {/* Amenazas */}
               {animal.threats && animal.threats.length > 0 && (
-                <div className="bg-white rounded-xl shadow-md p-6 border-2 border-red-400">
-                  <div className="flex items-center gap-2 mb-4 pb-3 border-b-2 border-red-300">
-                    <AlertTriangle className="w-6 h-6 text-red-600" />
+                <div className="rounded-xl border-2 border-red-400 bg-white p-6 shadow-md">
+                  <div className="mb-4 flex items-center gap-2 border-b-2 border-red-300 pb-3">
+                    <AlertTriangle className="h-6 w-6 text-red-600" />
                     <h3 className="text-xl font-bold text-red-700">AMENAZAS</h3>
                   </div>
                   <ul className="space-y-2">
                     {animal.threats.map((threat, index) => (
                       <li key={index} className="flex items-start gap-2">
-                        <span className="text-red-500 mt-1">⚠️</span>
+                        <span className="mt-1 text-red-500">⚠️</span>
                         <span className="text-gray-700">{threat}</span>
                       </li>
                     ))}
@@ -180,35 +503,36 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
                 </div>
               )}
 
-              {/* Datos curiosos */}
               {animal.funFacts && animal.funFacts.length > 0 && (
-                <div className="bg-gradient-to-br from-yellow-100 to-orange-100 rounded-xl shadow-md p-6 border-2 border-yellow-400">
-                  <div className="flex items-center gap-2 mb-4 pb-3 border-b-2 border-yellow-500">
-                    <Lightbulb className="w-6 h-6 text-yellow-700" />
+                <div className="rounded-xl border-2 border-yellow-400 bg-gradient-to-br from-yellow-100 to-orange-100 p-6 shadow-md">
+                  <div className="mb-4 flex items-center gap-2 border-b-2 border-yellow-500 pb-3">
+                    <Lightbulb className="h-6 w-6 text-yellow-700" />
                     <h3 className="text-xl font-bold text-yellow-800">DATOS CURIOSOS</h3>
                   </div>
                   <ul className="space-y-2">
                     {animal.funFacts.map((fact, index) => (
                       <li key={index} className="flex items-start gap-2">
-                        <span className="text-yellow-600 mt-1">💡</span>
+                        <span className="mt-1 text-yellow-600">💡</span>
                         <span className="text-gray-700">{fact}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
               )}
-
             </div>
           </div>
         </div>
 
-        {/* Footer */}
         <div className="bg-gradient-to-r from-green-700 to-green-600 p-4 text-center">
-          <p className="text-white text-sm">
+          <p className="text-sm text-white">
             <strong>ZOOMAT</strong> - Comprometidos con la conservación y educación sobre la vida silvestre
           </p>
         </div>
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined'
+    ? createPortal(modalContent, document.body)
+    : modalContent;
 }

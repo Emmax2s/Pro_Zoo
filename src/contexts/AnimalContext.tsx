@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, ReactNode } from 'react';
+import { createContext, useEffect, useState, useContext, ReactNode } from 'react';
 
 export type ConservationStatus = 'Vulnerable' | 'En Peligro' | 'No Amenazado';
 
@@ -8,6 +8,7 @@ export interface Animal {
   species: string;
   habitat: string;
   imageUrl: string;
+  audioUrl?: string;
   conservation: ConservationStatus;
   description?: string;
   diet?: string;
@@ -177,8 +178,34 @@ const initialAnimals: Animal[] = [
   },
 ];
 
+const ANIMALS_STORAGE_KEY = 'pro-zoo-animals';
+
+const loadAnimals = (): Animal[] => {
+  if (typeof window === 'undefined') {
+    return initialAnimals;
+  }
+
+  const savedAnimals = window.localStorage.getItem(ANIMALS_STORAGE_KEY);
+  if (!savedAnimals) {
+    return initialAnimals;
+  }
+
+  try {
+    const parsedAnimals = JSON.parse(savedAnimals) as Animal[];
+    return Array.isArray(parsedAnimals) && parsedAnimals.length > 0 ? parsedAnimals : initialAnimals;
+  } catch {
+    return initialAnimals;
+  }
+};
+
 export const AnimalProvider = ({ children }: { children: ReactNode }) => {
-  const [animals, setAnimals] = useState<Animal[]>(initialAnimals);
+  const [animals, setAnimals] = useState<Animal[]>(loadAnimals);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(ANIMALS_STORAGE_KEY, JSON.stringify(animals));
+    }
+  }, [animals]);
 
   const addAnimal = (animal: Omit<Animal, 'id'>) => {
     const newAnimal = { ...animal, id: Date.now().toString() };

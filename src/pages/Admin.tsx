@@ -1,11 +1,128 @@
-import { useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { useAnimals, Animal, ConservationStatus } from '../contexts/AnimalContext';
 import { useSite, HeroData, InfoData } from '../contexts/SiteContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { ArrowLeft, Plus, Edit, Trash2, Save, X, Image as ImageIcon, Type, Info } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, Save, X, Image as ImageIcon, Info } from 'lucide-react';
 import { useNavigate } from 'react-router';
+
+const IMAGE_PLACEHOLDER =
+  'data:image/svg+xml;charset=UTF-8,' +
+  encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="320" height="200" viewBox="0 0 320 200">
+      <rect width="320" height="200" fill="#e5e7eb" />
+      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#6b7280" font-family="Arial, sans-serif" font-size="18">
+        Sin imagen
+      </text>
+    </svg>
+  `);
+
+const getDriveFileId = (url?: string) => {
+  if (!url) {
+    return '';
+  }
+
+  const match =
+    url.match(/\/file\/d\/([^/]+)/) ??
+    url.match(/[?&]id=([^&]+)/) ??
+    url.match(/\/uc\?(?:export=[^&]+&)?id=([^&]+)/);
+
+  return match?.[1] ?? '';
+};
+
+const isMegaUrl = (url?: string) => Boolean(url && /mega\.(nz|io)\//i.test(url));
+const isDriveUrl = (url?: string) => Boolean(url && /drive\.google\.com/i.test(url));
+
+const toMegaEmbedUrl = (url: string) => {
+  return url.replace('/file/', '/embed/').replace('/folder/', '/embed/');
+};
+
+const getEmbeddedImageUrl = (url?: string) => {
+  if (!url) {
+    return '';
+  }
+
+  if (isMegaUrl(url)) {
+    return toMegaEmbedUrl(url);
+  }
+
+  const fileId = getDriveFileId(url);
+  return fileId ? `https://drive.google.com/file/d/${fileId}/preview` : '';
+};
+
+const getImagePreviewUrl = (url?: string) => {
+  if (!url) {
+    return '';
+  }
+
+  const trimmed = url.trim();
+
+  if (trimmed.startsWith('data:image/')) {
+    return trimmed;
+  }
+
+  if (/drive\.google\.com/i.test(trimmed)) {
+    const fileId = getDriveFileId(trimmed);
+    if (fileId) {
+      return `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
+    }
+  }
+
+  if (/dropbox\.com/i.test(trimmed)) {
+    return trimmed
+      .replace('www.dropbox.com', 'dl.dropboxusercontent.com')
+      .replace('?dl=0', '?raw=1')
+      .replace('&dl=0', '&raw=1')
+      .replace('?dl=1', '?raw=1');
+  }
+
+  return trimmed;
+};
+
+const getImageFallbackUrl = (url?: string) => {
+  if (!url) {
+    return IMAGE_PLACEHOLDER;
+  }
+
+  if (/drive\.google\.com/i.test(url)) {
+    const fileId = getDriveFileId(url);
+    if (fileId) {
+      return `https://drive.usercontent.google.com/uc?id=${fileId}&export=view`;
+    }
+  }
+
+  return url;
+};
+
+const getAudioPreviewUrl = (url?: string) => {
+  if (!url) {
+    return '';
+  }
+
+  const trimmed = url.trim();
+
+  if (trimmed.startsWith('data:audio/')) {
+    return trimmed;
+  }
+
+  if (isDriveUrl(trimmed)) {
+    const fileId = getDriveFileId(trimmed);
+    if (fileId) {
+      return `https://drive.google.com/uc?export=download&id=${fileId}`;
+    }
+  }
+
+  if (/dropbox\.com/i.test(trimmed)) {
+    return trimmed
+      .replace('www.dropbox.com', 'dl.dropboxusercontent.com')
+      .replace('?dl=0', '?raw=1')
+      .replace('&dl=0', '&raw=1')
+      .replace('?dl=1', '?raw=1');
+  }
+
+  return trimmed;
+};
 
 export default function Admin() {
   const { animals, addAnimal, updateAnimal, deleteAnimal } = useAnimals();
@@ -21,9 +138,23 @@ export default function Admin() {
   const [infoForm, setInfoForm] = useState<InfoData>(siteData.info);
   const [isSavingSite, setIsSavingSite] = useState(false);
 
+  useEffect(() => {
+    setHeroForm(siteData.hero);
+    setInfoForm(siteData.info);
+  }, [siteData]);
+
   const handleSaveSiteConfig = () => {
+    const normalizedImages = heroForm.backgroundImages
+      .map((image) => image.trim())
+      .filter((image) => image !== '');
+
+    if (normalizedImages.length === 0) {
+      alert('Agrega al menos una imagen para el carrusel principal');
+      return;
+    }
+
     setIsSavingSite(true);
-    updateHero(heroForm);
+    updateHero({ ...heroForm, backgroundImages: normalizedImages });
     updateInfo(infoForm);
     setTimeout(() => {
       setIsSavingSite(false);
@@ -31,10 +162,20 @@ export default function Admin() {
     }, 500);
   };
 
+  const scrollToAnimalForm = () => {
+    requestAnimationFrame(() => {
+      document.getElementById('animal-form')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
+  };
+
   const handleEdit = (animal: Animal) => {
     setEditingId(animal.id);
     setFormData(animal);
     setIsAdding(false);
+    scrollToAnimalForm();
   };
 
   const handleDelete = (id: string) => {
@@ -64,8 +205,34 @@ export default function Admin() {
     setFormData({});
   };
 
+  const handleFileChange = (field: 'imageUrl' | 'audioUrl') => (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      setFormData((prev) => ({ ...prev, [field]: result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAddNewAnimal = () => {
+    setIsAdding(true);
+    setEditingId(null);
+    setFormData({
+      conservation: 'No Amenazado',
+      activity: 'Diurno',
+      threats: [],
+      funFacts: [],
+    });
+    scrollToAnimalForm();
+  };
+
   const renderForm = () => (
-    <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+    <div id="animal-form" className="bg-white p-6 rounded-lg shadow-md mb-8">
       <h3 className="text-xl font-bold text-green-800 mb-4">
         {isAdding ? 'Añadir Nuevo Animal' : 'Editar Animal'}
       </h3>
@@ -101,6 +268,74 @@ export default function Admin() {
             onChange={e => setFormData({...formData, imageUrl: e.target.value})}
             placeholder="https://..."
           />
+          <input
+            type="file"
+            accept="image/*"
+            className="mt-2 block w-full text-sm text-gray-600"
+            onChange={handleFileChange('imageUrl')}
+          />
+          <p className="mt-1 text-xs text-gray-500">Si usas Google Drive, comparte el archivo como "Cualquiera con el enlace" antes de pegar la URL.</p>
+          <div className="mt-3 overflow-hidden rounded-md border border-gray-200 bg-gray-50">
+            {formData.imageUrl && (isMegaUrl(formData.imageUrl) || isDriveUrl(formData.imageUrl)) ? (
+              <iframe
+                src={getEmbeddedImageUrl(formData.imageUrl)}
+                title="Vista previa de imagen"
+                className="h-40 w-full border-0"
+              />
+            ) : (
+              <img
+                src={formData.imageUrl ? getImagePreviewUrl(formData.imageUrl) : IMAGE_PLACEHOLDER}
+                alt="Vista previa del animal"
+                className="h-40 w-full object-cover"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  const fallbackUrl = getImageFallbackUrl(formData.imageUrl);
+
+                  if (target.dataset.fallbackApplied !== 'true' && fallbackUrl && fallbackUrl !== target.src) {
+                    target.dataset.fallbackApplied = 'true';
+                    target.src = fallbackUrl;
+                    return;
+                  }
+
+                  target.src = IMAGE_PLACEHOLDER;
+                }}
+              />
+            )}
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">URL de Audio</label>
+          <Input 
+            value={formData.audioUrl || ''} 
+            onChange={e => setFormData({...formData, audioUrl: e.target.value})}
+            placeholder="https://.../audio.mp3"
+          />
+          <input
+            type="file"
+            accept="audio/*"
+            className="mt-2 block w-full text-sm text-gray-600"
+            onChange={handleFileChange('audioUrl')}
+          />
+          <p className="mt-1 text-xs text-gray-500">Si usas Google Drive, comparte el audio como "Cualquiera con el enlace" antes de pegar la URL.</p>
+          <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3">
+            {formData.audioUrl ? (
+              isMegaUrl(formData.audioUrl) || isDriveUrl(formData.audioUrl) ? (
+                <iframe
+                  src={isMegaUrl(formData.audioUrl) ? toMegaEmbedUrl(formData.audioUrl) : getEmbeddedImageUrl(formData.audioUrl)}
+                  title="Vista previa de audio"
+                  className="h-24 w-full rounded-md border-0"
+                  allow="autoplay"
+                />
+              ) : (
+                <audio controls preload="none" className="w-full">
+                  <source src={getAudioPreviewUrl(formData.audioUrl)} />
+                  Tu navegador no soporta audio HTML5.
+                </audio>
+              )
+            ) : (
+              <p className="text-sm text-gray-500">Sin audio cargado. En la ficha se usará una narración automática si no agregas un archivo.</p>
+            )}
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Estado de Conservación</label>
@@ -206,8 +441,8 @@ export default function Admin() {
         <Button variant="outline" onClick={handleCancel}>
           <X className="w-4 h-4 mr-2" /> Cancelar
         </Button>
-        <Button className="bg-green-600 hover:bg-green-700" onClick={handleSave}>
-          <Save className="w-4 h-4 mr-2" /> Guardar
+        <Button className="bg-green-600 hover:bg-green-700" onClick={handleSave} type="button">
+          <Save className="w-4 h-4 mr-2" /> {isAdding ? 'Agregar especie' : 'Guardar cambios'}
         </Button>
       </div>
     </div>
@@ -255,12 +490,24 @@ export default function Admin() {
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">URL de Imagen de Fondo</label>
-                    <Input 
-                      value={heroForm.backgroundImageUrl} 
-                      onChange={e => setHeroForm({...heroForm, backgroundImageUrl: e.target.value})}
+                    <label className="block text-sm font-medium text-gray-700 mb-1">URLs de imágenes del carrusel</label>
+                    <textarea
+                      className="flex min-h-[110px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      value={heroForm.backgroundImages.join('\n')}
+                      onChange={e =>
+                        setHeroForm({
+                          ...heroForm,
+                          backgroundImages: e.target.value
+                            .split('\n')
+                            .map(url => url.trim())
+                            .filter(url => url !== ''),
+                        })
+                      }
+                      placeholder={'https://ejemplo.com/imagen-1.jpg\nhttps://ejemplo.com/imagen-2.jpg'}
                     />
-                    <p className="text-xs text-gray-500 mt-1">Copia la URL de una imagen o busca en Unsplash.</p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Agrega una URL por línea. Si solo hay una imagen, el carrusel se desactiva automáticamente.
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Texto del Botón 1</label>
@@ -320,14 +567,10 @@ export default function Admin() {
             <div className="flex justify-end mb-4">
               <Button 
                 className="bg-green-600 hover:bg-green-700"
-                onClick={() => {
-                  setIsAdding(true);
-                  setEditingId(null);
-                  setFormData({ conservation: 'No Amenazado' });
-                }}
-                disabled={isAdding || editingId !== null}
+                onClick={handleAddNewAnimal}
+                type="button"
               >
-                <Plus className="w-4 h-4 mr-2" /> Nuevo Animal
+                <Plus className="w-4 h-4 mr-2" /> Nueva especie
               </Button>
             </div>
 
@@ -350,8 +593,32 @@ export default function Admin() {
                     {animals.map(animal => (
                       <tr key={animal.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4">
-                          <div className="w-12 h-12 rounded-full overflow-hidden">
-                            <img src={animal.imageUrl} alt={animal.name} className="w-full h-full object-cover" />
+                          <div className="h-12 w-12 overflow-hidden rounded-full bg-gray-100">
+                            {isMegaUrl(animal.imageUrl) || isDriveUrl(animal.imageUrl) ? (
+                              <iframe
+                                src={getEmbeddedImageUrl(animal.imageUrl)}
+                                title={`Vista previa de ${animal.name}`}
+                                className="h-full w-full border-0"
+                              />
+                            ) : (
+                              <img
+                                src={getImagePreviewUrl(animal.imageUrl)}
+                                alt={animal.name}
+                                className="h-full w-full object-contain bg-white"
+                                onError={(e) => {
+                                  const target = e.currentTarget;
+                                  const fallbackUrl = getImageFallbackUrl(animal.imageUrl);
+
+                                  if (target.dataset.fallbackApplied !== 'true' && fallbackUrl && fallbackUrl !== target.src) {
+                                    target.dataset.fallbackApplied = 'true';
+                                    target.src = fallbackUrl;
+                                    return;
+                                  }
+
+                                  target.src = IMAGE_PLACEHOLDER;
+                                }}
+                              />
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4 font-medium text-gray-900">{animal.name}</td>
@@ -368,11 +635,10 @@ export default function Admin() {
                           <div className="flex justify-end gap-2">
                             <Button 
                               variant="ghost" 
-                              size="icon" 
                               className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                               onClick={() => handleEdit(animal)}
                             >
-                              <Edit className="w-4 h-4" />
+                              <Edit className="w-4 h-4" /> Editar
                             </Button>
                             <Button 
                               variant="ghost" 

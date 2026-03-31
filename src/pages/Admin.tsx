@@ -6,6 +6,7 @@ import { Input } from '../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { ArrowLeft, Plus, Edit, Trash2, Save, X, Image as ImageIcon, Info } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { AnimalQrTools } from '../components/AnimalQrTools';
 
 const IMAGE_PLACEHOLDER =
   'data:image/svg+xml;charset=UTF-8,' +
@@ -436,6 +437,8 @@ export default function Admin() {
             placeholder="Ej. Los leones son los únicos felinos sociales; Pueden correr a velocidades de hasta 80 km/h"
           />
         </div>
+
+        <AnimalQrTools animal={formData} animalId={editingId} />
       </div>
       <div className="flex justify-end gap-2">
         <Button variant="outline" onClick={handleCancel}>

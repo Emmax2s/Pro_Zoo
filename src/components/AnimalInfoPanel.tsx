@@ -2,11 +2,9 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   AlertTriangle,
-  Download,
   Info,
   Lightbulb,
   MapPin,
-  QrCode,
   Ruler,
   Volume2,
   Weight,
@@ -184,43 +182,6 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
   const usesDriveImage = isDriveUrl(animal.imageUrl);
   const usesMegaAudio = isMegaUrl(animal.audioUrl);
   const usesDriveAudio = isDriveUrl(animal.audioUrl);
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(animalSummary)}`;
-  const fileName = animal.name
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-');
-
-  const downloadAnimalInfo = () => {
-    const content = `${animalSummary}\n${
-      animal.funFacts?.length ? `\nDatos curiosos: ${animal.funFacts.join('; ')}` : ''
-    }${animal.threats?.length ? `\nAmenazas: ${animal.threats.join(', ')}` : ''}`;
-
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `${fileName || 'animal'}-info.txt`;
-    link.click();
-    URL.revokeObjectURL(link.href);
-  };
-
-  const downloadQr = async () => {
-    try {
-      const response = await fetch(qrUrl);
-      if (!response.ok) {
-        throw new Error('No se pudo descargar el QR');
-      }
-
-      const blob = await response.blob();
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `${fileName || 'animal'}-qr.png`;
-      link.click();
-      URL.revokeObjectURL(link.href);
-    } catch {
-      window.open(qrUrl, '_blank', 'noopener,noreferrer');
-    }
-  };
 
   const openExternalLink = (url?: string) => {
     if (!url) {
@@ -434,34 +395,6 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
                 </p>
               </div>
 
-              <div className="rounded-xl border-2 border-green-600 bg-white p-6 shadow-md">
-                <div className="mb-4 flex items-center gap-2 border-b-2 border-yellow-400 pb-3">
-                  <QrCode className="h-6 w-6 text-green-700" />
-                  <h3 className="text-xl font-bold text-green-800">QR DE INFORMACIÓN</h3>
-                </div>
-                <div className="flex flex-col items-center gap-4 md:flex-row md:items-start">
-                  <img
-                    src={qrUrl}
-                    alt={`QR de ${animal.name}`}
-                    className="h-40 w-40 rounded-lg border border-green-200 bg-white p-2"
-                  />
-                  <div className="flex-1">
-                    <p className="text-gray-700">
-                      Escanea este QR para ver un resumen de la especie. También puedes descargar la ficha en texto o guardar la imagen del QR.
-                    </p>
-                    <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                      <Button className="bg-green-600 hover:bg-green-700" onClick={downloadAnimalInfo}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Descargar ficha
-                      </Button>
-                      <Button variant="outline" onClick={() => void downloadQr()}>
-                        <QrCode className="mr-2 h-4 w-4" />
-                        Descargar QR
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
               {animal.distribution && (
                 <div className="rounded-xl border-2 border-green-600 bg-white p-6 shadow-md">

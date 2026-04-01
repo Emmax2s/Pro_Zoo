@@ -8,6 +8,7 @@ export interface Animal {
   species: string;
   habitat: string;
   imageUrl: string;
+  imageUrls?: string[];
   audioUrl?: string;
   conservation: ConservationStatus;
   description?: string;
@@ -38,6 +39,11 @@ const initialAnimals: Animal[] = [
     species: 'Panthera leo',
     habitat: 'Sabana Africana',
     imageUrl: 'https://images.unsplash.com/photo-1680858592943-dd599a244ea8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsaW9uJTIwd2lsZGxpZmV8ZW58MXx8fHwxNzYxNDAxMTY2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+    imageUrls: [
+      'https://images.unsplash.com/photo-1680858592943-dd599a244ea8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsaW9uJTIwd2lsZGxpZmV8ZW58MXx8fHwxNzYxNDAxMTY2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+      'https://images.unsplash.com/photo-1516811166-2b6c9f7f3e16?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxNDA4MTN8MHwxfHNlYXJjaHwxfHxsaW9ufGVufDB8fHx8MTYwMzQ5NTM4Nw&ixlib=rb-4.0.3&q=80&w=1080',
+      'https://images.unsplash.com/photo-1603325222963-a14741b0f284?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxNDA4MTN8MHwxfHNlYXJjaHwxfHxsaW9uJTIwd2lsZGxpZmV8ZW58MHx8fHx8MTYwMzQ5NTQxOA&ixlib=rb-4.0.3&q=80&w=1080'
+    ],
     conservation: 'Vulnerable',
     description: 'El león africano es conocido como el "rey de la selva" y es el segundo felino más grande del mundo. Poseen una estructura social única entre los felinos, viviendo en manadas que comparten territorio.',
     diet: 'Carnívoro - ñus, cebras y búfalos',
@@ -147,6 +153,37 @@ const initialAnimals: Animal[] = [
     habitat: 'Selva Tropical',
     imageUrl: 'https://images.unsplash.com/photo-1613213541901-3f1408daf859?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb25rZXklMjB3aWxkbGlmZXxlbnwxfHx8fDE3NjEzMDYyMTl8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
     conservation: 'No Amenazado',
+  },
+  {
+    id: '9',
+    name: 'Jaguar',
+    species: 'Panthera onca',
+    habitat: 'Bosques y selvas tropicales',
+    imageUrl: 'https://images.unsplash.com/photo-1572018676888-90d4c8f7630d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxNjA5NjZ8MHwxfHNlYXJjaHwxfHxqYWd1YXJ8ZW58MHx8fHwxNjg0NjYzNTk5&ixlib=rb-4.0.3&q=80&w=1080',
+    imageUrls: [
+      'https://images.unsplash.com/photo-1572018676888-90d4c8f7630d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxNjA5NjZ8MHwxfHNlYXJjaHwxfHxqYWd1YXJ8ZW58MHx8fHwxNjg0NjYzNTk5&ixlib=rb-4.0.3&q=80&w=1080',
+      'https://images.unsplash.com/photo-1526481280690-7cb04dcaa319?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxNjA5NjZ8MHwxfHNlYXJjaHwxfHxtYWx0aWNhfGVufDB8fHx8MTY4NDY2MzY0NQ&ixlib=rb-4.0.3&q=80&w=1080',
+      'https://images.unsplash.com/photo-1544725176-7c40e5a7270c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxNjA5NjZ8MHwxfHNlYXJjaHwxfHxqYWd1YXJ8ZW58MHx8fHwxNjg0NjYzNjky&ixlib=rb-4.0.3&q=80&w=1080'
+    ],
+    conservation: 'Vulnerable',
+    description: 'El jaguar es un felino emblemático de América, poderoso y elegante, que vive en selvas tropicales y bosques densos.',
+    diet: 'Carnívoro - venados, pecaríes, caimanes',
+    lifespan: '12 a 15 años en estado salvaje',
+    activity: 'Nocturno',
+    size: '1.1 a 1.8 metros de longitud corporal',
+    weight: '45 a 100 kg',
+    threats: ['Pérdida de hábitat', 'Caza ilegal'],
+    importance: 'Clave para el equilibrio de los ecosistemas de la Amazonía y Gran Chaco.',
+    distribution: 'América Central y del Sur',
+    funFacts: ['Su mordida es la más fuerte entre los felinos.', 'Puede nadar muy bien y cazar peces.'],
+  },
+  {
+    id: '8',
+    name: 'Cebra de Grevy',
+    species: 'Equus grevyi',
+    habitat: 'Sabana Africana',
+    imageUrl: 'https://images.unsplash.com/photo-1638910939569-7f88cf71ebbc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx6ZWJyYSUyMHdpbGRsaWZlfGVufDF8fHx8MTc2MTQxNjUzN3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+    conservation: 'En Peligro',
     description: 'Estos pequeños primates son altamente inteligentes y muy activos. Son famosos por su habilidad para utilizar herramientas rudimentarias para abrir frutos o nueces.',
     diet: 'Omnívoro - frutas, insectos y hojas',
     lifespan: '15 a 25 años en estado salvaje',

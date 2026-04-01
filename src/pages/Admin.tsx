@@ -35,6 +35,13 @@ const getDriveFileId = (url?: string) => {
 const isMegaUrl = (url?: string) => Boolean(url && /mega\.(nz|io)\//i.test(url));
 const isDriveUrl = (url?: string) => Boolean(url && /drive\.google\.com/i.test(url));
 
+const isValidImageUrl = (url?: string) => {
+  if (!url) return false;
+  const normalized = url.trim();
+  const safePattern = /^https?:\/\/.+\.(jpe?g|png|webp)(\?.*)?$/i;
+  return safePattern.test(normalized);
+};
+
 const toMegaEmbedUrl = (url: string) => {
   return url.replace('/file/', '/embed/').replace('/folder/', '/embed/');
 };
@@ -186,15 +193,28 @@ export default function Admin() {
   };
 
   const handleSave = () => {
+    const hasImage = Boolean(formData.imageUrl || (formData.imageUrls && formData.imageUrls.length > 0));
+
     if (isAdding) {
-      if (!formData.name || !formData.species || !formData.imageUrl || !formData.habitat || !formData.conservation) {
+      if (!formData.name || !formData.species || !hasImage || !formData.habitat || !formData.conservation) {
         alert('Por favor completa los campos obligatorios');
         return;
       }
-      addAnimal(formData as Omit<Animal, 'id'>);
+
+      const normalizedAnimal = {
+        ...formData,
+        imageUrl: formData.imageUrl || formData.imageUrls?.[0] || '',
+      } as Omit<Animal, 'id'>;
+
+      addAnimal(normalizedAnimal);
       setIsAdding(false);
     } else if (editingId) {
-      updateAnimal(editingId, formData);
+      const normalizedAnimal = {
+        ...formData,
+        imageUrl: formData.imageUrl || formData.imageUrls?.[0] || '',
+      };
+
+      updateAnimal(editingId, normalizedAnimal);
       setEditingId(null);
     }
     setFormData({});
@@ -302,6 +322,23 @@ export default function Admin() {
                 }}
               />
             )}
+          </div>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">URLs de Imágenes (una por línea)</label>
+            <textarea
+              className="flex min-h-[90px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              value={(formData.imageUrls || []).join('\n')}
+              onChange={e => setFormData({
+                ...formData,
+                imageUrls: e.target.value
+                  .split('\n')
+                  .map((url) => url.trim())
+                  .filter((url) => url !== ''),
+              })}
+              placeholder="https://.../imagen1.jpg\nhttps://.../imagen2.jpg"
+            />
+            <p className="mt-1 text-xs text-gray-500">Si defines varias URLs aquí, se usará ese carrusel. El campo URL de imagen individual seguirá funcionando como respaldo.</p>
           </div>
         </div>
         <div>
@@ -494,22 +531,72 @@ export default function Admin() {
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">URLs de imágenes del carrusel</label>
-                    <textarea
-                      className="flex min-h-[110px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      value={heroForm.backgroundImages.join('\n')}
-                      onChange={e =>
-                        setHeroForm({
-                          ...heroForm,
-                          backgroundImages: e.target.value
-                            .split('\n')
-                            .map(url => url.trim())
-                            .filter(url => url !== ''),
-                        })
-                      }
-                      placeholder={'https://ejemplo.com/imagen-1.jpg\nhttps://ejemplo.com/imagen-2.jpg'}
-                    />
+                    <div className="space-y-3">
+                      {heroForm.backgroundImages.map((url, idx) => (
+                        <div key={`hero-url-${idx}`} className="relative rounded-md border border-input bg-white p-2">
+                          <div className="flex items-start gap-2">
+                            <Input
+                              value={url}
+                              onChange={e => {
+                                const newImages = [...heroForm.backgroundImages];
+                                newImages[idx] = e.target.value;
+                                setHeroForm({ ...heroForm, backgroundImages: newImages });
+                              }}
+                              placeholder="https://example.com/imagen.jpg"
+                              className="flex-1"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newImages = heroForm.backgroundImages.filter((_, removeIdx) => removeIdx !== idx);
+                                setHeroForm({ ...heroForm, backgroundImages: newImages });
+                              }}
+                              className="rounded-md border border-rose-300 bg-rose-50 px-2 py-1 text-rose-700 hover:bg-rose-100"
+                              title="Eliminar imagen"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+
+                          <p className="mt-1 text-xs">
+                            {isValidImageUrl(url)
+                              ? 'URL válida'
+                              : 'URL inválida. Debe empezar con http/https y terminar en .jpg, .jpeg, .png o .webp'}
+                          </p>
+
+                          <div className="mt-2 flex items-center gap-2">
+                            {isValidImageUrl(url) ? (
+                              <img
+                                src={url}
+                                alt={`Vista previa ${idx + 1}`}
+                                className="h-16 w-16 rounded-md border object-cover"
+                                onError={e => {
+                                  (e.currentTarget as HTMLImageElement).src = IMAGE_PLACEHOLDER;
+                                }}
+                              />
+                            ) : (
+                              <div className="flex h-16 w-16 items-center justify-center rounded-md border bg-gray-100 text-xs text-gray-500">
+                                No disponible
+                              </div>
+                            )}
+                            <span className={`text-xs ${isValidImageUrl(url) ? 'text-green-700' : 'text-red-600'}`}>
+                              {isValidImageUrl(url) ? 'Previsualización cargada' : 'Previsualización no disponible'}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+
+                      <button
+                        type="button"
+                        onClick={() => setHeroForm({ ...heroForm, backgroundImages: [...heroForm.backgroundImages, ''] })}
+                        className="inline-flex items-center gap-2 rounded-md border border-green-500 bg-green-50 px-3 py-1.5 text-sm text-green-700 hover:bg-green-100"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Añadir otra imagen
+                      </button>
+                    </div>
                     <p className="mt-1 text-xs text-gray-500">
-                      Agrega una URL por línea. Si solo hay una imagen, el carrusel se desactiva automáticamente.
+                      Agrega una URL por campo. El carrusel se desactiva si hay menos de 2 imágenes válidas.
                     </p>
                   </div>
                   <div>

@@ -1,6 +1,6 @@
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AnimalInfoPanel } from './AnimalInfoPanel';
 import { Animal } from '../contexts/AnimalContext';
 
@@ -73,19 +73,39 @@ const normalizeImageUrl = (url?: string) => {
 export function AnimalCard(animal: AnimalCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [imageSourceIndex, setImageSourceIndex] = useState(0);
-  const driveImageSources = getDriveImageSources(animal.imageUrl);
-  const normalizedImageUrl = normalizeImageUrl(animal.imageUrl);
-  const usesDriveImage = /drive\.google\.com/i.test(animal.imageUrl);
-  const currentImageUrl = usesDriveImage
-    ? driveImageSources[imageSourceIndex] ?? normalizedImageUrl
-    : normalizedImageUrl;
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const imageCandidates = useMemo(() => {
+    const sources = animal.imageUrls && animal.imageUrls.length > 0 ? animal.imageUrls : [animal.imageUrl];
+    return sources
+      .map((url) => normalizeImageUrl(url))
+      .filter((url): url is string => !!url);
+  }, [animal.imageUrl, animal.imageUrls]);
+
+  const hasMultipleImages = imageCandidates.length > 1;
+
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [imageCandidates]);
+
+  useEffect(() => {
+    if (!hasMultipleImages) return;
+
+    const intervalId = window.setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % imageCandidates.length);
+    }, 4000);
+
+    return () => window.clearInterval(intervalId);
+  }, [hasMultipleImages, imageCandidates.length]);
+
+  const currentImageUrl = imageCandidates[currentIndex] || '';
 
   const handleImageError = () => {
-    if (usesDriveImage && imageSourceIndex < driveImageSources.length - 1) {
-      setImageSourceIndex((prev) => prev + 1);
+    if (currentIndex < imageCandidates.length - 1) {
+      setCurrentIndex((prev) => (prev + 1) % imageCandidates.length);
       return;
     }
+
     setImageError(true);
   };
 
@@ -106,7 +126,7 @@ export function AnimalCard(animal: AnimalCardProps) {
         className="cursor-pointer overflow-hidden border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md"
         onClick={() => setIsOpen(true)}
       >
-        <div className="h-[200px] w-full overflow-hidden bg-gray-50">
+        <div className="relative h-[200px] w-full overflow-hidden bg-gray-50">
           {imageError || !currentImageUrl ? (
             <img
               src={IMAGE_PLACEHOLDER}
@@ -120,6 +140,50 @@ export function AnimalCard(animal: AnimalCardProps) {
               className="h-full w-full object-cover"
               onError={handleImageError}
             />
+          )}
+
+          {hasMultipleImages && (
+            <>
+              <div className="absolute left-2 top-2 z-10 rounded-md bg-black/60 px-2 py-1 text-xs font-medium text-white">
+                Carrusel {currentIndex + 1}/{imageCandidates.length}
+              </div>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setCurrentIndex((prev) => (prev - 1 + imageCandidates.length) % imageCandidates.length);
+                }}
+                className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/30 p-1 text-white"
+                aria-label="Anterior imagen"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setCurrentIndex((prev) => (prev + 1) % imageCandidates.length);
+                }}
+                className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/30 p-1 text-white"
+                aria-label="Siguiente imagen"
+              >
+                ›
+              </button>
+              <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1">
+                {imageCandidates.map((_, index) => (
+                  <button
+                    key={`indicator-${index}`}
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setCurrentIndex(index);
+                    }}
+                    className={`h-2 w-2 rounded-full ${index === currentIndex ? 'bg-white' : 'bg-white/50'}`}
+                    aria-label={`Ir a imagen ${index + 1}`}
+                  />
+                ))}
+              </div>
+            </>
           )}
         </div>
         <CardContent className="space-y-1 p-4">

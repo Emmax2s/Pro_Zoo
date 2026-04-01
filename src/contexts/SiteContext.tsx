@@ -46,13 +46,15 @@ const initialSiteData: SiteData = {
 const normalizeHeroData = (
   hero?: Partial<HeroData> & { backgroundImageUrl?: string }
 ): HeroData => {
-  const backgroundImages = Array.isArray(hero?.backgroundImages)
+  const filteredImages = Array.isArray(hero?.backgroundImages)
     ? hero.backgroundImages.filter(
         (image): image is string => typeof image === 'string' && image.trim() !== ''
       )
     : hero?.backgroundImageUrl?.trim()
       ? [hero.backgroundImageUrl.trim()]
-      : initialSiteData.hero.backgroundImages;
+      : [];
+
+  const backgroundImages = filteredImages.length > 0 ? filteredImages : initialSiteData.hero.backgroundImages;
 
   return {
     ...initialSiteData.hero,

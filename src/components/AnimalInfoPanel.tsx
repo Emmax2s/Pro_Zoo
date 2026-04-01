@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   AlertTriangle,
@@ -126,8 +126,6 @@ const normalizeAudioUrl = (url?: string) => {
 };
 
 export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
-  const [imageError, setImageError] = useState(false);
-  const [imageSourceIndex, setImageSourceIndex] = useState(0);
   const [audioError, setAudioError] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
 
@@ -172,14 +170,38 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
   };
 
   const animalSummary = buildAnimalSummary(animal);
-  const driveImageSources = getDriveImageSources(animal.imageUrl);
-  const normalizedImageUrl = normalizeImageUrl(animal.imageUrl);
-  const currentImageUrl = isDriveUrl(animal.imageUrl)
-    ? driveImageSources[imageSourceIndex] ?? normalizedImageUrl
-    : normalizedImageUrl;
+  const rawImageUrls = animal.imageUrls && animal.imageUrls.length > 0 ? animal.imageUrls : [animal.imageUrl];
+
+  const imageCandidates = useMemo(
+    () => rawImageUrls.map((url) => normalizeImageUrl(url)).filter((url): url is string => !!url),
+    [rawImageUrls]
+  );
+
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [imageError, setImageError] = useState(false);
+  const hasMultipleImages = imageCandidates.length > 1;
+
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [imageCandidates]);
+
+  useEffect(() => {
+    if (!hasMultipleImages) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % imageCandidates.length);
+    }, 4000);
+
+    return () => window.clearInterval(intervalId);
+  }, [hasMultipleImages, imageCandidates.length]);
+
+  const currentImageUrl = imageCandidates[currentImageIndex] || '';
+  const currentDriveImageSources = getDriveImageSources(currentImageUrl);
+  const usesMegaImage = isMegaUrl(currentImageUrl);
+  const usesDriveImage = isDriveUrl(currentImageUrl);
   const normalizedAudioUrl = normalizeAudioUrl(animal.audioUrl);
-  const usesMegaImage = isMegaUrl(animal.imageUrl);
-  const usesDriveImage = isDriveUrl(animal.imageUrl);
   const usesMegaAudio = isMegaUrl(animal.audioUrl);
   const usesDriveAudio = isDriveUrl(animal.audioUrl);
 
@@ -252,24 +274,24 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
         <div className="max-h-[calc(95vh-12rem)] overflow-y-auto p-8">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="space-y-4 lg:col-span-1">
-              <div className="overflow-hidden rounded-xl border-4 border-yellow-400 bg-white shadow-lg">
+              <div className="relative overflow-hidden rounded-xl border-4 border-yellow-400 bg-white shadow-lg">
+                {hasMultipleImages && (
+                  <div className="absolute left-2 top-2 z-10 rounded-md bg-black/60 px-2 py-1 text-xs font-medium text-white">
+                    Carrusel {currentImageIndex + 1}/{imageCandidates.length}
+                  </div>
+                )}
                 {usesMegaImage || usesDriveImage ? (
                   <iframe
-                    src={usesMegaImage ? toMegaEmbedUrl(animal.imageUrl) : toDrivePreviewUrl(animal.imageUrl)}
+                    src={usesMegaImage ? toMegaEmbedUrl(currentImageUrl) : toDrivePreviewUrl(currentImageUrl)}
                     title={`Imagen de ${animal.name}`}
                     className="h-64 w-full border-0"
                   />
-                ) : imageError ? (
+                ) : imageError || !currentImageUrl ? (
                   <div className="flex h-64 flex-col items-center justify-center gap-3 bg-gray-100 p-4 text-center">
                     <p className="text-sm text-gray-600">
-                      No se pudo mostrar esta imagen directamente. Verifica que el archivo en Drive esté compartido como "Cualquiera con el enlace".
+                      No se pudo mostrar esta imagen directamente. Verifica que el enlace sea válido.
                     </p>
-                    {usesDriveImage && (
-                      <Button variant="outline" onClick={() => openExternalLink(toDrivePreviewUrl(animal.imageUrl))}>
-                        Ver imagen en Drive
-                      </Button>
-                    )}
-                    <Button variant="outline" onClick={() => openExternalLink(animal.imageUrl)}>
+                    <Button variant="outline" onClick={() => openExternalLink(currentImageUrl || animal.imageUrl)}>
                       Abrir imagen
                     </Button>
                   </div>
@@ -279,13 +301,45 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
                     alt={animal.name}
                     className="h-64 w-full object-contain bg-white"
                     onError={() => {
-                      if (usesDriveImage && imageSourceIndex < driveImageSources.length - 1) {
-                        setImageSourceIndex((prev) => prev + 1);
+                      if (currentImageIndex < imageCandidates.length - 1) {
+                        setCurrentImageIndex((prev) => (prev + 1) % imageCandidates.length);
                         return;
                       }
                       setImageError(true);
                     }}
                   />
+                )}
+
+                {hasMultipleImages && !imageError && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentImageIndex((prev) => (prev - 1 + imageCandidates.length) % imageCandidates.length)}
+                      className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/30 p-1 text-white"
+                      aria-label="Anterior imagen"
+                    >
+                      ‹
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentImageIndex((prev) => (prev + 1) % imageCandidates.length)}
+                      className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/30 p-1 text-white"
+                      aria-label="Siguiente imagen"
+                    >
+                      ›
+                    </button>
+                    <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1">
+                      {imageCandidates.map((_, index) => (
+                        <button
+                          key={`indicator-${index}`}
+                          type="button"
+                          onClick={() => setCurrentImageIndex(index)}
+                          className={`h-2 w-2 rounded-full ${index === currentImageIndex ? 'bg-green-600' : 'bg-white/70'}`}
+                          aria-label={`Ir a imagen ${index + 1}`}
+                        />
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
 

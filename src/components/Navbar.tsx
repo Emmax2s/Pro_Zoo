@@ -1,6 +1,6 @@
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
-import headerLogo from 'figma:asset/c9bb87ab616765af1c588f478ac253c1180697f3.png';
+import headerLogo from '../assets/logo-zoomat.png';
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

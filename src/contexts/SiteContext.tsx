@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import heroBg from 'figma:asset/a2dedec3d43b2289cc48881763d33f0dae3e4378.png';
+import heroBg from '../assets/hero-bg.png';
 import { idbGetItem, idbSetItem } from '../utils/persistentStorage';
 
 const SITE_STORAGE_KEY = 'pro-zoo-site-data';

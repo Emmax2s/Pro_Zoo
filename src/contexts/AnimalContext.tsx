@@ -225,26 +225,50 @@ const initialAnimals: Animal[] = [
 ];
 
 const ANIMALS_STORAGE_KEY = 'pro-zoo-animals';
+const SHARED_CONTENT_URL = '/site-content.json';
+
+interface SharedContentPayload {
+  animals?: Animal[];
+}
 
 const isValidAnimals = (value: unknown): value is Animal[] => {
   return Array.isArray(value) && value.length > 0;
 };
 
-const loadAnimals = (): Animal[] => {
+const loadAnimals = (): { animals: Animal[]; hasLocalOverride: boolean } => {
   if (typeof window === 'undefined') {
-    return initialAnimals;
+    return { animals: initialAnimals, hasLocalOverride: false };
   }
 
   const savedAnimals = window.localStorage.getItem(ANIMALS_STORAGE_KEY);
   if (!savedAnimals) {
-    return initialAnimals;
+    return { animals: initialAnimals, hasLocalOverride: false };
   }
 
   try {
     const parsedAnimals = JSON.parse(savedAnimals) as Animal[];
-    return Array.isArray(parsedAnimals) && parsedAnimals.length > 0 ? parsedAnimals : initialAnimals;
+    const validAnimals = Array.isArray(parsedAnimals) && parsedAnimals.length > 0 ? parsedAnimals : initialAnimals;
+    return { animals: validAnimals, hasLocalOverride: true };
   } catch {
-    return initialAnimals;
+    return { animals: initialAnimals, hasLocalOverride: false };
+  }
+};
+
+const loadPublishedAnimals = async (): Promise<Animal[] | null> => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const response = await fetch(SHARED_CONTENT_URL, { cache: 'no-store' });
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as SharedContentPayload;
+    return isValidAnimals(payload.animals) ? payload.animals : null;
+  } catch {
+    return null;
   }
 };
 
@@ -275,12 +299,21 @@ export const AnimalProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const localAnimals = loadAnimals();
+      let baseAnimals = localAnimals.animals;
+
+      if (!localAnimals.hasLocalOverride) {
+        const publishedAnimals = await loadPublishedAnimals();
+        if (publishedAnimals) {
+          baseAnimals = publishedAnimals;
+        }
+      }
+
       if (active) {
-        setAnimals(localAnimals);
+        setAnimals(baseAnimals);
       }
 
       try {
-        await idbSetItem(ANIMALS_STORAGE_KEY, localAnimals);
+        await idbSetItem(ANIMALS_STORAGE_KEY, baseAnimals);
       } catch {
         // Ignore: app can still run with in-memory state
       }

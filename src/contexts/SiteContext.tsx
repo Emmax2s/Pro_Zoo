@@ -3,6 +3,7 @@ import heroBg from '../assets/hero-bg.png';
 import { idbGetItem, idbSetItem } from '../utils/persistentStorage';
 
 const SITE_STORAGE_KEY = 'pro-zoo-site-data';
+const SHARED_CONTENT_URL = '/site-content.json';
 
 export type HeroMediaType = 'image' | 'video';
 
@@ -65,6 +66,10 @@ interface SiteContextType {
   siteData: SiteData;
   updateHero: (data: Partial<HeroData>) => void;
   updateInfo: (data: Partial<InfoData>) => void;
+}
+
+interface SharedContentPayload {
+  siteData?: Partial<SiteData>;
 }
 
 const SiteContext = createContext<SiteContextType | undefined>(undefined);
@@ -167,14 +172,14 @@ const normalizeInfoData = (info?: Partial<InfoData>): InfoData => {
   return merged;
 };
 
-const loadSiteData = (): SiteData => {
+const loadSiteData = (): { siteData: SiteData; hasLocalOverride: boolean } => {
   if (typeof window === 'undefined') {
-    return initialSiteData;
+    return { siteData: initialSiteData, hasLocalOverride: false };
   }
 
   const savedData = window.localStorage.getItem(SITE_STORAGE_KEY);
   if (!savedData) {
-    return initialSiteData;
+    return { siteData: initialSiteData, hasLocalOverride: false };
   }
 
   try {
@@ -183,11 +188,39 @@ const loadSiteData = (): SiteData => {
     };
 
     return {
-      hero: normalizeHeroData(parsedData.hero),
-      info: normalizeInfoData(parsedData.info),
+      siteData: {
+        hero: normalizeHeroData(parsedData.hero),
+        info: normalizeInfoData(parsedData.info),
+      },
+      hasLocalOverride: true,
     };
   } catch {
-    return initialSiteData;
+    return { siteData: initialSiteData, hasLocalOverride: false };
+  }
+};
+
+const loadPublishedSiteData = async (): Promise<SiteData | null> => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const response = await fetch(SHARED_CONTENT_URL, { cache: 'no-store' });
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as SharedContentPayload;
+    if (!payload.siteData) {
+      return null;
+    }
+
+    return {
+      hero: normalizeHeroData(payload.siteData.hero),
+      info: normalizeInfoData(payload.siteData.info),
+    };
+  } catch {
+    return null;
   }
 };
 
@@ -221,12 +254,21 @@ export function SiteProvider({ children }: { children: ReactNode }) {
       }
 
       const localData = loadSiteData();
+      let baseSiteData = localData.siteData;
+
+      if (!localData.hasLocalOverride) {
+        const publishedSiteData = await loadPublishedSiteData();
+        if (publishedSiteData) {
+          baseSiteData = publishedSiteData;
+        }
+      }
+
       if (active) {
-        setSiteData(localData);
+        setSiteData(baseSiteData);
       }
 
       try {
-        await idbSetItem(SITE_STORAGE_KEY, localData);
+        await idbSetItem(SITE_STORAGE_KEY, baseSiteData);
       } catch {
         // Ignore persistence failure to keep app usable
       }

@@ -6,3 +6,21 @@
 @layer base {
   html, body, #root { min-height: 100vh; height: 100%; margin: 0; }
 }
+
+/* Keep the translate widget compact and easy to use. */
+.language-widget .goog-te-gadget {
+  font-family: inherit;
+  font-size: 14px;
+  color: #1f2937;
+}
+
+.language-widget .goog-te-gadget-simple {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: #ffffff;
+}
+
+.language-widget .goog-te-menu-value span {
+  border: 0 !important;
+}

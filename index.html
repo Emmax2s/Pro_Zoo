@@ -9,6 +9,21 @@
       content="ZooMAt - explora animales, horarios e información para tu visita."
     />
     <title>ZooMAt</title>
+    <script>
+      (function () {
+        var redirect = window.location.search.match(/[?&]redirect=([^&]+)/);
+        if (!redirect) {
+          return;
+        }
+
+        var path = decodeURIComponent(redirect[1]);
+        if (!path.startsWith('/')) {
+          path = '/' + path;
+        }
+
+        window.history.replaceState(null, '', path + window.location.hash);
+      })();
+    </script>
   </head>
 
   <body>

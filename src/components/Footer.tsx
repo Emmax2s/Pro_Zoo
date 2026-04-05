@@ -20,10 +20,10 @@ export function Footer() {
           <div>
             <h3 className="mb-4">Enlaces Rápidos</h3>
             <ul className="space-y-2 text-green-100 text-sm">
-              <li><a href="#inicio" className="hover:text-white transition-colors">Inicio</a></li>
-              <li><a href="#animales" className="hover:text-white transition-colors">Animales</a></li>
-              <li><a href="#info" className="hover:text-white transition-colors">Información</a></li>
-              <li><a href="#contacto" className="hover:text-white transition-colors">Contacto</a></li>
+              <li><a href="/" className="hover:text-white transition-colors">Inicio</a></li>
+              <li><a href="/animales" className="hover:text-white transition-colors">Animales</a></li>
+              <li><a href="/info" className="hover:text-white transition-colors">Información</a></li>
+              <li><a href="/contacto" className="hover:text-white transition-colors">Contacto</a></li>
             </ul>
           </div>
 

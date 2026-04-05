@@ -6,10 +6,10 @@ export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navLinks = [
-    { name: 'Inicio', href: '/#inicio' },
-    { name: 'Animales', href: '/#animales' },
-    { name: 'Información', href: '/#info' },
-    { name: 'Contacto', href: '/#contacto' },
+    { name: 'Inicio', href: '/' },
+    { name: 'Animales', href: '/animales' },
+    { name: 'Información', href: '/info' },
+    { name: 'Contacto', href: '/contacto' },
   ];
 
   return (

@@ -1,6 +1,6 @@
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { useAnimals, Animal, ConservationStatus, MediaItem } from '../contexts/AnimalContext';
-import { useSite, HeroData, HeroMediaItem, InfoData, SiteData } from '../contexts/SiteContext';
+import { useSite, HeroData, HeroMediaItem, InfoData } from '../contexts/SiteContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
@@ -18,23 +18,6 @@ const IMAGE_PLACEHOLDER =
       </text>
     </svg>
   `);
-
-const SHARED_CONTENT_PATH = 'public/site-content.json';
-
-interface SharedContentPayload {
-  updatedAt: string;
-  animals: Animal[];
-  siteData: SiteData;
-}
-
-const toBase64Unicode = (value: string) => {
-  const bytes = new TextEncoder().encode(value);
-  let binary = '';
-  bytes.forEach((byte) => {
-    binary += String.fromCharCode(byte);
-  });
-  return btoa(binary);
-};
 
 const getDriveFileId = (url?: string) => {
   if (!url) {
@@ -188,11 +171,6 @@ export default function Admin() {
   const [removeImageOnSave, setRemoveImageOnSave] = useState(false);
   const [removeVideoOnSave, setRemoveVideoOnSave] = useState(false);
   const [selectedHeroMediaToRemove, setSelectedHeroMediaToRemove] = useState<number[]>([]);
-  const [githubToken, setGithubToken] = useState('');
-  const [repoOwner, setRepoOwner] = useState('Emmax2s');
-  const [repoName, setRepoName] = useState('Pro_Zoo');
-  const [repoBranch, setRepoBranch] = useState('main');
-  const [isPublishing, setIsPublishing] = useState(false);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const videoInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLInputElement | null>(null);
@@ -413,66 +391,7 @@ export default function Admin() {
     scrollToAnimalForm();
   };
 
-  const handlePublishSharedChanges = async () => {
-    if (!githubToken.trim()) {
-      alert('Ingresa un token de GitHub con permiso de escritura al repositorio (scope repo)');
-      return;
-    }
 
-    const payload: SharedContentPayload = {
-      updatedAt: new Date().toISOString(),
-      animals,
-      siteData,
-    };
-
-    const apiPath = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${SHARED_CONTENT_PATH}`;
-    const headers = {
-      Authorization: `Bearer ${githubToken.trim()}`,
-      Accept: 'application/vnd.github+json',
-      'Content-Type': 'application/json',
-    };
-
-    setIsPublishing(true);
-    try {
-      let sha: string | undefined;
-      const currentFileResponse = await fetch(`${apiPath}?ref=${encodeURIComponent(repoBranch)}`, {
-        headers,
-      });
-
-      if (currentFileResponse.ok) {
-        const currentFile = (await currentFileResponse.json()) as { sha?: string };
-        sha = currentFile.sha;
-      } else if (currentFileResponse.status !== 404) {
-        const errorText = await currentFileResponse.text();
-        throw new Error(`No se pudo consultar el archivo actual. ${errorText}`);
-      }
-
-      const content = JSON.stringify(payload, null, 2);
-      const commitResponse = await fetch(apiPath, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({
-          message: `chore: publicar cambios desde admin (${new Date().toLocaleString()})`,
-          content: toBase64Unicode(content),
-          branch: repoBranch,
-          ...(sha ? { sha } : {}),
-        }),
-      });
-
-      if (!commitResponse.ok) {
-        const errorText = await commitResponse.text();
-        throw new Error(`No se pudo crear el commit en GitHub. ${errorText}`);
-      }
-
-      alert('Cambios publicados. GitHub Actions desplegara la pagina en unos minutos para todos los usuarios.');
-      setGithubToken('');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error desconocido';
-      alert(`Error al publicar: ${message}`);
-    } finally {
-      setIsPublishing(false);
-    }
-  };
 
   const renderForm = () => (
     <div id="animal-form" className="bg-white p-6 rounded-lg shadow-md mb-8">
@@ -771,47 +690,6 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="inicio">
-          <div className="bg-white p-4 rounded-lg shadow-md mb-6 border border-emerald-100">
-            <h2 className="text-lg font-semibold text-green-800 mb-3">Publicar cambios para todos</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Esto crea un commit en GitHub con los datos actuales del panel y activa el deploy de la web.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1">GitHub Token (scope repo)</label>
-                <Input
-                  type="password"
-                  value={githubToken}
-                  onChange={(e) => setGithubToken(e.target.value)}
-                  placeholder="ghp_..."
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Owner</label>
-                <Input value={repoOwner} onChange={(e) => setRepoOwner(e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Repo</label>
-                <Input value={repoName} onChange={(e) => setRepoName(e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Rama</label>
-                <Input value={repoBranch} onChange={(e) => setRepoBranch(e.target.value)} />
-              </div>
-              <div className="md:col-span-3 flex items-end">
-                <Button
-                  type="button"
-                  className="bg-emerald-600 hover:bg-emerald-700"
-                  onClick={handlePublishSharedChanges}
-                  disabled={isPublishing}
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  {isPublishing ? 'Publicando...' : 'Publicar para todos'}
-                </Button>
-              </div>
-            </div>
-          </div>
-
           <TabsList className="mb-8">
             <TabsTrigger value="inicio">Página de Inicio</TabsTrigger>
             <TabsTrigger value="animales">Animales</TabsTrigger>

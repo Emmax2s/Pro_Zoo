@@ -24,3 +24,21 @@
 .language-widget .goog-te-menu-value span {
   border: 0 !important;
 }
+
+/* Hide Google Translate top banner and related overlays. */
+iframe.goog-te-banner-frame,
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+.goog-te-balloon-frame,
+#goog-gt-tt {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+}
+
+.goog-text-highlight {
+  background: transparent !important;
+  box-shadow: none !important;
+}

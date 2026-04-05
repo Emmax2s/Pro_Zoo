@@ -1,6 +1,7 @@
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import headerLogo from '../assets/logo-zoomat.png';
+import { LanguageMenu } from './LanguageMenu';
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -32,6 +33,7 @@ export function Navbar() {
                 {link.name}
               </a>
             ))}
+            <LanguageMenu />
           </div>
 
           {/* Mobile Menu Button */}
@@ -61,6 +63,7 @@ export function Navbar() {
                   {link.name}
                 </a>
               ))}
+              <LanguageMenu />
             </div>
           </div>
         )}

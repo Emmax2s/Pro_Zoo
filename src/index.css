@@ -7,25 +7,51 @@
   html, body, #root { min-height: 100vh; height: 100%; margin: 0; }
 }
 
-/* Keep the translate widget compact and easy to use. */
-.language-widget .goog-te-gadget {
-  font-family: inherit;
-  font-size: 14px;
-  color: #1f2937;
+.language-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 
-.language-widget .goog-te-gadget-simple {
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 6px 8px;
-  background: #ffffff;
+.language-menu__select {
+  appearance: none;
+  border: 1px solid #86efac;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #ecfccb, #dcfce7);
+  color: #166534;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 8px 28px 8px 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(22, 101, 52, 0.12);
 }
 
-.language-widget .goog-te-menu-value span {
-  border: 0 !important;
+.language-menu::after {
+  content: '';
+  position: absolute;
+  right: 11px;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid #166534;
+  pointer-events: none;
 }
 
-/* Hide Google Translate top banner and related overlays. */
+.language-menu__select:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+}
+
+.language-menu__google-hook {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
 iframe.goog-te-banner-frame,
 .goog-te-banner-frame,
 .goog-te-banner-frame.skiptranslate,
@@ -34,11 +60,12 @@ iframe.goog-te-banner-frame,
   display: none !important;
 }
 
-body {
+html,
+body,
+html.translated-ltr,
+html.translated-rtl,
+html.translated-ltr body,
+html.translated-rtl body {
   top: 0 !important;
-}
-
-.goog-text-highlight {
-  background: transparent !important;
-  box-shadow: none !important;
+  margin-top: 0 !important;
 }

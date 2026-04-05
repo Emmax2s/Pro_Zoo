@@ -50,35 +50,37 @@ export function Hero() {
   return (
     <section
       id="inicio"
-      className="relative flex min-h-screen items-center justify-center overflow-hidden"
+      className="relative flex min-h-screen items-center justify-center bg-gray-900"
     >
       <div className="absolute inset-0 overflow-hidden">
-        {mediaItems.map((item, index) => (
-          <div
-            key={`${item.url}-${index}`}
-            className={`absolute inset-0 h-full w-full transition-opacity duration-1000 ease-in-out ${
-              index === currentIndex ? 'opacity-100' : 'opacity-0'
-            }`}
-          >
-            {item.type === 'video' ? (
-              <video
-                src={item.url}
-                className="h-full w-full object-cover"
-                autoPlay={index === currentIndex}
-                muted
-                loop
-                playsInline
-                preload="metadata"
-              />
-            ) : (
-              <img
-                src={item.url}
-                alt={`Vista del zoológico ${index + 1}`}
-                className="h-full w-full object-cover"
-              />
-            )}
-          </div>
-        ))}
+        <div className="absolute inset-0 flex items-center justify-center px-4">
+          {mediaItems.map((item, index) => (
+            <div
+              key={`${item.url}-${index}`}
+              className={`absolute inset-0 flex items-center justify-center transition-opacity duration-1000 ease-in-out ${
+                index === currentIndex ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              {item.type === 'video' ? (
+                <video
+                  src={item.url}
+                  className="h-full w-full object-contain"
+                  autoPlay={index === currentIndex}
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                />
+              ) : (
+                <img
+                  src={item.url}
+                  alt={`Vista del zoológico ${index + 1}`}
+                  className="h-full w-full object-contain"
+                />
+              )}
+            </div>
+          ))}
+        </div>
         <div className="absolute inset-0 bg-black/45"></div>
       </div>
 

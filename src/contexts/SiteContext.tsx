@@ -76,7 +76,7 @@ const SiteContext = createContext<SiteContextType | undefined>(undefined);
 
 const initialSiteData: SiteData = {
   hero: {
-    title: 'Proyecto de Zoológico',
+    title: 'Bienvenidos al Centro de Conservación y Reserva Natural "Miguel Álvarez del Toro"Proyecto de Zoológico',
     subtitle: 'Vive una aventura salvaje y descubre especies increíbles en un espacio natural para toda la familia.',
     backgroundMedia: [{ url: heroBg, type: 'image' }],
     button1Text: 'Explorar animales',

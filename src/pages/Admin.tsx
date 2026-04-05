@@ -171,6 +171,10 @@ export default function Admin() {
   const [removeImageOnSave, setRemoveImageOnSave] = useState(false);
   const [removeVideoOnSave, setRemoveVideoOnSave] = useState(false);
   const [selectedHeroMediaToRemove, setSelectedHeroMediaToRemove] = useState<number[]>([]);
+
+
+
+
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const videoInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLInputElement | null>(null);
@@ -390,8 +394,6 @@ export default function Admin() {
     setRemoveVideoOnSave(false);
     scrollToAnimalForm();
   };
-
-
 
   const renderForm = () => (
     <div id="animal-form" className="bg-white p-6 rounded-lg shadow-md mb-8">

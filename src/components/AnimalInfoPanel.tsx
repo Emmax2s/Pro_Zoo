@@ -280,7 +280,7 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
   };
 
   const modalContent = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" onMouseDown={handleClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-2 backdrop-blur-sm sm:p-4" onMouseDown={handleClose}>
       <div
         className="relative max-h-[95vh] w-full max-w-6xl overflow-hidden rounded-2xl bg-gradient-to-br from-green-50 to-yellow-50 shadow-2xl animate-in fade-in zoom-in duration-300"
         onMouseDown={(e) => e.stopPropagation()}
@@ -294,23 +294,23 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
           <X className="h-5 w-5" />
         </button>
 
-        <div className="absolute left-5 top-5 z-20 md:left-auto md:right-20">
+        <div className="absolute left-4 top-4 z-20 sm:left-auto sm:right-20 sm:top-5">
           <Badge className={`${getConservationColor(animal.conservation)} px-4 py-2 text-sm text-white shadow-md`}>
             {translateConservationStatus(animal.conservation)}
           </Badge>
         </div>
 
-        <div className="relative h-40 overflow-hidden bg-gradient-to-r from-green-700 to-green-600 md:h-48">
+        <div className="relative h-40 overflow-hidden bg-gradient-to-r from-green-700 to-green-600 sm:h-48">
           <div className="absolute inset-0 bg-black/30"></div>
-          <div className="relative z-10 flex h-full items-center justify-center px-8 py-8 text-center text-white">
+          <div className="relative z-10 flex h-full items-center justify-center px-4 py-6 text-center text-white sm:px-8 sm:py-8">
             <div className="flex flex-col items-center gap-3">
-              <h1 className="text-5xl font-bold drop-shadow-lg md:text-6xl">{translateContent(animal.name)}</h1>
-              <p className="text-3xl italic drop-shadow-md md:text-4xl">({animal.species})</p>
+              <h1 className="text-4xl font-bold leading-tight drop-shadow-lg sm:text-5xl lg:text-6xl">{translateContent(animal.name)}</h1>
+              <p className="text-2xl italic drop-shadow-md sm:text-3xl lg:text-4xl">({animal.species})</p>
             </div>
           </div>
         </div>
 
-        <div className="max-h-[calc(95vh-12rem)] overflow-y-auto p-8">
+        <div className="max-h-[calc(95vh-12rem)] overflow-y-auto p-4 sm:p-6 lg:p-8">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="space-y-4 lg:col-span-1">
               <div className="relative overflow-hidden rounded-xl border-4 border-yellow-400 bg-white shadow-lg">

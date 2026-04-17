@@ -1,0 +1,81 @@
+{
+  "ui": {
+    "navbar": {
+      "home": "Inicio",
+      "animals": "Animales",
+      "info": "Informacion",
+      "contact": "Contacto",
+      "languageLabel": "Idioma"
+    },
+    "animalsSection": {
+      "title": "Nuestros Animales",
+      "subtitle": "Conoce a algunos de los increibles animales que llaman hogar a nuestro zoologico"
+    },
+    "hero": {
+      "zooViewAlt": "Vista del zoologico",
+      "previousItemAria": "Elemento anterior",
+      "nextItemAria": "Siguiente elemento",
+      "goToItemAria": "Ir al elemento"
+    },
+    "infoSection": {
+      "mapTitle": "Mapa de ubicacion",
+      "openInMaps": "Abrir en Google Maps",
+      "openNow": "Abierto",
+      "closedNow": "Cerrado",
+      "lastEntryIn": "Ultima entrada en {time}",
+      "lastEntryClosed": "Ultima entrada cerrada",
+      "closesIn": "Cierra en {time}",
+      "reopensAt": "Reabre a las {time}"
+    },
+    "footer": {
+      "about": "Comprometidos con la conservacion de la vida silvestre y la educacion ambiental desde 1985.",
+      "quickLinks": "Enlaces Rapidos",
+      "followUs": "Siguenos",
+      "rightsReserved": "Todos los derechos reservados."
+    },
+    "notFound": {
+      "title": "Pagina no encontrada",
+      "message": "La direccion que escribiste no existe en este sitio.",
+      "goHome": "Ir al inicio"
+    },
+    "routeError": {
+      "routeNotFound": "No encontramos la ruta que intentaste abrir.",
+      "unexpectedError": "Error inesperado",
+      "somethingWentWrong": "Algo salio mal",
+      "loadProblem": "Ocurrio un problema al cargar la pagina.",
+      "backHome": "Volver al inicio"
+    },
+    "animalCard": {
+      "mediaUnavailable": "Media no disponible",
+      "habitatLabel": "Habitat"
+    },
+    "animalPanel": {
+      "closePanelAria": "Cerrar ficha de la especie",
+      "mediaError": "No se pudo mostrar este contenido.",
+      "audioTitle": "AUDIO DE LA ESPECIE",
+      "audioDirectError": "No se pudo reproducir el audio directamente desde este enlace.",
+      "browserNoAudio": "Tu navegador no soporta audio HTML5.",
+      "openAudio": "Abrir audio",
+      "noAudioMessage": "Esta especie no tiene un archivo de audio cargado todavia. Puedes escuchar una narracion automatica con su informacion.",
+      "stopNarration": "Detener narracion",
+      "listenNarration": "Escuchar narracion",
+      "features": "CARACTERISTICAS",
+      "activity": "ACTIVIDAD",
+      "feeding": "ALIMENTACION",
+      "size": "TAMANO",
+      "weight": "PESO",
+      "lifespan": "ESPERANZA DE VIDA",
+      "aboutSpecies": "SOBRE ESTA ESPECIE",
+      "aboutFallback": "Informacion detallada sobre esta especie se encuentra en proceso de actualizacion.",
+      "distribution": "DISTRIBUCION",
+      "naturalHabitat": "Habitat natural",
+      "importance": "IMPORTANCIA",
+      "threats": "AMENAZAS",
+      "funFacts": "DATOS CURIOSOS",
+      "footerMessage": "Comprometidos con la conservacion y educacion sobre la vida silvestre",
+      "notSpecified": "No especificado",
+      "variedDiet": "Variada"
+    }
+  },
+  "dynamicFromEs": {}
+}

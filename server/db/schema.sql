@@ -47,3 +47,15 @@ CREATE TABLE IF NOT EXISTS site_content (
   content_value JSON NOT NULL,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS administrators (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(120) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insertar administrador por defecto si no existe (contraseña: zoomat-admin-2026)
+-- bcrypt hash para 'zoomat-admin-2026': $2b$10$wYQ0pI3yC.4qH6pS4Wf7Luh4y5M3yP/n3e/2Oq8n6r8zQ/xX/t.R.
+INSERT IGNORE INTO administrators (username, password_hash) VALUES ('admin', '$2b$10$wYQ0pI3yC.4qH6pS4Wf7Luh4y5M3yP/n3e/2Oq8n6r8zQ/xX/t.R.');
+

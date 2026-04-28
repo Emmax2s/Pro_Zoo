@@ -4,6 +4,7 @@ import { checkDatabaseConnection } from './config/db.js';
 import { env } from './config/env.js';
 import speciesRoutes from './routes/speciesRoutes.js';
 import siteRoutes from './routes/siteRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 export const app = express();
 
@@ -25,6 +26,7 @@ app.get('/api/health', async (_req, res) => {
 
 app.use('/api/species', speciesRoutes);
 app.use('/api/site-content', siteRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use((error, _req, res, _next) => {
   const message = error instanceof Error ? error.message : 'Unexpected error';

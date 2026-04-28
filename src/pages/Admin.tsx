@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { ArrowLeft, Plus, Trash2, Save, X, Image as ImageIcon, Info, Upload, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { AnimalQrTools } from '../components/AnimalQrTools';
+import { AdminUsers } from '../components/AdminUsers';
 
 const ADMIN_SESSION_KEY = 'pro-zoo-admin-auth';
 const ADMIN_PANEL_PASSWORD = (import.meta.env.VITE_ADMIN_PANEL_PASSWORD as string | undefined) || 'zoomat-admin-2026';
@@ -194,23 +195,17 @@ export default function Admin() {
     if (typeof window === 'undefined') {
       return;
     }
+  }, []);
 
-    const hasSession = window.sessionStorage.getItem(ADMIN_SESSION_KEY) === 'ok';
-    if (hasSession) {
-      setIsAuthorized(true);
-      return;
-    }
+useEffect(() => {
+  const hasSession = window.sessionStorage.getItem(ADMIN_SESSION_KEY);
 
-    const attempt = window.prompt('Ingresa la clave del panel de administracion');
-    if (attempt && attempt === ADMIN_PANEL_PASSWORD) {
-      window.sessionStorage.setItem(ADMIN_SESSION_KEY, 'ok');
-      setIsAuthorized(true);
-      return;
-    }
-
-    alert('Acceso denegado');
-    navigate('/');
-  }, [navigate]);
+  if (hasSession === "ok") {
+    setIsAuthorized(true);
+  } else {
+    navigate("/login");
+  }
+}, [navigate]);
 
   const handleSaveSiteConfig = () => {
     const normalizedMedia = heroForm.backgroundMedia
@@ -444,7 +439,7 @@ export default function Admin() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Hábitat</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Recinto / Hábitat</label>
           <Input 
             value={formData.habitat || ''} 
             onChange={e => setFormData({...formData, habitat: e.target.value})}
@@ -728,6 +723,7 @@ export default function Admin() {
           <TabsList className="mb-8">
             <TabsTrigger value="inicio">Página de Inicio</TabsTrigger>
             <TabsTrigger value="animales">Animales</TabsTrigger>
+            <TabsTrigger value="administradores">Administradores</TabsTrigger>
           </TabsList>
 
           <TabsContent value="inicio">
@@ -1198,6 +1194,9 @@ export default function Admin() {
                 </table>
               </div>
             </div>
+          </TabsContent>
+          <TabsContent value="administradores">
+            <AdminUsers />
           </TabsContent>
         </Tabs>
       </div>

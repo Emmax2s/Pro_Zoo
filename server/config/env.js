@@ -11,4 +11,6 @@ export const env = {
   mysqlDatabase: process.env.MYSQL_DATABASE || 'pro_zoo',
   adminKey: process.env.ADMIN_API_KEY || 'zoomat-admin-key',
   corsOrigin: process.env.CORS_ORIGIN || '*',
+  jwtSecret: process.env.JWT_SECRET || 'super-secret-zoomat-key-2026',
 };
+

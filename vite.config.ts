@@ -58,5 +58,9 @@
     server: {
       port: 3000,
       open: true,
+      allowedHosts: [
+        'localhost',
+        'grudging-regalia-blast.ngrok-free.dev',
+      ],
     },
   });

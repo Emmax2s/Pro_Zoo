@@ -4,7 +4,24 @@ import { idbGetItem, idbSetItem } from '../utils/persistentStorage';
 
 const SITE_STORAGE_KEY = 'pro-zoo-site-data';
 const SHARED_CONTENT_URL = '/site-content.json';
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') || '';
+const resolveApiBaseUrl = () => {
+  const configured = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') || '';
+  if (!configured) {
+    return '';
+  }
+
+  // If frontend is opened from a public domain, ignore localhost API targets.
+  if (typeof window !== 'undefined' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(configured)) {
+    const host = window.location.hostname;
+    if (host !== 'localhost' && host !== '127.0.0.1') {
+      return '';
+    }
+  }
+
+  return configured;
+};
+
+const API_BASE_URL = resolveApiBaseUrl();
 const ADMIN_API_KEY = (import.meta.env.VITE_ADMIN_API_KEY as string | undefined) || '';
 
 export type HeroMediaType = 'image' | 'video';

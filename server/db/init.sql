@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS species (
   diet VARCHAR(100),
   status VARCHAR(50),
   conservation_status VARCHAR(50),
+  lifespan VARCHAR(100),
   size VARCHAR(100),
   weight VARCHAR(100),
   activity VARCHAR(50),

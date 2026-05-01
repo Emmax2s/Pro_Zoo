@@ -45,7 +45,24 @@ interface SharedContentPayload {
 
 const ANIMALS_STORAGE_KEY = 'pro-zoo-animals';
 const SHARED_CONTENT_URL = '/site-content.json';
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') || '';
+const resolveApiBaseUrl = () => {
+  const configured = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') || '';
+  if (!configured) {
+    return '';
+  }
+
+  // If frontend is opened from a public domain, ignore localhost API targets.
+  if (typeof window !== 'undefined' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(configured)) {
+    const host = window.location.hostname;
+    if (host !== 'localhost' && host !== '127.0.0.1') {
+      return '';
+    }
+  }
+
+  return configured;
+};
+
+const API_BASE_URL = resolveApiBaseUrl();
 const ADMIN_API_KEY = (import.meta.env.VITE_ADMIN_API_KEY as string | undefined) || '';
 
 const AnimalContext = createContext<AnimalContextType | undefined>(undefined);
@@ -147,6 +164,35 @@ const syncAnimalToApi = async (animal: Animal) => {
   });
 };
 
+const createAnimalInApi = async (animal: Animal) => {
+  if (!API_BASE_URL || !ADMIN_API_KEY) {
+    return;
+  }
+
+  await fetch(`${API_BASE_URL}/api/species`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-admin-key': ADMIN_API_KEY,
+    },
+    body: JSON.stringify({
+      slug: animal.slug,
+      name: animal.name,
+      species: animal.species,
+      habitat: animal.habitat,
+      imageUrl: animal.imageUrl,
+      conservation: animal.conservation,
+      description: animal.description,
+      diet: animal.diet,
+      lifespan: animal.lifespan,
+      activity: animal.activity,
+      size: animal.size,
+      weight: animal.weight,
+      distribution: animal.distribution,
+    }),
+  });
+};
+
 const removeAnimalFromApi = async (id: string) => {
   if (!API_BASE_URL || !ADMIN_API_KEY) {
     return;
@@ -245,7 +291,7 @@ export const AnimalProvider = ({ children }: { children: ReactNode }) => {
 
     const newAnimal = normalizeAnimal({ ...animal, id: generatedId });
     setAnimals((prev) => [...prev, newAnimal]);
-    void syncAnimalToApi(newAnimal);
+    void createAnimalInApi(newAnimal);
   };
 
   const updateAnimal = (id: string, updatedData: Partial<Animal>) => {

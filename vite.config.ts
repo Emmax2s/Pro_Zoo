@@ -62,5 +62,11 @@
         'localhost',
         'grudging-regalia-blast.ngrok-free.dev',
       ],
+      proxy: {
+        '/api': {
+          target: 'http://localhost:4000',
+          changeOrigin: true,
+        },
+      },
     },
   });

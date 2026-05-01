@@ -1,22 +1,31 @@
-import mysql from 'mysql2/promise';
+import pkg from 'pg';
 import { env } from './env.js';
 
-export const pool = mysql.createPool({
-  host: env.mysqlHost,
-  port: env.mysqlPort,
-  user: env.mysqlUser,
-  password: env.mysqlPassword,
-  database: env.mysqlDatabase,
-  waitForConnections: true,
-  connectionLimit: 10,
-  namedPlaceholders: true,
+const { Pool } = pkg;
+
+const pool = new Pool({
+  host: env.postgresHost,
+  port: env.postgresPort,
+  user: env.postgresUser,
+  password: env.postgresPassword,
+  database: env.postgresDatabase,
 });
 
-export async function checkDatabaseConnection() {
-  const connection = await pool.getConnection();
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
+});
+
+export const query = (text, params) => pool.query(text, params);
+
+export const checkDatabaseConnection = async () => {
   try {
-    await connection.ping();
-  } finally {
-    connection.release();
+    const result = await pool.query('SELECT NOW()');
+    console.log('✅ Database connected:', result.rows[0]);
+    return true;
+  } catch (error) {
+    console.error('❌ Database connection failed:', error.message);
+    throw error;
   }
-}
+};
+
+export const getPool = () => pool;

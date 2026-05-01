@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { env } from '../config/env.js';
-import { getSiteData, upsertSiteData } from '../repositories/siteRepository.js';
 
 const router = Router();
 
@@ -15,8 +14,8 @@ const assertAdminKey = (req, res, next) => {
 
 router.get('/', async (_req, res, next) => {
   try {
-    const data = await getSiteData();
-    res.json(data || {});
+    // DB removed: return empty site data placeholder
+    res.json({});
   } catch (error) {
     next(error);
   }
@@ -24,8 +23,7 @@ router.get('/', async (_req, res, next) => {
 
 router.put('/', assertAdminKey, async (req, res, next) => {
   try {
-    await upsertSiteData(req.body);
-    res.json({ ok: true });
+    res.status(501).json({ message: 'Site update not implemented (DB removed)' });
   } catch (error) {
     next(error);
   }

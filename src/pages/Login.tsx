@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') || '';
+const TEMP_ADMIN_USERNAME = "admin";
+const TEMP_ADMIN_PASSWORD = "zoomat-admin-2026";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -10,33 +11,20 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
+  const handleLogin = () => {
     setError("");
     setIsLoading(true);
-    
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ username, password })
-      });
-      
-      const data = await res.json();
-      
-      if (res.ok) {
-        sessionStorage.setItem("pro-zoo-admin-auth", "ok");
-        sessionStorage.setItem("pro-zoo-admin-token", data.token);
-        navigate("/admin");
-      } else {
-        setError(data.message || "Credenciales incorrectas");
-      }
-    } catch (err) {
-      setError("Error de conexión con el servidor");
-    } finally {
+
+    if (username === TEMP_ADMIN_USERNAME && password === TEMP_ADMIN_PASSWORD) {
+      sessionStorage.setItem("pro-zoo-admin-auth", "ok");
+      sessionStorage.setItem("pro-zoo-admin-token", "temp-local-token");
+      navigate("/admin");
       setIsLoading(false);
+      return;
     }
+
+    setError("Credenciales incorrectas");
+    setIsLoading(false);
   };
 
   return (

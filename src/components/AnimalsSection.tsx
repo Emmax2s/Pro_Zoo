@@ -7,18 +7,20 @@ export function AnimalsSection() {
   const { t } = useLanguage();
 
   return (
-    <section id="animales" className="py-20 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="animales" className="py-20 bg-white">
+      <div className="max-w-7xl mx-auto px-8 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-green-800 mb-4">{t.animalsSection.title}</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <h2 className="text-4xl font-bold text-emerald-900 mb-4">{t.animalsSection.title}</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto text-lg">
             {t.animalsSection.subtitle}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {animals.map((animal) => (
-            <AnimalCard key={animal.id} {...animal} />
+            <div key={animal.id} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg hover:translate-y-[-10px] transition-all duration-300">
+              <AnimalCard {...animal} />
+            </div>
           ))}
         </div>
       </div>

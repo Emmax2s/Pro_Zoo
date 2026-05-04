@@ -1,6 +1,5 @@
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
-import headerLogo from '../assets/logo-zoomat.png';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export function Navbar() {
@@ -15,12 +14,15 @@ export function Navbar() {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="sticky top-0 left-0 right-0 z-50 bg-white shadow-md">
+      <div className="max-w-full mx-auto px-8 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <img src={headerLogo} alt="Zoomat Logo" className="h-12 w-auto object-contain" />
+            <div className="text-xl font-bold tracking-wide">
+              <span className="text-emerald-900">ZOO</span>
+              <span className="text-emerald-600">AVENTURAS</span>
+            </div>
           </div>
 
           {/* Desktop Navigation */}
@@ -29,7 +31,7 @@ export function Navbar() {
               <a
                 key={link.name}
                 href={link.href}
-                className="text-gray-700 hover:text-green-600 transition-colors"
+                className="text-gray-600 hover:text-emerald-700 font-medium transition-colors"
               >
                 {link.name}
               </a>
@@ -69,7 +71,7 @@ export function Navbar() {
                 <a
                   key={link.name}
                   href={link.href}
-                  className="text-gray-700 hover:text-green-600 transition-colors"
+                  className="text-gray-600 hover:text-emerald-700 transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {link.name}

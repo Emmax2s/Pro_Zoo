@@ -21,17 +21,9 @@ export default function Home() {
   }, [pathname]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       <Navbar />
       <Hero />
-
-      <section className="text-center py-16 bg-green-100">
-        <h2 className="text-3xl font-bold">Bienvenido a ZooMAT</h2>
-        <p className="mt-4 text-lg">
-          Explora la biodiversidad de Chiapas
-        </p>
-      </section>
-
       <InfoSection />
       <Footer />
     </div>

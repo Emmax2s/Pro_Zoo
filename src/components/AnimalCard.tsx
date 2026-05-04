@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { AnimalInfoPanel } from './AnimalInfoPanel';
 import { Animal } from '../contexts/AnimalContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
 
 interface AnimalCardProps extends Animal {}
 
@@ -78,29 +79,25 @@ const normalizeMediaUrl = (url?: string) => {
 
 export function AnimalCard(animal: AnimalCardProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [mediaError, setMediaError] = useState(false);
   const { t, translateConservationStatus, translateContent } = useLanguage();
 
   const currentMedia = useMemo(() => {
     if (animal.mediaUrls && animal.mediaUrls.length > 0) {
-      const firstMedia = animal.mediaUrls[0];
+      return animal.mediaUrls.map(m => ({
+        url: normalizeMediaUrl(m.url),
+        type: m.type,
+      }));
+    }
+
+    const fallbackImages = animal.imageUrls && animal.imageUrls.length > 0 ? animal.imageUrls : (animal.imageUrl ? [animal.imageUrl] : []);
+    
+    return fallbackImages.map(img => {
+      const normalized = normalizeImageUrl(img);
       return {
-        url: normalizeMediaUrl(firstMedia.url),
-        type: firstMedia.type,
+        url: normalized,
+        type: 'image' as const,
       };
-    }
-
-    const fallbackImage = animal.imageUrls && animal.imageUrls.length > 0 ? animal.imageUrls[0] : animal.imageUrl;
-    const normalized = normalizeImageUrl(fallbackImage);
-
-    if (!normalized) {
-      return null;
-    }
-
-    return {
-      url: normalized,
-      type: 'image' as const,
-    };
+    }).filter(m => m.url);
   }, [animal.imageUrl, animal.imageUrls, animal.mediaUrls]);
 
   const handleMediaError = () => {
@@ -125,27 +122,57 @@ export function AnimalCard(animal: AnimalCardProps) {
         onClick={() => setIsOpen(true)}
       >
         <div className="relative h-[200px] w-full overflow-hidden bg-gray-50">
-          {mediaError || !currentMedia ? (
+          {!currentMedia || currentMedia.length === 0 ? (
             <img
               src={IMAGE_PLACEHOLDER}
               alt={t.animalCard.mediaUnavailable}
               className="h-full w-full object-cover"
             />
-          ) : currentMedia.type === 'video' ? (
-            <video
-              src={currentMedia.url}
-              className="h-full w-full object-cover"
-              onError={handleMediaError}
-            />
+          ) : currentMedia.length === 1 ? (
+            currentMedia[0].type === 'video' ? (
+              <video
+                src={currentMedia[0].url}
+                className="h-full w-full object-cover"
+                onError={handleMediaError}
+              />
+            ) : (
+              <img
+                src={currentMedia[0].url}
+                alt={translateContent(animal.name)}
+                className="h-full w-full object-cover"
+                onError={handleMediaError}
+              />
+            )
           ) : (
-            <img
-              src={currentMedia.url}
-              alt={translateContent(animal.name)}
-              className="h-full w-full object-cover"
-              onError={handleMediaError}
-            />
+            <Carousel className="w-full h-full">
+              <CarouselContent>
+                {currentMedia.map((media, idx) => (
+                  <CarouselItem key={idx} className="h-[200px]">
+                    {media.type === 'video' ? (
+                      <video
+                        src={media.url}
+                        className="h-full w-full object-cover"
+                        onError={handleMediaError}
+                      />
+                    ) : (
+                      <img
+                        src={media.url}
+                        alt={`${translateContent(animal.name)} ${idx + 1}`}
+                        className="h-full w-full object-cover"
+                        onError={handleMediaError}
+                      />
+                    )}
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              {currentMedia.length > 1 && (
+                <>
+                  <CarouselPrevious className="absolute left-1 top-1/2 -translate-y-1/2" />
+                  <CarouselNext className="absolute right-1 top-1/2 -translate-y-1/2" />
+                </>
+              )}
+            </Carousel>
           )}
-
         </div>
         <CardContent className="space-y-1 p-4">
           <div className="flex items-start justify-between gap-2">

@@ -1,4 +1,3 @@
-import { Button } from './ui/button';
 import { useSite } from '../contexts/SiteContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -6,10 +5,6 @@ export function Hero() {
   const { siteData } = useSite();
   const { translateContent } = useLanguage();
   const { hero } = siteData;
-
-  const scrollToSection = (sectionId: string) => {
-    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
-  };
 
   return (
     <section
@@ -22,13 +17,6 @@ export function Hero() {
         <p className="mx-auto mb-8 max-w-2xl text-base sm:text-lg leading-relaxed text-white/90">
           {translateContent(hero.subtitle)}
         </p>
-        <Button
-          size="lg"
-          className="bg-emerald-600 text-white font-bold hover:bg-emerald-700 px-8 py-3 rounded-full"
-          onClick={() => scrollToSection('animales')}
-        >
-          {translateContent(hero.button1Text)}
-        </Button>
       </div>
     </section>
   );

@@ -17,6 +17,11 @@
       "nextItemAria": "Next item",
       "goToItemAria": "Go to item"
     },
+    "interestSection": {
+      "eyebrow": "Quick Access",
+      "title": "Information of Interest",
+      "subtitle": "Explore the highlighted spaces and experiences in the site."
+    },
     "infoSection": {
       "mapTitle": "Location map",
       "openInMaps": "Open in Google Maps",
@@ -187,6 +192,14 @@
     "Tienen una gran capacidad para aprender y adaptarse.": "They have great ability to learn and adapt.",
     "Tienen una gran capacidad para encontrar agua en tierras secas.": "They have a great ability to find water in dry lands.",
     "Pueden correr a velocidades de hasta 70 km/h.": "They can run at speeds up to 70 km/h.",
+    "Museo Zoológico": "Zoological Museum",
+    "Conoce piezas, historias y material educativo sobre la fauna y la conservación.": "Discover artifacts, stories, and educational material about wildlife and conservation.",
+    "Vivario": "Vivarium",
+    "Observa especies pequeñas y descubre cómo se cuidan en un entorno controlado.": "Observe small species and learn how they are cared for in a controlled environment.",
+    "Herpetario": "Herpetarium",
+    "Espacio dedicado a reptiles y anfibios con información educativa y visual.": "A space dedicated to reptiles and amphibians with educational and visual information.",
+    "Museo Cocodrilo": "Crocodile Museum",
+    "Explora la presencia de cocodrilos y el papel que cumplen en el ecosistema local.": "Explore the presence of crocodiles and the role they play in the local ecosystem.",
     "El león africano es conocido como el \"rey de la selva\" y es el segundo felino más grande del mundo. Poseen una estructura social única entre los felinos, viviendo en manadas que comparten territorio.": "The African lion is known as the \"king of the jungle\" and is the second-largest big cat in the world. They have a unique social structure among felines, living in prides that share territory.",
     "El elefante africano es el mamífero terrestre más grande del planeta. Son animales muy inteligentes que muestran emociones profundas y tienen una memoria extraordinaria.": "The African elephant is the largest land mammal on Earth. They are highly intelligent animals that show deep emotions and have extraordinary memory.",
     "La jirafa es el mamífero más alto del mundo, alcanzando hasta 5.5 metros de altura. Su largo cuello les permite alimentarse de hojas de árboles altos, fuera del alcance de otros herbívoros.": "The giraffe is the tallest mammal in the world, reaching up to 5.5 meters in height. Their long neck allows them to feed on leaves from tall trees, beyond the reach of other herbivores.",

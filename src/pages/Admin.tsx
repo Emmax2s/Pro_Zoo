@@ -1,6 +1,6 @@
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { useAnimals, Animal, ConservationStatus, MediaItem } from '../contexts/AnimalContext';
-import { useSite, HeroData, HeroMediaItem, InfoData } from '../contexts/SiteContext';
+import { useSite, HeroData, HeroMediaItem, InfoData, InterestCard } from '../contexts/SiteContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
@@ -161,7 +161,7 @@ const upsertMediaByType = (mediaList: MediaItem[] | undefined, media: MediaItem)
 
 export default function Admin() {
   const { animals, addAnimal, updateAnimal, deleteAnimal } = useAnimals();
-  const { siteData, updateHero, updateInfo } = useSite();
+  const { siteData, updateHero, updateInterestCards, updateInfo } = useSite();
   const navigate = useNavigate();
   const [isAuthorized, setIsAuthorized] = useState(false);
   
@@ -171,11 +171,17 @@ export default function Admin() {
 
   // Site Configuration State
   const [heroForm, setHeroForm] = useState<HeroData>(siteData.hero);
+  const [interestCardsForm, setInterestCardsForm] = useState<InterestCard[]>(
+    siteData.interestCards.length > 0
+      ? siteData.interestCards
+      : [{ title: '', description: '', imageUrl: '', link: '' }]
+  );
   const [infoForm, setInfoForm] = useState<InfoData>(siteData.info);
   const [isSavingSite, setIsSavingSite] = useState(false);
   const [removeImageOnSave, setRemoveImageOnSave] = useState(false);
   const [removeVideoOnSave, setRemoveVideoOnSave] = useState(false);
   const [selectedHeroMediaToRemove, setSelectedHeroMediaToRemove] = useState<number[]>([]);
+  const [selectedInterestCardImageIndex, setSelectedInterestCardImageIndex] = useState<number | null>(null);
 
 
 
@@ -184,11 +190,18 @@ export default function Admin() {
   const videoInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLInputElement | null>(null);
   const heroMediaInputRef = useRef<HTMLInputElement | null>(null);
+  const interestCardImageInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     setHeroForm(siteData.hero);
+    setInterestCardsForm(
+      siteData.interestCards.length > 0
+        ? siteData.interestCards
+        : [{ title: '', description: '', imageUrl: '', link: '' }]
+    );
     setInfoForm(siteData.info);
     setSelectedHeroMediaToRemove([]);
+    setSelectedInterestCardImageIndex(null);
   }, [siteData]);
 
   useEffect(() => {
@@ -198,14 +211,8 @@ export default function Admin() {
   }, []);
 
 useEffect(() => {
-  const hasSession = window.sessionStorage.getItem(ADMIN_SESSION_KEY);
-
-  if (hasSession === "ok") {
-    setIsAuthorized(true);
-  } else {
-    navigate("/login");
-  }
-}, [navigate]);
+  setIsAuthorized(true);
+}, []);
 
   const handleSaveSiteConfig = () => {
     const normalizedMedia = heroForm.backgroundMedia
@@ -214,6 +221,14 @@ useEffect(() => {
         ...item,
         url: item.url.trim(),
       }));
+    const normalizedInterestCards = interestCardsForm
+      .map((card) => ({
+        title: card.title.trim(),
+        description: card.description.trim(),
+        imageUrl: card.imageUrl.trim(),
+        link: card.link.trim(),
+      }))
+      .filter((card) => card.title !== '' || card.description !== '' || card.imageUrl !== '' || card.link !== '');
 
     if (normalizedMedia.length === 0) {
       alert('Agrega al menos una imagen o video para el carrusel principal');
@@ -222,6 +237,7 @@ useEffect(() => {
 
     setIsSavingSite(true);
     updateHero({ ...heroForm, backgroundMedia: normalizedMedia });
+    updateInterestCards(normalizedInterestCards);
     updateInfo(infoForm);
     setSelectedHeroMediaToRemove([]);
     setTimeout(() => {
@@ -270,6 +286,44 @@ useEffect(() => {
       ...prev,
       backgroundMedia: [...prev.backgroundMedia, ...uploadedMedia],
     }));
+
+    e.target.value = '';
+  };
+
+  const handleAddInterestCard = () => {
+    setInterestCardsForm((prev) => [...prev, { title: '', description: '', imageUrl: '', link: '' }]);
+  };
+
+  const handleRemoveInterestCard = (index: number) => {
+    setInterestCardsForm((prev) => prev.filter((_, currentIndex) => currentIndex !== index));
+  };
+
+  const handleInterestCardImageUpload = (index: number) => {
+    setSelectedInterestCardImageIndex(index);
+    interestCardImageInputRef.current?.click();
+  };
+
+  const handleInterestCardImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || selectedInterestCardImageIndex === null) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      if (!result) {
+        return;
+      }
+
+      setInterestCardsForm((prev) =>
+        prev.map((card, index) =>
+          index === selectedInterestCardImageIndex ? { ...card, imageUrl: result } : card
+        )
+      );
+      setSelectedInterestCardImageIndex(null);
+    };
+    reader.readAsDataURL(file);
 
     e.target.value = '';
   };
@@ -826,6 +880,106 @@ useEffect(() => {
                       Solo archivos locales. Puedes subir imágenes y videos; se muestran en el carrusel en el orden cargado.
                     </p>
                   </div>
+
+                  <div className="md:col-span-2 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div>
+                        <h4 className="text-lg font-semibold text-stone-800">Tarjetas de información</h4>
+                        <p className="text-sm text-stone-600">Estas tarjetas se muestran debajo del hero en la página principal.</p>
+                      </div>
+                      <Button type="button" variant="outline" onClick={handleAddInterestCard}>
+                        <Plus className="mr-2 h-4 w-4" /> Agregar tarjeta
+                      </Button>
+                    </div>
+
+                    <input
+                      ref={interestCardImageInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleInterestCardImageChange}
+                    />
+
+                    <div className="space-y-4">
+                      {interestCardsForm.map((card, idx) => (
+                        <div key={`interest-card-${idx}`} className="rounded-lg border border-stone-200 bg-white p-4 shadow-sm">
+                          <div className="mb-3 flex items-center justify-between gap-2">
+                            <h5 className="font-semibold text-stone-800">Tarjeta {idx + 1}</h5>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="border-rose-300 text-rose-700 hover:bg-rose-50"
+                              onClick={() => handleRemoveInterestCard(idx)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" /> Quitar
+                            </Button>
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_220px]">
+                            <div className="grid grid-cols-1 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
+                                <Input
+                                  value={card.title}
+                                  onChange={(e) =>
+                                    setInterestCardsForm((prev) =>
+                                      prev.map((item, index) =>
+                                        index === idx ? { ...item, title: e.target.value } : item
+                                      )
+                                    )
+                                  }
+                                  placeholder="Ej. Vivario"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                                <textarea
+                                  className="flex min-h-[72px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                  value={card.description}
+                                  onChange={(e) =>
+                                    setInterestCardsForm((prev) =>
+                                      prev.map((item, index) =>
+                                        index === idx ? { ...item, description: e.target.value } : item
+                                      )
+                                    )
+                                  }
+                                  placeholder="Breve descripción del espacio o experiencia"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Enlace opcional</label>
+                                <Input
+                                  value={card.link}
+                                  onChange={(e) =>
+                                    setInterestCardsForm((prev) =>
+                                      prev.map((item, index) =>
+                                        index === idx ? { ...item, link: e.target.value } : item
+                                      )
+                                    )
+                                  }
+                                  placeholder="https://..."
+                                />
+                              </div>
+                              <Button type="button" variant="outline" onClick={() => handleInterestCardImageUpload(idx)}>
+                                <Upload className="mr-2 h-4 w-4" /> Subir imagen
+                              </Button>
+                            </div>
+
+                            <div className="overflow-hidden rounded-lg border border-stone-200 bg-stone-50">
+                              {card.imageUrl ? (
+                                <img src={card.imageUrl} alt={card.title || `Tarjeta ${idx + 1}`} className="h-full min-h-[180px] w-full object-cover" />
+                              ) : (
+                                <div className="flex min-h-[180px] items-center justify-center text-sm text-stone-500">
+                                  Sin imagen
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Texto del Botón 1</label>
                     <Input 

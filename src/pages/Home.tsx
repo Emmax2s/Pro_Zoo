@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Navbar } from '../components/Navbar';
 import { Hero } from '../components/Hero';
+import { InterestSection } from '../components/InterestSection';
 import { InfoSection } from '../components/InfoSection';
 import { Footer } from '../components/Footer';
 
@@ -24,6 +25,7 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       <Navbar />
       <Hero />
+      <InterestSection />
       <InfoSection />
       <Footer />
     </div>

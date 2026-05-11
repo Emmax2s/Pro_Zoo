@@ -282,13 +282,13 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
   const modalContent = (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-2 backdrop-blur-sm sm:p-4" onMouseDown={handleClose}>
       <div
-        className="relative max-h-[95vh] w-full max-w-6xl overflow-hidden rounded-2xl bg-gradient-to-br from-green-50 to-yellow-50 shadow-2xl animate-in fade-in zoom-in duration-300"
+        className="relative max-h-[95vh] w-full max-w-6xl overflow-hidden rounded-2xl bg-gradient-to-br from-stone-50 to-amber-50 shadow-2xl animate-in fade-in zoom-in duration-300"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <button
           type="button"
           onClick={handleClose}
-          className="absolute right-5 top-5 z-20 rounded-full bg-green-800 p-2 text-white shadow-lg transition-colors hover:bg-green-900"
+          className="absolute right-5 top-5 z-20 rounded-full bg-stone-800 p-2 text-white shadow-lg transition-colors hover:bg-stone-900"
           aria-label={t.animalPanel.closePanelAria}
         >
           <X className="h-5 w-5" />
@@ -300,7 +300,7 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
           </Badge>
         </div>
 
-        <div className="relative h-40 overflow-hidden bg-gradient-to-r from-green-700 to-green-600 sm:h-48">
+        <div className="relative h-40 overflow-hidden bg-gradient-to-r from-slate-700 to-slate-600 sm:h-48">
           <div className="absolute inset-0 bg-black/30"></div>
           <div className="relative z-10 flex h-full items-center justify-center px-4 py-6 text-center text-white sm:px-8 sm:py-8">
             <div className="flex flex-col items-center gap-3">
@@ -337,10 +337,10 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
                 )}
               </div>
 
-              <div className="rounded-xl border-2 border-green-600 bg-white p-4 shadow-md">
-                <div className="mb-3 flex items-center gap-2 border-b border-green-100 pb-2">
-                  <Volume2 className="h-5 w-5 text-green-700" />
-                  <h3 className="font-bold text-green-800">{t.animalPanel.audioTitle}</h3>
+              <div className="rounded-xl border-2 border-slate-200 bg-white p-4 shadow-md">
+                <div className="mb-3 flex items-center gap-2 border-b border-slate-100 pb-2">
+                  <Volume2 className="h-5 w-5 text-slate-700" />
+                  <h3 className="font-bold text-slate-800">{t.animalPanel.audioTitle}</h3>
                 </div>
                 {animal.audioUrl ? (
                   <>
@@ -348,7 +348,7 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
                       <iframe
                         src={usesMegaAudio ? toMegaEmbedUrl(animal.audioUrl) : toDrivePreviewUrl(animal.audioUrl)}
                         title={`${language === 'en' ? 'Audio of' : 'Audio de'} ${translateContent(animal.name)}`}
-                        className="h-24 w-full rounded-lg border border-green-100"
+                        className="h-24 w-full rounded-lg border border-slate-100"
                         allow="autoplay"
                       />
                     ) : audioError ? (
@@ -372,7 +372,7 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
                     <p className="text-sm text-gray-700">
                       {t.animalPanel.noAudioMessage}
                     </p>
-                    <Button className="bg-green-600 hover:bg-green-700" onClick={handleSpeakSummary}>
+                    <Button className="bg-stone-700 hover:bg-stone-800" onClick={handleSpeakSummary}>
                       <Volume2 className="mr-2 h-4 w-4" />
                       {isSpeaking ? t.animalPanel.stopNarration : t.animalPanel.listenNarration}
                     </Button>
@@ -380,15 +380,15 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
                 )}
               </div>
 
-              <div className="overflow-hidden rounded-xl border-2 border-green-600 bg-white shadow-md">
-                <div className="bg-gradient-to-r from-green-700 to-green-600 p-3">
+              <div className="overflow-hidden rounded-xl border-2 border-slate-200 bg-white shadow-md">
+                <div className="bg-gradient-to-r from-slate-700 to-slate-600 p-3">
                   <h3 className="text-center font-bold text-white">{t.animalPanel.features}</h3>
                 </div>
                 <div className="space-y-3 p-4">
                   <div className="rounded-lg border-l-4 border-yellow-500 bg-yellow-100 p-3">
                     <div className="mb-1 flex items-center gap-2">
                       <span className="text-2xl">{getActivityIcon(animal.activity)}</span>
-                      <h4 className="font-semibold text-green-800">{t.animalPanel.activity}</h4>
+                      <h4 className="font-semibold text-slate-800">{t.animalPanel.activity}</h4>
                     </div>
                     <p className="ml-9 text-sm text-gray-700">{translateActivity(animal.activity)}</p>
                   </div>
@@ -396,7 +396,7 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
                   <div className="rounded-lg border-l-4 border-yellow-500 bg-yellow-100 p-3">
                     <div className="mb-1 flex items-center gap-2">
                       <span className="text-2xl">🍽️</span>
-                      <h4 className="font-semibold text-green-800">{t.animalPanel.feeding}</h4>
+                      <h4 className="font-semibold text-slate-800">{t.animalPanel.feeding}</h4>
                     </div>
                     <p className="ml-9 text-sm text-gray-700">{translateContent(animal.diet) || t.animalPanel.variedDiet}</p>
                   </div>
@@ -404,8 +404,8 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
                   {animal.size && (
                     <div className="rounded-lg border-l-4 border-yellow-500 bg-yellow-100 p-3">
                       <div className="mb-1 flex items-center gap-2">
-                        <Ruler className="h-5 w-5 text-green-700" />
-                        <h4 className="font-semibold text-green-800">{t.animalPanel.size}</h4>
+                        <Ruler className="h-5 w-5 text-slate-700" />
+                        <h4 className="font-semibold text-slate-800">{t.animalPanel.size}</h4>
                       </div>
                       <p className="ml-7 text-sm text-gray-700">{translateContent(animal.size)}</p>
                     </div>
@@ -414,8 +414,8 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
                   {animal.weight && (
                     <div className="rounded-lg border-l-4 border-yellow-500 bg-yellow-100 p-3">
                       <div className="mb-1 flex items-center gap-2">
-                        <Weight className="h-5 w-5 text-green-700" />
-                        <h4 className="font-semibold text-green-800">{t.animalPanel.weight}</h4>
+                        <Weight className="h-5 w-5 text-slate-700" />
+                        <h4 className="font-semibold text-slate-800">{t.animalPanel.weight}</h4>
                       </div>
                       <p className="ml-7 text-sm text-gray-700">{translateContent(animal.weight)}</p>
                     </div>
@@ -424,7 +424,7 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
                   <div className="rounded-lg border-l-4 border-yellow-500 bg-yellow-100 p-3">
                     <div className="mb-1 flex items-center gap-2">
                       <span className="text-2xl">⏱️</span>
-                      <h4 className="font-semibold text-green-800">{t.animalPanel.lifespan}</h4>
+                      <h4 className="font-semibold text-slate-800">{t.animalPanel.lifespan}</h4>
                     </div>
                     <p className="ml-9 text-sm text-gray-700">{translateContent(animal.lifespan) || t.animalPanel.notSpecified}</p>
                   </div>

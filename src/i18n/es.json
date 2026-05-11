@@ -17,6 +17,11 @@
       "nextItemAria": "Siguiente elemento",
       "goToItemAria": "Ir al elemento"
     },
+    "interestSection": {
+      "eyebrow": "Acceso Rapido",
+      "title": "Informacion de Interes",
+      "subtitle": "Explora los espacios y experiencias destacadas del recinto."
+    },
     "infoSection": {
       "mapTitle": "Mapa de ubicacion",
       "openInMaps": "Abrir en Google Maps",

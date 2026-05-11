@@ -262,6 +262,32 @@
       "button1Text": "Explorar animales",
       "button2Text": "Ver horarios"
     },
+    "interestCards": [
+      {
+        "title": "Museo Zoológico",
+        "description": "Conoce piezas, historias y material educativo sobre la fauna y la conservación.",
+        "imageUrl": "/assets/hero-bg.png",
+        "link": "/info"
+      },
+      {
+        "title": "Vivario",
+        "description": "Observa especies pequeñas y descubre cómo se cuidan en un entorno controlado.",
+        "imageUrl": "/assets/hero-bg.png",
+        "link": "/animales"
+      },
+      {
+        "title": "Herpetario",
+        "description": "Espacio dedicado a reptiles y anfibios con información educativa y visual.",
+        "imageUrl": "/assets/hero-bg.png",
+        "link": "/animales"
+      },
+      {
+        "title": "Museo Cocodrilo",
+        "description": "Explora la presencia de cocodrilos y el papel que cumplen en el ecosistema local.",
+        "imageUrl": "/assets/hero-bg.png",
+        "link": "/info"
+      }
+    ],
     "info": {
       "title": "Planifica tu visita al zoológico",
       "description": "Encuentra horarios, actividades y recomendaciones para disfrutar una experiencia inolvidable.",

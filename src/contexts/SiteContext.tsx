@@ -39,6 +39,13 @@ export interface HeroData {
   button2Text: string;
 }
 
+export interface InterestCard {
+  title: string;
+  description: string;
+  imageUrl: string;
+  link: string;
+}
+
 export interface InfoData {
   title: string;
   description: string;
@@ -78,12 +85,14 @@ export interface InfoData {
 
 export interface SiteData {
   hero: HeroData;
+  interestCards: InterestCard[];
   info: InfoData;
 }
 
 interface SiteContextType {
   siteData: SiteData;
   updateHero: (data: Partial<HeroData>) => void;
+  updateInterestCards: (cards: InterestCard[]) => void;
   updateInfo: (data: Partial<InfoData>) => void;
 }
 
@@ -101,6 +110,32 @@ const initialSiteData: SiteData = {
     button1Text: 'Explorar animales',
     button2Text: 'Ver horarios',
   },
+  interestCards: [
+      {
+        title: 'Museo Zoológico',
+        description: 'Conoce piezas, historias y material educativo sobre la fauna y la conservación.',
+        imageUrl: '/assets/hero-bg.png',
+        link: '/info',
+      },
+      {
+        title: 'Vivario',
+        description: 'Observa especies pequeñas y descubre cómo se cuidan en un entorno controlado.',
+        imageUrl: '/assets/hero-bg.png',
+        link: '/animales',
+      },
+      {
+        title: 'Herpetario',
+        description: 'Espacio dedicado a reptiles y anfibios con información educativa y visual.',
+        imageUrl: '/assets/hero-bg.png',
+        link: '/animales',
+      },
+      {
+        title: 'Museo Cocodrilo',
+        description: 'Explora la presencia de cocodrilos y el papel que cumplen en el ecosistema local.',
+        imageUrl: '/assets/hero-bg.png',
+        link: '/info',
+      },
+    ],
   info: {
     title: 'Planifica tu visita al zoológico',
     description: 'Encuentra horarios, actividades y recomendaciones para disfrutar una experiencia inolvidable.',
@@ -191,6 +226,21 @@ const normalizeInfoData = (info?: Partial<InfoData>): InfoData => {
   return merged;
 };
 
+const normalizeInterestCards = (cards?: Partial<InterestCard>[]): InterestCard[] => {
+  if (!Array.isArray(cards)) {
+    return [];
+  }
+
+  return cards
+    .map((card) => ({
+      title: typeof card?.title === 'string' ? card.title.trim() : '',
+      description: typeof card?.description === 'string' ? card.description.trim() : '',
+      imageUrl: typeof card?.imageUrl === 'string' ? card.imageUrl.trim() : '',
+      link: typeof card?.link === 'string' ? card.link.trim() : '',
+    }))
+    .filter((card) => card.title !== '' || card.description !== '' || card.imageUrl !== '' || card.link !== '');
+};
+
 const loadSiteData = (): { siteData: SiteData; hasLocalOverride: boolean } => {
   if (typeof window === 'undefined') {
     return { siteData: initialSiteData, hasLocalOverride: false };
@@ -209,6 +259,7 @@ const loadSiteData = (): { siteData: SiteData; hasLocalOverride: boolean } => {
     return {
       siteData: {
         hero: normalizeHeroData(parsedData.hero),
+        interestCards: normalizeInterestCards(parsedData.interestCards),
         info: normalizeInfoData(parsedData.info),
       },
       hasLocalOverride: true,
@@ -236,6 +287,7 @@ const loadPublishedSiteData = async (): Promise<SiteData | null> => {
 
     return {
       hero: normalizeHeroData(payload.siteData.hero),
+      interestCards: normalizeInterestCards(payload.siteData.interestCards),
       info: normalizeInfoData(payload.siteData.info),
     };
   } catch {
@@ -261,6 +313,7 @@ const loadApiSiteData = async (): Promise<SiteData | null> => {
 
     return {
       hero: normalizeHeroData(payload.hero),
+      interestCards: normalizeInterestCards(payload.interestCards),
       info: normalizeInfoData(payload.info),
     };
   } catch {
@@ -303,6 +356,7 @@ export function SiteProvider({ children }: { children: ReactNode }) {
         if (active && savedInDb) {
           setSiteData({
             hero: normalizeHeroData(savedInDb.hero),
+            interestCards: normalizeInterestCards(savedInDb.interestCards),
             info: normalizeInfoData(savedInDb.info),
           });
           setHydrated(true);
@@ -377,6 +431,17 @@ export function SiteProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const updateInterestCards = (cards: InterestCard[]) => {
+    setSiteData((prev) => {
+      const next = {
+        ...prev,
+        interestCards: normalizeInterestCards(cards),
+      };
+      void syncSiteDataToApi(next);
+      return next;
+    });
+  };
+
   const updateInfo = (data: Partial<InfoData>) => {
     setSiteData((prev) => {
       const next = {
@@ -389,7 +454,7 @@ export function SiteProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <SiteContext.Provider value={{ siteData, updateHero, updateInfo }}>
+    <SiteContext.Provider value={{ siteData, updateHero, updateInterestCards, updateInfo }}>
       {children}
     </SiteContext.Provider>
   );

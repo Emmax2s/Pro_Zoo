@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router";
-import { ArrowRight, Ticket, ChevronLeft, ChevronRight, Lightbulb, Compass, Award, Volume2, Info, MapPin } from "lucide-react";
+import { ArrowRight, Ticket, ChevronLeft, ChevronRight, Lightbulb, Compass, Award, Volume2, Info, MapPin, Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useZoo } from "../context/ZooContext";
 

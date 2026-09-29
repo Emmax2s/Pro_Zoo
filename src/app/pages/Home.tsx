@@ -120,14 +120,15 @@ function HeroCarousel() {
 }
 
 export function Home() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isEs = i18n.language === 'es';
   const { animals } = useZoo();
 
   const highlights = [
     {
       icon: Users,
-      title: "50+ Especies",
-      description: "Fauna nativa de Chiapas"
+      title: isEs ? "50+ Especies" : "50+ Species",
+      description: isEs ? "Fauna nativa de Chiapas" : "Native wildlife of Chiapas"
     },
     {
       icon: TreePine,
@@ -163,11 +164,11 @@ export function Home() {
             </div>
 
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-emerald-950 leading-[1.1]">
-              Descubre la Fauna de Chiapas
+              {t("home.hero.title")}
             </h1>
 
             <p className="text-xl md:text-2xl text-emerald-950 leading-relaxed font-semibold">
-              El único zoológico en México dedicado exclusivamente a la conservación, exhibición e investigación de la fauna silvestre nativa del estado de Chiapas en su entorno selvático natural.
+              {t("home.hero.desc")}
             </p>
 
             <div className="flex flex-wrap gap-5 pt-2">
@@ -228,8 +229,12 @@ export function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {animals.length === 0 ? (
               <div className="col-span-full text-center py-12 bg-white rounded-3xl border-2 border-dashed border-emerald-200">
-                <p className="text-emerald-800 font-bold text-lg">No hay especies registradas actualmente.</p>
-                <p className="text-emerald-600 text-sm mt-1">Las especies agregadas desde el panel de administración aparecerán aquí.</p>
+                <p className="text-emerald-800 font-bold text-lg">
+                  {isEs ? "No hay especies registradas actualmente." : "No species currently registered."}
+                </p>
+                <p className="text-emerald-600 text-sm mt-1">
+                  {isEs ? "Las especies agregadas desde el panel de administración aparecerán aquí." : "Species added from the admin panel will appear here."}
+                </p>
               </div>
             ) : (
               animals.slice(0, 3).map((animal) => (
@@ -237,17 +242,17 @@ export function Home() {
                   <div className="relative h-72 overflow-hidden bg-emerald-100">
                     <img
                       src={animal.image}
-                      alt={animal.name}
+                      alt={isEs ? animal.name : (animal.nameEn || animal.name)}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
                     />
                     <div className="absolute top-4 left-4 bg-emerald-950 text-white px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider shadow-md">
-                      {animal.status}
+                      {isEs ? animal.status : (animal.status === "En Peligro de Extinción" ? "Endangered" : animal.status === "Amenazada" ? "Threatened" : "Special Protection")}
                     </div>
                   </div>
                   <div className="p-7 flex items-center justify-between">
-                    <h3 className="text-2xl font-black text-emerald-950">{animal.name}</h3>
+                    <h3 className="text-2xl font-black text-emerald-950">{isEs ? animal.name : (animal.nameEn || animal.name)}</h3>
                     <Link to={`/animales?id=${animal.id}`} className="text-emerald-700 hover:text-emerald-900 font-bold text-sm bg-emerald-50 px-3.5 py-2 rounded-lg border border-emerald-200">
-                      Ver más →
+                      {isEs ? "Ver más →" : "View more →"}
                     </Link>
                   </div>
                 </div>

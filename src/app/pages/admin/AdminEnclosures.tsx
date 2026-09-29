@@ -63,8 +63,7 @@ function EnclosureModal({
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {/* Preview */}
-          <div className={`${form.color} rounded-xl p-4 flex items-center gap-3 text-white`}>
-            <span className="text-3xl">{form.icon}</span>
+          <div className={`${form.color} rounded-xl p-4 text-white`}>
             <div>
               <p className="font-bold text-lg">{form.name || "Nombre del recinto"}</p>
               <p className="text-sm opacity-80">{form.description || "Descripción"}</p>
@@ -142,7 +141,7 @@ function DeleteEnclosureDialog({ enclosure, animalCount, adminCount, onConfirm, 
           <div>
             <h2 className="text-lg font-bold text-gray-900 mb-1">Eliminar Recinto</h2>
             <p className="text-sm text-gray-500">
-              ¿Seguro que quieres eliminar <span className="font-semibold text-gray-900">{enclosure.icon} {enclosure.name}</span>?
+              ¿Seguro que quieres eliminar <span className="font-semibold text-gray-900">{enclosure.name}</span>?
             </p>
           </div>
         </div>
@@ -210,12 +209,9 @@ export function AdminEnclosures() {
             <div key={enc.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
               {/* Color header */}
               <div className={`${enc.color} p-5 flex items-center justify-between`}>
-                <div className="flex items-center gap-3">
-                  <span className="text-4xl">{enc.icon}</span>
-                  <div>
-                    <h3 className="font-bold text-white text-lg leading-tight">{enc.name}</h3>
-                    <p className="text-white/75 text-sm">{enc.description}</p>
-                  </div>
+                <div>
+                  <h3 className="font-bold text-white text-lg leading-tight">{enc.name}</h3>
+                  <p className="text-white/75 text-sm mt-0.5">{enc.description}</p>
                 </div>
               </div>
               {/* Stats */}

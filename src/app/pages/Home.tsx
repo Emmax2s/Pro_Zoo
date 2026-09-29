@@ -157,10 +157,10 @@ export function Home() {
               <span>{t("home.hero.tag")}</span>
             </div>
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black mb-6 tracking-tight text-emerald-950 leading-[1.1]">
-              {t("home.hero.title1")}<span className="text-emerald-700 underline decoration-amber-400 decoration-wavy decoration-2">{t("home.hero.titleHighlight")}</span>{t("home.hero.title2")}
+              Descubre la Fauna de Chiapas
             </h1>
-            <p className="text-xl md:text-2xl text-emerald-900/90 mb-10 leading-relaxed max-w-2xl font-semibold">
-              El único zoológico en México dedicado exclusivamente a la conservación, exhibición e investigación de la <span className="text-emerald-950 font-bold underline">fauna silvestre nativa del estado de Chiapas</span> en su entorno selvático natural.
+            <p className="text-xl md:text-2xl text-emerald-950 mb-10 leading-relaxed max-w-2xl font-semibold">
+              El único zoológico en México dedicado exclusivamente a la conservación, exhibición e investigación de la fauna silvestre nativa del estado de Chiapas en su entorno selvático natural.
             </p>
             <div className="flex flex-wrap gap-5">
               <Link

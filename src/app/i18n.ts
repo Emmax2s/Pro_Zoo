@@ -31,7 +31,7 @@ const resources = {
           researchDesc: "Estudios científicos para entender mejor a las especies y sus ecosistemas.",
         },
         featured: {
-          title: "Especies Destacadas",
+          title: "Especies",
           desc: "Conoce algunos de nuestros habitantes más emblemáticos que protegemos en el zoológico.",
           viewAll: "Ver catálogo completo",
         },
@@ -148,7 +148,7 @@ const resources = {
           researchDesc: "Scientific studies to better understand species and their ecosystems.",
         },
         featured: {
-          title: "Featured Species",
+          title: "Species",
           desc: "Meet some of our most iconic inhabitants that we protect in the zoo.",
           viewAll: "View full catalog",
         },

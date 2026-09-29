@@ -121,6 +121,7 @@ function HeroCarousel() {
 
 export function Home() {
   const { t } = useTranslation();
+  const { animals } = useZoo();
 
   const highlights = [
     {
@@ -137,24 +138,6 @@ export function Home() {
       icon: Heart,
       title: t("home.highlights.education"),
       description: t("home.highlights.educationDesc")
-    }
-  ];
-
-  const featuredAnimals = [
-    {
-      name: "Jaguar",
-      image: "/assets/images/jaguar.svg",
-      status: "En Peligro"
-    },
-    {
-      name: "Tucán Pico Iris",
-      image: "/assets/images/toucan.svg",
-      status: "Amenazada"
-    },
-    {
-      name: "Guacamaya Roja",
-      image: "/assets/images/macaw.svg",
-      status: "Amenazada"
     }
   ];
 
@@ -226,43 +209,6 @@ export function Home() {
         </div>
       </section>
 
-      {/* Special Feature: Don Miguel & El Pavón */}
-      <section className="py-20 bg-emerald-950 text-white border-y-4 border-amber-400 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 flex flex-col lg:flex-row items-center gap-12">
-          <div className="flex-1 space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-400 text-emerald-950 text-xs font-black tracking-widest uppercase shadow-sm">
-              <Shield className="w-4 h-4 text-emerald-950" />
-              <span>Símbolo Institucional del ZooMAT</span>
-            </div>
-            <h2 className="text-3xl md:text-5xl font-black text-white leading-tight">
-              El Pavón del Hornillo <span className="text-amber-300 italic font-serif block text-2xl md:text-3xl font-normal mt-1">(Oreophasis derbianus)</span>
-            </h2>
-            <p className="text-emerald-100 text-lg md:text-xl leading-relaxed font-normal">
-              Ave mítica de las nieblas de Chiapas y símbolo emblemático del zoológico. Fundado en 1942 por el ilustre naturalista **Don Miguel Álvarez del Toro**, el ZooMAT alberga y protege especies endémicas amenazadas en la Reserva El Zapotal.
-            </p>
-            <div className="pt-2">
-              <Link
-                to="/animales?id=pavon"
-                className="inline-flex items-center gap-3 bg-amber-400 hover:bg-amber-300 text-emerald-950 px-7 py-3.5 rounded-xl font-black text-base shadow-lg transition-transform hover:scale-105"
-              >
-                <span>Conocer al Pavón</span>
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-            </div>
-          </div>
-          <div className="w-full lg:w-96 aspect-square rounded-3xl overflow-hidden border-4 border-amber-400/50 shadow-2xl relative">
-            <img
-              src="/assets/images/placeholder.svg"
-              alt="El Pavón - Ave Símbolo del ZooMAT"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute bottom-0 inset-x-0 bg-emerald-950/90 p-4 text-center text-xs font-bold text-amber-300 uppercase tracking-wider">
-              El Zapotal • Tuxtla Gutiérrez, Chiapas
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Featured Animals */}
       <section className="py-24 bg-emerald-50/60 border-b border-emerald-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -280,26 +226,33 @@ export function Home() {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredAnimals.map((animal, index) => (
-              <div key={index} className="bg-white rounded-3xl overflow-hidden border-2 border-emerald-100 shadow-md hover:shadow-xl hover:shadow-emerald-900/10 transition-all duration-300 group">
-                <div className="relative h-72 overflow-hidden bg-emerald-100">
-                  <img
-                    src={animal.image}
-                    alt={animal.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
-                  />
-                  <div className="absolute top-4 left-4 bg-emerald-950 text-white px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider shadow-md">
-                    {animal.status}
+            {animals.length === 0 ? (
+              <div className="col-span-full text-center py-12 bg-white rounded-3xl border-2 border-dashed border-emerald-200">
+                <p className="text-emerald-800 font-bold text-lg">No hay especies registradas actualmente.</p>
+                <p className="text-emerald-600 text-sm mt-1">Las especies agregadas desde el panel de administración aparecerán aquí.</p>
+              </div>
+            ) : (
+              animals.slice(0, 3).map((animal) => (
+                <div key={animal.id} className="bg-white rounded-3xl overflow-hidden border-2 border-emerald-100 shadow-md hover:shadow-xl hover:shadow-emerald-900/10 transition-all duration-300 group">
+                  <div className="relative h-72 overflow-hidden bg-emerald-100">
+                    <img
+                      src={animal.image}
+                      alt={animal.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
+                    />
+                    <div className="absolute top-4 left-4 bg-emerald-950 text-white px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider shadow-md">
+                      {animal.status}
+                    </div>
+                  </div>
+                  <div className="p-7 flex items-center justify-between">
+                    <h3 className="text-2xl font-black text-emerald-950">{animal.name}</h3>
+                    <Link to={`/animales?id=${animal.id}`} className="text-emerald-700 hover:text-emerald-900 font-bold text-sm bg-emerald-50 px-3.5 py-2 rounded-lg border border-emerald-200">
+                      Ver más →
+                    </Link>
                   </div>
                 </div>
-                <div className="p-7 flex items-center justify-between">
-                  <h3 className="text-2xl font-black text-emerald-950">{animal.name}</h3>
-                  <Link to="/animales" className="text-emerald-700 hover:text-emerald-900 font-bold text-sm bg-emerald-50 px-3.5 py-2 rounded-lg border border-emerald-200">
-                    Ver más →
-                  </Link>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -353,11 +306,14 @@ export function Home() {
                 </Link>
               </div>
               <div className="relative h-[32rem] rounded-3xl overflow-hidden bg-emerald-900 border-8 border-emerald-900/50 shadow-2xl">
-                <img
-                  src="/assets/images/entrance.svg"
-                  alt="Entrada del ZooMAT"
-                  className="w-full h-full object-cover opacity-90 hover:scale-105 transition-transform duration-1000"
-                />
+                <iframe
+                  title="Google Maps ZooMAT"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3820.612711003444!2d-93.0975618!3d16.7460298!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85ed272bc9776d63%3A0xc3f6a2c2622fbb95!2sZool%C3%B3gico%20Regional%20Miguel%20%C3%81lvarez%20del%20Toro!5e0!3m2!1ses!2smx!45"
+                  className="w-full h-full border-0"
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                ></iframe>
               </div>
             </div>
           </div>

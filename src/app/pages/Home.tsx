@@ -57,10 +57,10 @@ function HeroCarousel() {
               {!playing && (
                 <button
                   onClick={() => setPlaying(true)}
-                  className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors"
+                  className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors"
                 >
-                  <span className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
-                    <Play size={28} className="text-emerald-700 ml-1" />
+                  <span className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-2xl hover:scale-110 transition-transform">
+                    <Play size={36} className="text-emerald-800 ml-1" />
                   </span>
                 </button>
               )}
@@ -69,35 +69,40 @@ function HeroCarousel() {
         </div>
       ))}
 
+      {/* Counter (01 / 05) */}
+      <div className="absolute top-5 right-6 z-20 bg-black/40 backdrop-blur-md text-white font-mono text-sm sm:text-base font-bold px-4 py-1.5 rounded-full border border-white/20 shadow-md">
+        {String(current + 1).padStart(2, "0")} <span className="text-white/60">/ {String(total).padStart(2, "0")}</span>
+      </div>
+
       {/* Arrows */}
       <button
         onClick={prev}
-        className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow hover:bg-white transition-colors opacity-0 group-hover:opacity-100"
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-lg hover:bg-white text-emerald-950 transition-all opacity-0 group-hover:opacity-100 hover:scale-105"
       >
-        <ChevronLeft size={20} className="text-gray-700" />
+        <ChevronLeft size={24} />
       </button>
       <button
         onClick={next}
-        className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow hover:bg-white transition-colors opacity-0 group-hover:opacity-100"
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-lg hover:bg-white text-emerald-950 transition-all opacity-0 group-hover:opacity-100 hover:scale-105"
       >
-        <ChevronRight size={20} className="text-gray-700" />
+        <ChevronRight size={24} />
       </button>
 
       {/* Dots */}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex gap-2 bg-black/30 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
         {slides.map((s, i) => (
           <button
             key={i}
             onClick={() => { setCurrent(i); setPlaying(false); }}
-            className={`rounded-full transition-all ${i === current ? "w-5 h-2 bg-white" : "w-2 h-2 bg-white/50 hover:bg-white/80"}`}
+            className={`rounded-full transition-all ${i === current ? "w-7 h-2.5 bg-amber-400" : "w-2.5 h-2.5 bg-white/60 hover:bg-white"}`}
           />
         ))}
       </div>
 
       {/* Video badge */}
       {slide.type === "video" && (
-        <span className="absolute top-3 left-3 z-20 bg-black/50 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
-          <Play size={10} /> VIDEO
+        <span className="absolute top-5 left-6 z-20 bg-black/60 backdrop-blur-md text-amber-300 text-xs font-black px-3.5 py-1.5 rounded-full flex items-center gap-1.5 border border-white/10 shadow-sm">
+          <Play size={12} /> VIDEO
         </span>
       )}
     </div>
@@ -146,23 +151,34 @@ export function Home() {
   return (
     <div className="bg-white text-gray-900">
       {/* Hero Section */}
-      <section className="relative bg-emerald-50 border-b border-emerald-100 overflow-hidden">
+      <section className="relative bg-emerald-50 border-b border-emerald-100 overflow-hidden py-10 md:py-16">
         {/* Subtle decorative background pattern */}
         <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(#10b981 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
         
-        <div className="relative max-w-7xl mx-auto px-4 py-24 md:py-32 flex flex-col md:flex-row items-center gap-12">
-          <div className="flex-1">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100 text-emerald-900 text-sm font-extrabold tracking-wide uppercase mb-6 shadow-sm border border-emerald-300">
+        <div className="relative max-w-7xl mx-auto px-4 space-y-10">
+          {/* 1. Carrusel de fotos ARRIBA */}
+          <div className="w-full relative">
+            <div className="h-[380px] sm:h-[480px] md:h-[560px] lg:h-[620px] rounded-3xl overflow-hidden bg-emerald-950 border-4 border-white shadow-2xl relative">
+              <HeroCarousel />
+            </div>
+          </div>
+
+          {/* 2. Texto de la cabecera ABAJO (después de las imágenes) */}
+          <div className="max-w-4xl space-y-6 pt-2">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100 text-emerald-900 text-sm font-extrabold tracking-wide uppercase shadow-sm border border-emerald-300">
               <TreePine className="w-4 h-4 text-emerald-700" />
               <span>{t("home.hero.tag")}</span>
             </div>
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black mb-6 tracking-tight text-emerald-950 leading-[1.1]">
+
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-emerald-950 leading-[1.1]">
               Descubre la Fauna de Chiapas
             </h1>
-            <p className="text-xl md:text-2xl text-emerald-950 mb-10 leading-relaxed max-w-2xl font-semibold">
+
+            <p className="text-xl md:text-2xl text-emerald-950 leading-relaxed font-semibold">
               El único zoológico en México dedicado exclusivamente a la conservación, exhibición e investigación de la fauna silvestre nativa del estado de Chiapas en su entorno selvático natural.
             </p>
-            <div className="flex flex-wrap gap-5">
+
+            <div className="flex flex-wrap gap-5 pt-2">
               <Link
                 to="/visita"
                 className="inline-flex items-center gap-3 bg-emerald-800 hover:bg-emerald-900 text-white px-8 py-4 rounded-2xl text-lg font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
@@ -171,6 +187,7 @@ export function Home() {
                 <span>{t("home.hero.planVisit")}</span>
                 <ArrowRight className="w-5 h-5" />
               </Link>
+
               <Link
                 to="/animales"
                 className="inline-flex items-center gap-3 bg-white hover:bg-emerald-50 text-emerald-950 border-2 border-emerald-300 px-8 py-4 rounded-2xl text-lg font-bold shadow-md hover:shadow-lg hover:scale-105 transition-all"
@@ -178,11 +195,6 @@ export function Home() {
                 <BookOpen className="w-5 h-5 text-emerald-700" />
                 <span>{t("home.hero.exploreCatalog")}</span>
               </Link>
-            </div>
-          </div>
-          <div className="flex-1 w-full relative">
-            <div className="aspect-[4/3] rounded-3xl overflow-hidden bg-emerald-200 border-8 border-white shadow-2xl relative rotate-1 hover:rotate-0 transition-transform duration-500">
-              <HeroCarousel />
             </div>
           </div>
         </div>

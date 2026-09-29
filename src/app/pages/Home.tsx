@@ -26,26 +26,33 @@ function HeroCarousel() {
     return () => clearTimeout(id);
   }, [current, next, slides]);
 
-  if (slides.length === 0) return <div className="w-full h-full bg-emerald-100" />;
+  if (slides.length === 0) return <div className="w-full h-full bg-emerald-950" />;
 
   const slide = slides[current];
 
   return (
-    <div className="w-full h-full relative group">
+    <div className="w-full h-full relative group bg-black overflow-hidden">
+      {/* Subtle top/bottom shadow gradients for contrast */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30 pointer-events-none z-10" />
+
       {/* Slides */}
       {slides.map((s, i) => (
         <div
           key={i}
-          className={`absolute inset-0 transition-opacity duration-700 ${i === current ? "opacity-100 z-10" : "opacity-0 z-0"}`}
+          className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${i === current ? "opacity-100 z-10" : "opacity-0 z-0"}`}
         >
           {s.type === "image" ? (
-            <img src={s.src} alt={s.alt} className="w-full h-full object-cover" />
+            <img
+              src={s.src}
+              alt={s.alt}
+              className="w-full h-full object-cover object-center select-none"
+            />
           ) : (
             <div className="w-full h-full relative">
               <video
                 src={s.src}
                 poster={s.poster}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-center"
                 loop
                 playsInline
                 ref={(el) => {
@@ -57,10 +64,10 @@ function HeroCarousel() {
               {!playing && (
                 <button
                   onClick={() => setPlaying(true)}
-                  className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors"
+                  className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors z-20 cursor-pointer"
                 >
-                  <span className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-2xl hover:scale-110 transition-transform">
-                    <Play size={36} className="text-emerald-800 ml-1" />
+                  <span className="w-20 h-20 rounded-full bg-white/95 flex items-center justify-center shadow-2xl hover:scale-110 transition-transform">
+                    <Play size={36} className="text-emerald-900 ml-1" />
                   </span>
                 </button>
               )}
@@ -69,40 +76,43 @@ function HeroCarousel() {
         </div>
       ))}
 
-      {/* Counter (01 / 05) */}
-      <div className="absolute top-5 right-6 z-20 bg-black/40 backdrop-blur-md text-white font-mono text-sm sm:text-base font-bold px-4 py-1.5 rounded-full border border-white/20 shadow-md">
+      {/* Counter (Photo 1 Style: 02 / 06) */}
+      <div className="absolute top-6 right-8 z-20 bg-black/50 backdrop-blur-md text-white font-mono text-sm sm:text-base font-bold px-4 py-1.5 rounded-full border border-white/20 shadow-lg tracking-wider">
         {String(current + 1).padStart(2, "0")} <span className="text-white/60">/ {String(total).padStart(2, "0")}</span>
       </div>
 
-      {/* Arrows */}
+      {/* Navigation Arrows */}
       <button
         onClick={prev}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-lg hover:bg-white text-emerald-950 transition-all opacity-0 group-hover:opacity-100 hover:scale-105"
+        className="absolute left-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-2xl hover:bg-white text-emerald-950 transition-all opacity-0 group-hover:opacity-100 hover:scale-110 cursor-pointer"
+        aria-label="Anterior"
       >
-        <ChevronLeft size={24} />
+        <ChevronLeft size={28} />
       </button>
       <button
         onClick={next}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-lg hover:bg-white text-emerald-950 transition-all opacity-0 group-hover:opacity-100 hover:scale-105"
+        className="absolute right-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-2xl hover:bg-white text-emerald-950 transition-all opacity-0 group-hover:opacity-100 hover:scale-110 cursor-pointer"
+        aria-label="Siguiente"
       >
-        <ChevronRight size={24} />
+        <ChevronRight size={28} />
       </button>
 
-      {/* Dots */}
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex gap-2 bg-black/30 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
+      {/* Dots / Indicators Bar */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2.5 bg-black/40 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/15 shadow-lg">
         {slides.map((s, i) => (
           <button
             key={i}
             onClick={() => { setCurrent(i); setPlaying(false); }}
-            className={`rounded-full transition-all ${i === current ? "w-7 h-2.5 bg-amber-400" : "w-2.5 h-2.5 bg-white/60 hover:bg-white"}`}
+            className={`rounded-full transition-all cursor-pointer ${i === current ? "w-8 h-3 bg-amber-400" : "w-3 h-3 bg-white/60 hover:bg-white"}`}
+            aria-label={`Diapositiva ${i + 1}`}
           />
         ))}
       </div>
 
       {/* Video badge */}
       {slide.type === "video" && (
-        <span className="absolute top-5 left-6 z-20 bg-black/60 backdrop-blur-md text-amber-300 text-xs font-black px-3.5 py-1.5 rounded-full flex items-center gap-1.5 border border-white/10 shadow-sm">
-          <Play size={12} /> VIDEO
+        <span className="absolute top-6 left-8 z-20 bg-black/60 backdrop-blur-md text-amber-300 text-xs font-black px-4 py-2 rounded-full flex items-center gap-2 border border-white/15 shadow-md">
+          <Play size={12} /> VIDEO EXPOSITIVO
         </span>
       )}
     </div>
@@ -150,21 +160,20 @@ export function Home() {
 
   return (
     <div className="bg-white text-gray-900">
-      {/* Hero Section */}
-      <section className="relative bg-emerald-50 border-b border-emerald-100 overflow-hidden py-10 md:py-16">
+      {/* 1. Full-bleed Edge-to-Edge Hero Carousel (Photo 1 Layout - 100% ancho completo) */}
+      <section className="relative w-full overflow-hidden bg-stone-900 border-b-4 border-amber-400">
+        <div className="w-full h-[450px] sm:h-[550px] md:h-[650px] lg:h-[720px] relative">
+          <HeroCarousel />
+        </div>
+      </section>
+
+      {/* 2. Sección de Texto de Cabecera ABAJO (después de las imágenes) */}
+      <section className="relative bg-emerald-50 border-b border-emerald-100 py-14 md:py-20 overflow-hidden">
         {/* Subtle decorative background pattern */}
         <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(#10b981 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
         
-        <div className="relative max-w-7xl mx-auto px-4 space-y-10">
-          {/* 1. Carrusel de fotos ARRIBA */}
-          <div className="w-full relative">
-            <div className="h-[380px] sm:h-[480px] md:h-[560px] lg:h-[620px] rounded-3xl overflow-hidden bg-emerald-950 border-4 border-white shadow-2xl relative">
-              <HeroCarousel />
-            </div>
-          </div>
-
-          {/* 2. Texto de la cabecera ABAJO (después de las imágenes) */}
-          <div className="max-w-4xl space-y-6 pt-2">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="max-w-4xl space-y-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100 text-emerald-900 text-sm font-extrabold tracking-wide uppercase shadow-sm border border-emerald-300">
               <TreePine className="w-4 h-4 text-emerald-700" />
               <span>{t("home.hero.tag")}</span>

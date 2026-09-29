@@ -197,10 +197,7 @@ export function ZooMap() {
               return (
                 <div key={index} className={`${zone.color} border-2 rounded-3xl p-7 transition-transform duration-300 hover:-translate-y-1 shadow-md flex flex-col justify-between`}>
                   <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-3 bg-white/80 backdrop-blur-xs rounded-2xl shadow-xs">
-                        <ZoneIcon className="w-8 h-8 text-emerald-900" />
-                      </div>
+                    <div className="flex items-center justify-end mb-4">
                       <span className={`text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-xs ${zone.badgeColor}`}>
                         {zone.location}
                       </span>

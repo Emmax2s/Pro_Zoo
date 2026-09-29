@@ -1,4 +1,4 @@
-import { Info, MapPin, AlertCircle } from 'lucide-react';
+import { Info, MapPin, AlertCircle, Lightbulb } from 'lucide-react';
 import { Card } from './ui/card';
 
 interface AnimalCardProps {

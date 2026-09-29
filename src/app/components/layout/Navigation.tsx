@@ -29,19 +29,19 @@ export function Navigation() {
   return (
     <nav className="bg-white/95 backdrop-blur-md border-b border-emerald-200 sticky top-0 z-50 shadow-sm transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-24">
-          {/* Logo Oficial ZooMAT */}
-          <Link to="/" className="flex items-center gap-3.5 hover:opacity-95 transition group">
+        <div className="flex items-center justify-between h-28 md:h-32">
+          {/* Logo Oficial ZooMAT (Enlarged) */}
+          <Link to="/" className="flex items-center gap-4 hover:opacity-95 transition group">
             <img
               src={logoZoomat}
               alt="Logo Oficial ZooMAT"
-              className="w-14 h-14 rounded-full object-contain bg-white p-1 shadow-md border-2 border-emerald-200 group-hover:scale-105 transition-transform"
+              className="w-20 h-20 md:w-24 md:h-24 rounded-full object-contain bg-white p-1.5 shadow-xl border-3 border-emerald-300 group-hover:scale-105 transition-transform"
             />
             <div>
-              <div className="font-black text-2xl md:text-3xl tracking-tight text-emerald-950 leading-none">
+              <div className="font-black text-3xl md:text-4xl tracking-tight text-emerald-950 leading-none">
                 ZooMAT
               </div>
-              <div className="text-xs md:text-sm text-emerald-800 font-bold tracking-wide uppercase mt-1">
+              <div className="text-xs md:text-sm text-emerald-800 font-extrabold tracking-wider uppercase mt-1">
                 Miguel Álvarez del Toro
               </div>
             </div>
@@ -76,11 +76,11 @@ export function Navigation() {
             
             <button
               onClick={toggleLanguage}
-              className="flex items-center gap-2 text-sm font-bold text-emerald-950 bg-amber-100 hover:bg-amber-200 border-2 border-amber-300 px-4 py-2 rounded-full transition-all shadow-sm cursor-pointer"
+              className="flex items-center gap-2 text-sm font-black text-emerald-950 bg-amber-400 hover:bg-amber-300 border-2 border-amber-300 px-4 py-2 rounded-full transition-all shadow-md cursor-pointer hover:scale-105"
               title="Cambiar idioma / Change language"
             >
-              <Globe className="w-4 h-4 text-amber-800" />
-              <span>{i18n.language === 'es' ? '🇲🇽 ES' : '🇺🇸 EN'}</span>
+              <Globe className="w-4 h-4 text-emerald-950" />
+              <span>{i18n.language === 'es' ? 'ESPAÑOL (ES)' : 'ENGLISH (EN)'}</span>
             </button>
           </div>
 

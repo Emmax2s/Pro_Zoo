@@ -70,10 +70,15 @@ export function AnimalCard({
 
         {/* Dato curioso */}
         <div className="pt-4 border-t border-emerald-100">
-          <p className="text-base text-emerald-900 leading-relaxed bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200">
-            <span className="font-extrabold text-emerald-950 block mb-1 text-sm uppercase tracking-wide">💡 DATO INTERESANTE</span>
-            {funFact}
-          </p>
+          <div className="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200">
+            <div className="flex items-center gap-2 mb-1.5 text-emerald-950 font-extrabold text-sm uppercase tracking-wide">
+              <Lightbulb className="w-4 h-4 text-amber-500" />
+              <span>DATO INTERESANTE</span>
+            </div>
+            <p className="text-base text-emerald-950 font-medium leading-relaxed">
+              {funFact}
+            </p>
+          </div>
         </div>
       </div>
     </Card>

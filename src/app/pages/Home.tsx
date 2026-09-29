@@ -209,8 +209,9 @@ export function Home() {
       <section className="py-20 bg-emerald-950 text-white border-y-4 border-amber-400 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 flex flex-col lg:flex-row items-center gap-12">
           <div className="flex-1 space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-400 text-emerald-950 text-xs font-black tracking-widest uppercase">
-              ★ Símbolo Institucional del ZooMAT
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-400 text-emerald-950 text-xs font-black tracking-widest uppercase shadow-sm">
+              <Shield className="w-4 h-4 text-emerald-950" />
+              <span>Símbolo Institucional del ZooMAT</span>
             </div>
             <h2 className="text-3xl md:text-5xl font-black text-white leading-tight">
               El Pavón del Hornillo <span className="text-amber-300 italic font-serif block text-2xl md:text-3xl font-normal mt-1">(Oreophasis derbianus)</span>

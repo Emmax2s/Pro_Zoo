@@ -22,6 +22,7 @@ export const router = createBrowserRouter([
     Component: RootLayout,
     children: [
       { index: true, Component: Home },
+      { path: "especie/:id", Component: Animals },
       { path: "animales", Component: Animals },
       { path: "visita", Component: Visit },
       { path: "mapa", Component: ZooMap },

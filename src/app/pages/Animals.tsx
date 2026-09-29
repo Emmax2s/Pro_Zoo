@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams, useSearchParams } from "react-router";
 import { Search, Filter, Volume2, MapPin, AlertCircle, X, Info, Lightbulb } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AnimalCard } from "../components/AnimalCard";
@@ -8,11 +9,28 @@ export function Animals() {
   const { t, i18n } = useTranslation();
   const isEs = i18n.language === 'es';
   const { animals } = useZoo();
+  const params = useParams();
+  const [searchParams] = useSearchParams();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("Todos");
   const [selectedStatus, setSelectedStatus] = useState<string>("Todos");
   const [selectedAnimal, setSelectedAnimal] = useState<any | null>(null);
+
+  // Detect URL parameter for QR scanning (e.g. /especie/1 or /animales?id=1)
+  useEffect(() => {
+    const targetId = params.id || searchParams.get("id");
+    if (targetId && animals.length > 0) {
+      const match = animals.find(
+        (a) =>
+          String(a.id) === String(targetId) ||
+          a.name.toLowerCase().includes(String(targetId).toLowerCase())
+      );
+      if (match) {
+        setSelectedAnimal(match);
+      }
+    }
+  }, [params.id, searchParams, animals]);
 
   const categories = isEs
     ? ["Todos", "Mamífero", "Ave", "Reptil", "Anfibio"]

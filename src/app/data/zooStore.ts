@@ -33,6 +33,13 @@ export interface Animal {
   image: string;
   audioUrl?: string;
   enclosureId: string | null;
+  lifespan?: string;
+  weight?: string;
+  height?: string;
+  feedingTime?: string;
+  zone?: string;
+  num?: string;
+  description?: string;
 }
 
 export type UserRole = "superadmin" | "enclosure_admin";
@@ -77,6 +84,7 @@ export const DEFAULT_ENCLOSURES: Enclosure[] = [
 export const INITIAL_ANIMALS: Animal[] = [
   {
     id: 1,
+    num: "01",
     name: "Jaguar",
     nameEn: "Jaguar",
     scientificName: "Panthera onca",
@@ -85,8 +93,14 @@ export const INITIAL_ANIMALS: Animal[] = [
     statusEn: "Endangered",
     habitat: "Selvas tropicales y bosques húmedos de Chiapas",
     habitatEn: "Tropical rainforests and humid cloud forests of Chiapas",
-    diet: "Carnívoro: pecaríes, venados, tapires, aves y reptiles",
-    dietEn: "Carnivore: peccaries, deer, tapirs, birds, and reptiles",
+    diet: "Carnívoro",
+    dietEn: "Carnivore",
+    lifespan: "12–15 años",
+    weight: "56–96 kg",
+    height: "63–76 cm",
+    feedingTime: "11:00 · 17:00",
+    zone: "Zona Felinos",
+    description: "El felino más grande de América y símbolo sagrado de las culturas mesoamericanas. Habita las selvas húmedas de Chiapas en recintos naturales adaptados.",
     funFact: "El jaguar tiene la mordida más fuerte de todos los felinos y puede romper el caparazón de una tortuga.",
     funFactEn: "The jaguar has the strongest bite of all big cats and can pierce turtle shells.",
     image: "/assets/images/jaguar.svg",
@@ -95,6 +109,7 @@ export const INITIAL_ANIMALS: Animal[] = [
   },
   {
     id: 2,
+    num: "02",
     name: "Tucán Pico Iris",
     nameEn: "Keel-billed Toucan",
     scientificName: "Ramphastos sulfuratus",
@@ -103,8 +118,14 @@ export const INITIAL_ANIMALS: Animal[] = [
     statusEn: "Threatened",
     habitat: "Selva tropical húmeda, desde el sur de México hasta Colombia",
     habitatEn: "Humid tropical jungle, from Southern Mexico to Colombia",
-    diet: "Omnívoro: frutas, insectos, huevos y pequeños vertebrados",
-    dietEn: "Omnivore: fruits, insects, eggs, and small vertebrates",
+    diet: "Omnívoro",
+    dietEn: "Omnivore",
+    lifespan: "15–20 años",
+    weight: "400–500 g",
+    height: "42–55 cm",
+    feedingTime: "09:30 · 15:00",
+    zone: "Aviario Tropical",
+    description: "Emblemática ave de plumaje vistoso y pico de colores arcoíris. Habita la canopia de las selvas chiapanecas en vuelo libre.",
     funFact: "Su pico grande y colorido representa el 30% de su longitud total.",
     funFactEn: "Its large, colorful beak represents about 30% of its total body length.",
     image: "/assets/images/toucan.svg",
@@ -112,6 +133,7 @@ export const INITIAL_ANIMALS: Animal[] = [
   },
   {
     id: 3,
+    num: "03",
     name: "Tapir Centroamericano",
     nameEn: "Baird's Tapir",
     scientificName: "Tapirus bairdii",
@@ -120,8 +142,14 @@ export const INITIAL_ANIMALS: Animal[] = [
     statusEn: "Endangered",
     habitat: "Bosques tropicales y humedales del sur de México",
     habitatEn: "Tropical forests and wetlands of Southern Mexico",
-    diet: "Herbívoro: hojas, frutas, ramas y plantas acuáticas",
-    dietEn: "Herbivore: leaves, fruits, twigs, and aquatic plants",
+    diet: "Herbívoro",
+    dietEn: "Herbivore",
+    lifespan: "25–30 años",
+    weight: "150–300 kg",
+    height: "1.2 m",
+    feedingTime: "10:00 · 16:00",
+    zone: "Reserva Herbívoros",
+    description: "El mamífero terrestre autóctono más grande del sureste mexicano. Posee una pequeña trompa prensil ideal para alimentarse de brotes frescos.",
     funFact: "Son excelentes nadadores y pueden sumergirse completamente en el agua.",
     funFactEn: "They are excellent swimmers and can fully submerge under water.",
     image: "/assets/images/tapir.svg",
@@ -129,6 +157,7 @@ export const INITIAL_ANIMALS: Animal[] = [
   },
   {
     id: 4,
+    num: "04",
     name: "Mono Araña",
     nameEn: "Geoffroy's Spider Monkey",
     scientificName: "Ateles geoffroyi",
@@ -137,8 +166,14 @@ export const INITIAL_ANIMALS: Animal[] = [
     statusEn: "Endangered",
     habitat: "Selvas tropicales del sureste mexicano",
     habitatEn: "Tropical rainforests of Southeastern Mexico",
-    diet: "Omnívoro principalmente frugívoro: frutas, flores, semillas e insectos",
-    dietEn: "Frugivorous omnivore: fruits, flowers, seeds, and insects",
+    diet: "Frugívoro",
+    dietEn: "Frugivore",
+    lifespan: "20–25 años",
+    weight: "6–9 kg",
+    height: "35–63 cm",
+    feedingTime: "10:30 · 16:30",
+    zone: "Isla de Primates",
+    description: "Primate ágil que habita en las copas de los árboles de la selva alta. Su cola prensil le permite desplazarse con rapidez entre ramas.",
     funFact: "Su cola prensil actúa como una quinta mano.",
     funFactEn: "Its prehensile tail functions effectively as a fifth hand.",
     image: "/assets/images/monkey.svg",
@@ -146,6 +181,7 @@ export const INITIAL_ANIMALS: Animal[] = [
   },
   {
     id: 5,
+    num: "05",
     name: "Guacamaya Roja",
     nameEn: "Scarlet Macaw",
     scientificName: "Ara macao",
@@ -154,8 +190,14 @@ export const INITIAL_ANIMALS: Animal[] = [
     statusEn: "Threatened",
     habitat: "Selvas tropicales húmedas de Chiapas",
     habitatEn: "Humid tropical rainforests of Chiapas",
-    diet: "Herbívoro: frutas, nueces, semillas y flores",
-    dietEn: "Herbivore: fruits, nuts, seeds, and wild flowers",
+    diet: "Herbívoro",
+    dietEn: "Herbivore",
+    lifespan: "40–50 años",
+    weight: "1 kg",
+    height: "85–90 cm",
+    feedingTime: "09:00 · 14:30",
+    zone: "Aviario Tropical",
+    description: "Majestuosa ave psitácida de deslumbrante colorido rojo, azul y amarillo. Forma parte esencial del ecosistema forestal de Lacandona.",
     funFact: "Forman parejas de por vida y pueden vivir hasta 50 años.",
     funFactEn: "They mate for life and can live up to 50 years in protected habitats.",
     image: "/assets/images/macaw.svg",
@@ -163,6 +205,7 @@ export const INITIAL_ANIMALS: Animal[] = [
   },
   {
     id: 6,
+    num: "06",
     name: "Cocodrilo de Pantano",
     nameEn: "Morelet's Crocodile",
     scientificName: "Crocodylus moreletii",
@@ -171,8 +214,14 @@ export const INITIAL_ANIMALS: Animal[] = [
     statusEn: "Special Protection",
     habitat: "Ríos, lagos y pantanos de Chiapas y la costa del Golfo",
     habitatEn: "Rivers, lakes, and freshwater swamps of Chiapas",
-    diet: "Carnívoro: peces, aves, mamíferos pequeños y crustáceos",
-    dietEn: "Carnivore: fish, water birds, small mammals, and crustaceans",
+    diet: "Carnívoro",
+    dietEn: "Carnivore",
+    lifespan: "50–65 años",
+    weight: "50–150 kg",
+    height: "1.5–3 m",
+    feedingTime: "12:00",
+    zone: "Herpetario",
+    description: "Reptil semiacuático nativo de cuerpos de agua dulce. Juega un rol clave en el equilibrio biológico de humedales regionales.",
     funFact: "Es el cocodrilo más pequeño de México, alcanzando un máximo de 3 metros.",
     funFactEn: "It is one of Mexico's native crocodile species, growing up to 3 meters in length.",
     image: "/assets/images/rocodile.svg",

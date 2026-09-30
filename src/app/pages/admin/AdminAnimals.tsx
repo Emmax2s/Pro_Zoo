@@ -22,6 +22,9 @@ const emptyForm: Omit<Animal, "id"> = {
   enclosureId: null,
 };
 
+const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || '').replace(/\/$/, '');
+const ADMIN_API_KEY = (import.meta.env.VITE_ADMIN_API_KEY as string | undefined) || '';
+
 function QrModal({ animal, onClose }: { animal: Animal; onClose: () => void }) {
   const qrTargetUrl = typeof window !== 'undefined' ? `${window.location.origin}/especie/${animal.id}` : '';
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
@@ -350,19 +353,65 @@ export function AdminAnimals() {
     return matchSearch && matchEnclosure;
   });
 
-  function handleSave(data: Omit<Animal, "id">) {
-    if (modalState.animal) {
-      setAnimals(animals.map((a) => (a.id === modalState.animal!.id ? { ...data, id: a.id } : a)));
-    } else {
-      setAnimals([...animals, { ...data, id: nextId }]);
-      setNextId((n) => n + 1);
+  async function handleSave(data: Omit<Animal, "id">) {
+    if (!API_BASE_URL || !ADMIN_API_KEY) {
+      window.alert("La configuración de producción no permite guardar especies.");
+      return;
     }
+
+    const payload = {
+      slug: (data.name.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")),
+      name: data.name,
+      species: data.scientificName,
+      habitat: data.habitat,
+      imageUrl: data.image,
+      conservation: data.status,
+      description: data.funFact,
+      diet: data.diet,
+      audioDescriptionUrl: data.audioUrl,
+    };
+    const isEditing = Boolean(modalState.animal);
+    const response = await fetch(
+      `${API_BASE_URL}/api/species${isEditing ? `/${modalState.animal!.id}` : ""}`,
+      {
+        method: isEditing ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json", "x-admin-key": ADMIN_API_KEY },
+        body: JSON.stringify(payload),
+      }
+    );
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      window.alert(result.message || "No se pudo guardar la especie.");
+      return;
+    }
+
+    const savedAnimal: Animal = {
+      ...data,
+      id: Number(result.id),
+    };
+    setAnimals(isEditing
+      ? animals.map((animal) => (animal.id === savedAnimal.id ? savedAnimal : animal))
+      : [...animals, savedAnimal]);
+    if (!isEditing) setNextId((n) => Math.max(n, savedAnimal.id + 1));
     setModalState({ open: false, animal: null });
   }
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!deleteTarget) return;
-    setAnimals(animals.filter((a) => a.id !== deleteTarget.id));
+    if (!API_BASE_URL || !ADMIN_API_KEY) {
+      window.alert("La configuración de producción no permite eliminar especies.");
+      return;
+    }
+    const response = await fetch(`${API_BASE_URL}/api/species/${deleteTarget.id}`, {
+      method: "DELETE",
+      headers: { "x-admin-key": ADMIN_API_KEY },
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      window.alert(result.message || "No se pudo eliminar la especie.");
+      return;
+    }
+    setAnimals(animals.filter((animal) => animal.id !== deleteTarget.id));
     setDeleteTarget(null);
   }
 

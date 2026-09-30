@@ -148,7 +148,10 @@ export function ZooProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify({ slides: nextSlides }),
     }).then((response) => {
       if (!response.ok) throw new Error(`Carousel save failed with status ${response.status}`);
-    }).catch((error) => console.error("Unable to save carousel to API:", error));
+    }).catch((error) => {
+      console.error("Unable to save carousel to API:", error);
+      window.alert("No se pudo guardar el carrusel. Revisa la configuración de la API.");
+    });
   };
 
   return (

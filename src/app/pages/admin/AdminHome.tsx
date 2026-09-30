@@ -16,22 +16,15 @@ function AddSlideModal({ onSave, onClose }: { onSave: (s: NewSlide) => void; onC
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>, target: 'src' | 'poster') {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      window.alert('La imagen o video debe pesar menos de 2 MB.');
+      return;
+    }
     const reader = new FileReader();
     reader.onload = async () => {
       const dataURL = reader.result as string;
-      try {
-        const res = await fetch('/api/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filename: file.name, data: dataURL }),
-        });
-        const json = await res.json();
-        setForm((p) => ({ ...p, [target]: json.url }));
-        if (file.type.startsWith('video')) setType('video');
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('Upload failed', err);
-      }
+      setForm((p) => ({ ...p, [target]: dataURL }));
+      if (file.type.startsWith('video')) setType('video');
     };
     reader.readAsDataURL(file);
   }

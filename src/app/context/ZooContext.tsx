@@ -31,6 +31,7 @@ interface ZooContextValue {
 const ZooContext = createContext<ZooContextValue | null>(null);
 
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || '').replace(/\/$/, '');
+const ADMIN_API_KEY = (import.meta.env.VITE_ADMIN_API_KEY as string | undefined) || '';
 
 const EMPTY_CURRENT_USER: ZooUser = {
   id: 0,
@@ -118,8 +119,40 @@ export function ZooProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!API_BASE_URL) return;
+    let active = true;
+    fetch(`${API_BASE_URL}/api/site-content`, { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`Site content request failed with status ${response.status}`);
+        return response.json() as Promise<{ slides?: SlideItem[] }>;
+      })
+      .then((content) => {
+        if (active && Array.isArray(content.slides)) setSlides(content.slides);
+      })
+      .catch((error) => console.error("Unable to load carousel from API:", error));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const persistSlides = (nextSlides: SlideItem[]) => {
+    setSlides(nextSlides);
+    if (!API_BASE_URL || !ADMIN_API_KEY) {
+      console.error("Carousel persistence is not configured.");
+      return;
+    }
+    void fetch(`${API_BASE_URL}/api/site-content`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "x-admin-key": ADMIN_API_KEY },
+      body: JSON.stringify({ slides: nextSlides }),
+    }).then((response) => {
+      if (!response.ok) throw new Error(`Carousel save failed with status ${response.status}`);
+    }).catch((error) => console.error("Unable to save carousel to API:", error));
+  };
+
   return (
-    <ZooContext.Provider value={{ currentUser, setCurrentUser, animals, setAnimals, enclosures, setEnclosures, users, setUsers, slides, setSlides }}>
+    <ZooContext.Provider value={{ currentUser, setCurrentUser, animals, setAnimals, enclosures, setEnclosures, users, setUsers, slides, setSlides: persistSlides }}>
       {children}
     </ZooContext.Provider>
   );

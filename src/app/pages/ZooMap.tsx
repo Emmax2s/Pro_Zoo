@@ -114,44 +114,6 @@ export function ZooMap() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 space-y-12">
-        {/* Mapa Interactivo con Google Maps Real */}
-        <section className="bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-emerald-100">
-          <div className="p-6 sm:p-8 bg-gradient-to-r from-emerald-900 to-emerald-950 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border-b-4 border-amber-400">
-            <div className="flex items-center gap-4">
-              <div className="bg-emerald-800 p-3.5 rounded-2xl border border-emerald-700">
-                <MapPin className="w-8 h-8 text-amber-400" />
-              </div>
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-black">{t("mapPage.generalPlan")}</h2>
-                <p className="text-sm sm:text-base text-emerald-200 font-medium mt-1">
-                  Calzada Cerro Hueco S/N, Col. El Zapotal, Tuxtla Gutiérrez, Chiapas.
-                </p>
-              </div>
-            </div>
-            <a
-              href={googleMapsDirectionsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2.5 bg-amber-400 hover:bg-amber-300 text-emerald-950 font-black px-6 py-3.5 rounded-2xl transition shadow-lg text-base shrink-0 hover:scale-105"
-            >
-              <Navigation className="w-5 h-5" />
-              <span>{t("mapPage.directions")}</span>
-              <ExternalLink className="w-5 h-5" />
-            </a>
-          </div>
-
-          {/* Iframe Interactivo en Vivo */}
-          <div className="relative w-full h-[450px] sm:h-[550px] bg-stone-100">
-            <iframe
-              title="Google Maps ZooMAT"
-              src={googleMapsEmbedUrl}
-              className="w-full h-full border-0"
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            ></iframe>
-          </div>
-        </section>
 
         {/* Zonas Temáticas Interactivos */}
         <section className="bg-white rounded-2xl shadow-xl p-8 border border-emerald-100">

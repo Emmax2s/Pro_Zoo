@@ -15,10 +15,8 @@ const resources = {
       home: {
         hero: {
           tag: "Zoológico Regional Miguel Álvarez del Toro",
-          title1: "Descubre la ",
-          titleHighlight: "Fauna",
-          title2: " de Chiapas",
-          desc: "Un espacio dedicado a la conservación, donde podrás conocer de cerca a las especies nativas en un entorno que simula su hábitat natural.",
+          title: "Descubre la Fauna de Chiapas",
+          desc: "El único zoológico en México dedicado exclusivamente a la conservación, exhibición e investigación de la fauna silvestre nativa del estado de Chiapas en su entorno selvático natural.",
           planVisit: "Planear Visita",
           exploreCatalog: "Explorar Catálogo",
         },
@@ -31,7 +29,7 @@ const resources = {
           researchDesc: "Estudios científicos para entender mejor a las especies y sus ecosistemas.",
         },
         featured: {
-          title: "Especies Destacadas",
+          title: "Especies",
           desc: "Conoce algunos de nuestros habitantes más emblemáticos que protegemos en el zoológico.",
           viewAll: "Ver catálogo completo",
         },
@@ -132,10 +130,8 @@ const resources = {
       home: {
         hero: {
           tag: "Miguel Álvarez del Toro Regional Zoo",
-          title1: "Discover the ",
-          titleHighlight: "Wildlife",
-          title2: " of Chiapas",
-          desc: "A space dedicated to conservation, where you can meet native species up close in an environment that simulates their natural habitat.",
+          title: "Discover the Wildlife of Chiapas",
+          desc: "The only zoo in Mexico dedicated exclusively to the conservation, exhibition, and research of native wildlife from the state of Chiapas in its natural jungle environment.",
           planVisit: "Plan Visit",
           exploreCatalog: "Explore Catalog",
         },
@@ -148,7 +144,7 @@ const resources = {
           researchDesc: "Scientific studies to better understand species and their ecosystems.",
         },
         featured: {
-          title: "Featured Species",
+          title: "Species",
           desc: "Meet some of our most iconic inhabitants that we protect in the zoo.",
           viewAll: "View full catalog",
         },

@@ -47,29 +47,7 @@ export interface ZooUser {
 
 // ── Enclosures ──────────────────────────────────────────────────────────────
 
-export const DEFAULT_ENCLOSURES: Enclosure[] = [
-  {
-    id: "herpetario",
-    name: "Herpetario",
-    description: "Reptiles y anfibios de la región",
-    color: "bg-amber-500",
-    icon: "ShieldAlert",
-  },
-  {
-    id: "casa-nocturna",
-    name: "Casa Nocturna",
-    description: "Fauna de hábitos nocturnos",
-    color: "bg-indigo-600",
-    icon: "Moon",
-  },
-  {
-    id: "vivario",
-    name: "Vivario",
-    description: "Ecosistemas controlados con flora y fauna",
-    color: "bg-emerald-600",
-    icon: "Trees",
-  },
-];
+export const DEFAULT_ENCLOSURES: Enclosure[] = [];
 
 // ── Animals ─────────────────────────────────────────────────────────────────
 
@@ -110,33 +88,7 @@ export type SlideItem =
   | { id: string; type: "image"; src: string; alt: string }
   | { id: string; type: "video"; src: string; poster: string; alt: string };
 
-export const INITIAL_SLIDES: SlideItem[] = [
-  {
-    id: "s1",
-    type: "image",
-    src: "/assets/images/jaguar.svg",
-    alt: "Jaguar en Chiapas",
-  },
-  {
-    id: "s2",
-    type: "image",
-    src: "/assets/images/toucan.svg",
-    alt: "Tucán Pico Iris",
-  },
-  {
-    id: "s3",
-    type: "video",
-    src: "/assets/videos/sample.mp4",
-    poster: "/assets/images/poster.svg",
-    alt: "Video — fauna del ZooMAT",
-  },
-  {
-    id: "s4",
-    type: "image",
-    src: "/assets/images/monkey.svg",
-    alt: "Mono Araña",
-  },
-];
+export const INITIAL_SLIDES: SlideItem[] = [];
 
 // ── Status helpers ────────────────────────────────────────────────────────────
 

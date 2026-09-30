@@ -78,7 +78,7 @@ export function AdminLayout() {
           })}
         </nav>
 
-        {/* User switcher (demo) */}
+        {/* User switcher */}
         <div className="p-4 border-t border-emerald-900 space-y-3">
           <div className="relative">
             <button
@@ -100,7 +100,7 @@ export function AdminLayout() {
             {showUserPicker && (
               <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-2xl shadow-2xl border-2 border-emerald-200 overflow-hidden z-50">
                 <p className="px-4 py-3 text-xs font-black text-emerald-900 uppercase tracking-wider bg-emerald-50 border-b border-emerald-100">
-                  Seleccionar usuario de prueba
+                  Seleccionar usuario
                 </p>
                 {users.map((u) => {
                   const enc = enclosures.find((e) => e.id === u.enclosureId);

@@ -32,6 +32,15 @@ const ZooContext = createContext<ZooContextValue | null>(null);
 
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || '').replace(/\/$/, '');
 
+const EMPTY_CURRENT_USER: ZooUser = {
+  id: 0,
+  name: "",
+  email: "",
+  role: "superadmin",
+  enclosureId: null,
+  status: "Activo",
+};
+
 type ApiSpecies = {
   id: string;
   name: string;
@@ -65,7 +74,7 @@ const mapSpecies = (species: ApiSpecies): Animal => ({
 });
 
 const FALLBACK: ZooContextValue = {
-  currentUser: INITIAL_USERS[0],
+  currentUser: EMPTY_CURRENT_USER,
   setCurrentUser: () => {},
   animals: INITIAL_ANIMALS,
   setAnimals: () => {},
@@ -78,7 +87,7 @@ const FALLBACK: ZooContextValue = {
 };
 
 export function ZooProvider({ children }: { children: ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<ZooUser>(INITIAL_USERS[0]);
+  const [currentUser, setCurrentUser] = useState<ZooUser>(EMPTY_CURRENT_USER);
   const [animals, setAnimals] = useState<Animal[]>(INITIAL_ANIMALS);
   const [enclosures, setEnclosures] = useState<Enclosure[]>(DEFAULT_ENCLOSURES);
   const [users, setUsers] = useState<ZooUser[]>(INITIAL_USERS);

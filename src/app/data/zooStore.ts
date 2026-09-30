@@ -55,32 +55,7 @@ export const INITIAL_ANIMALS: Animal[] = [];
 
 // ── Users ────────────────────────────────────────────────────────────────────
 
-export const INITIAL_USERS: ZooUser[] = [
-  {
-    id: 1,
-    name: "Admin Principal",
-    email: "admin@zoomat.mx",
-    role: "superadmin",
-    enclosureId: null,
-    status: "Activo",
-  },
-  {
-    id: 2,
-    name: "María Ramos",
-    email: "mramos@zoomat.mx",
-    role: "enclosure_admin",
-    enclosureId: "herpetario",
-    status: "Activo",
-  },
-  {
-    id: 3,
-    name: "Carlos Núñez",
-    email: "cnunez@zoomat.mx",
-    role: "enclosure_admin",
-    enclosureId: "vivario",
-    status: "Activo",
-  },
-];
+export const INITIAL_USERS: ZooUser[] = [];
 
 // ── Home carousel ────────────────────────────────────────────────────────────
 

@@ -75,14 +75,14 @@ function EnclosureModal({
               Nombre <span className="text-red-500">*</span>
             </label>
             <input name="name" value={form.name} onChange={handle} required
-              placeholder="ej. Herpetario"
+                  placeholder="Nombre del recinto"
               className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
           </div>
 
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Descripción</label>
             <input name="description" value={form.description} onChange={handle}
-              placeholder="ej. Reptiles y anfibios de la región"
+                  placeholder="Descripción del recinto"
               className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
           </div>
 

@@ -62,8 +62,8 @@ function UserModal({
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
               Nombre Completo <span className="text-red-500">*</span>
             </label>
-            <input name="name" value={form.name} onChange={handle} required placeholder="ej. María Ramos"
-              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            <input name="name" value={form.name} onChange={handle} required placeholder="Nombre del administrador"
+                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
           </div>
 
           <div>

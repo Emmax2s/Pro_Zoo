@@ -89,7 +89,7 @@ function AddSlideModal({ onSave, onClose }: { onSave: (s: NewSlide) => void; onC
             </label>
             <div className="flex gap-2">
               <input name="src" value={form.src} onChange={handle} required
-                placeholder={type === "image" ? "/assets/images/placeholder.svg" : "/assets/videos/sample.mp4"}
+                  placeholder={type === "image" ? "URL de imagen" : "URL de video"}
                 className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
               <input type="file" accept="image/*,video/*" onChange={(e) => handleFileUpload(e, 'src')} className="px-3 py-2 bg-white border border-gray-200 rounded-xl" />
             </div>

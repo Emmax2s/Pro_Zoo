@@ -17,6 +17,8 @@ const assertAdminKey = (req, res, next) => {
 const formatSpeciesResponse = (row) => ({
   id: row.id.toString(),
   slug: row.slug,
+  category: row.category || 'Mamífero',
+  taxonomicFamily: row.taxonomic_family,
   name: row.name,
   species: row.species_name,
   habitat: row.habitat,
@@ -78,6 +80,8 @@ router.post('/', assertAdminKey, async (req, res, next) => {
     const {
       slug,
       name,
+      category,
+      taxonomicFamily,
       species: speciesName,
       habitat,
       imageUrl,
@@ -102,10 +106,10 @@ router.post('/', assertAdminKey, async (req, res, next) => {
 
     const result = await query(
       `INSERT INTO species
-       (slug, name, species_name, habitat, image_url, conservation_status, description, diet, lifespan, activity, size, weight, distribution, audio_description_url, scientific_classification, conservation_iucn, threats, ecosystem_role)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+       (slug, name, category, taxonomic_family, species_name, habitat, image_url, conservation_status, description, diet, lifespan, activity, size, weight, distribution, audio_description_url, scientific_classification, conservation_iucn, threats, ecosystem_role)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
        RETURNING *`,
-      [slug, name, speciesName, habitat, imageUrl, conservation, description, diet, lifespan, activity, size, weight, distribution, audioDescriptionUrl, scientificClassification, conservationIucn, threats, ecosystemRole]
+      [slug, name, category || 'Mamífero', taxonomicFamily, speciesName, habitat, imageUrl, conservation, description, diet, lifespan, activity, size, weight, distribution, audioDescriptionUrl, scientificClassification, conservationIucn, threats, ecosystemRole]
     );
 
     const newSpecies = formatSpeciesResponse(result.rows[0]);
@@ -125,6 +129,8 @@ router.put('/:id', assertAdminKey, async (req, res, next) => {
     const {
       slug,
       name,
+      category,
+      taxonomicFamily,
       species: speciesName,
       habitat,
       imageUrl,
@@ -147,26 +153,28 @@ router.put('/:id', assertAdminKey, async (req, res, next) => {
       `UPDATE species
        SET slug = COALESCE($1, slug),
            name = COALESCE($2, name),
-           species_name = COALESCE($3, species_name),
-           habitat = COALESCE($4, habitat),
-           image_url = COALESCE($5, image_url),
-           conservation_status = COALESCE($6, conservation_status),
-           description = COALESCE($7, description),
-           diet = COALESCE($8, diet),
-           lifespan = COALESCE($9, lifespan),
-           activity = COALESCE($10, activity),
-           size = COALESCE($11, size),
-           weight = COALESCE($12, weight),
-           distribution = COALESCE($13, distribution),
-           audio_description_url = COALESCE($14, audio_description_url),
-           scientific_classification = COALESCE($15, scientific_classification),
-           conservation_iucn = COALESCE($16, conservation_iucn),
-           threats = COALESCE($17, threats),
-           ecosystem_role = COALESCE($18, ecosystem_role),
-           updated_at = CURRENT_TIMESTAMP
-       WHERE id = $19
+       category = COALESCE($3, category),
+       taxonomic_family = COALESCE($4, taxonomic_family),
+       species_name = COALESCE($5, species_name),
+       habitat = COALESCE($6, habitat),
+       image_url = COALESCE($7, image_url),
+       conservation_status = COALESCE($8, conservation_status),
+       description = COALESCE($9, description),
+       diet = COALESCE($10, diet),
+       lifespan = COALESCE($11, lifespan),
+       activity = COALESCE($12, activity),
+       size = COALESCE($13, size),
+       weight = COALESCE($14, weight),
+       distribution = COALESCE($15, distribution),
+       audio_description_url = COALESCE($16, audio_description_url),
+       scientific_classification = COALESCE($17, scientific_classification),
+       conservation_iucn = COALESCE($18, conservation_iucn),
+       threats = COALESCE($19, threats),
+       ecosystem_role = COALESCE($20, ecosystem_role),
+       updated_at = CURRENT_TIMESTAMP
+       WHERE id = $21
        RETURNING *`,
-      [slug, name, speciesName, habitat, imageUrl, conservation, description, diet, lifespan, activity, size, weight, distribution, audioDescriptionUrl, scientificClassification, conservationIucn, threats, ecosystemRole, id]
+      [slug, name, category, taxonomicFamily, speciesName, habitat, imageUrl, conservation, description, diet, lifespan, activity, size, weight, distribution, audioDescriptionUrl, scientificClassification, conservationIucn, threats, ecosystemRole, id]
     );
 
     if (result.rows.length === 0) {

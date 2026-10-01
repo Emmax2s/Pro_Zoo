@@ -45,6 +45,7 @@ const EMPTY_CURRENT_USER: ZooUser = {
 type ApiSpecies = {
   id: string;
   name: string;
+  category?: Animal["category"];
   species?: string;
   habitat?: string;
   diet?: string;
@@ -64,7 +65,7 @@ const mapSpecies = (species: ApiSpecies): Animal => ({
   id: Number(species.id),
   name: species.name,
   scientificName: species.species || "",
-  category: "Mamífero",
+  category: species.category || "Mamífero",
   status: mapConservationStatus(species.conservation),
   habitat: species.habitat || "",
   diet: species.diet || "",

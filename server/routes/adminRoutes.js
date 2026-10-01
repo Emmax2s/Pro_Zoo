@@ -22,6 +22,13 @@ export const verifyToken = (req, res, next) => {
   }
 };
 
+const requireSuperAdmin = (req, res, next) => {
+  if (req.user?.role !== 'superadmin') {
+    return res.status(403).json({ message: 'Only super administrators can manage admin users' });
+  }
+  next();
+};
+
 // Login Route
 router.post('/login', async (req, res, next) => {
   try {
@@ -31,7 +38,10 @@ router.post('/login', async (req, res, next) => {
       return res.status(400).json({ message: 'Username and password required' });
     }
 
-    const result = await query('SELECT * FROM admin_users WHERE username = $1', [username]);
+    const result = await query(
+      'SELECT * FROM admin_users WHERE LOWER(username) = LOWER($1) OR LOWER(email) = LOWER($1) LIMIT 1',
+      [username.trim()]
+    );
 
     if (result.rows.length === 0) {
       return res.status(401).json({ message: 'Invalid username or password' });
@@ -50,43 +60,81 @@ router.post('/login', async (req, res, next) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, username: user.username, email: user.email },
+      {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.display_name || user.username,
+        role: user.role || 'superadmin',
+        enclosureId: user.enclosure_id,
+      },
       env.jwtSecret,
       { expiresIn: '24h' }
     );
 
-    res.json({ token, user: { id: user.id, username: user.username, email: user.email } });
+    res.json({ token, user: formatUser(user) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+const formatUser = (user) => ({
+  id: user.id,
+  username: user.username,
+  name: user.display_name || user.username,
+  email: user.email,
+  role: user.role || 'superadmin',
+  enclosureId: user.enclosure_id || null,
+  status: user.is_active ? 'Activo' : 'Inactivo',
+  isActive: user.is_active,
+  createdAt: user.created_at,
+  updatedAt: user.updated_at,
+});
+
+router.get('/me', verifyToken, async (req, res, next) => {
+  try {
+    const result = await query(
+      `SELECT id, username, email, display_name, role, enclosure_id, is_active, created_at, updated_at
+       FROM admin_users WHERE id = $1`,
+      [req.user.id]
+    );
+    if (result.rows.length === 0 || !result.rows[0].is_active) {
+      return res.status(401).json({ message: 'Admin user not found or inactive' });
+    }
+    res.json(formatUser(result.rows[0]));
   } catch (error) {
     next(error);
   }
 });
 
 // Create Admin Route
-router.post('/create', verifyToken, async (req, res, next) => {
+router.post('/create', verifyToken, requireSuperAdmin, async (req, res, next) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, name, email, password, role, enclosureId, status } = req.body;
 
-    if (!username || !email || !password) {
-      return res.status(400).json({ message: 'Username, email, and password required' });
+    if (!username || !name || !email || !password) {
+      return res.status(400).json({ message: 'Username, name, email, and password required' });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ message: 'Password must contain at least 8 characters' });
+    }
+    if (!['superadmin', 'enclosure_admin'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid admin role' });
+    }
+    if (role === 'enclosure_admin' && !enclosureId) {
+      return res.status(400).json({ message: 'An enclosure is required for this role' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await query(
-      `INSERT INTO admin_users (username, email, password, is_active)
-       VALUES ($1, $2, $3, true)
-       RETURNING id, username, email, is_active, created_at`,
-      [username, email, hashedPassword]
+      `INSERT INTO admin_users (username, email, password, display_name, role, enclosure_id, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, username, email, display_name, role, enclosure_id, is_active, created_at, updated_at`,
+      [username.trim(), email.trim().toLowerCase(), hashedPassword, name.trim(), role, role === 'superadmin' ? null : enclosureId, status !== 'Inactivo']
     );
 
-    const user = result.rows[0];
-    res.status(201).json({
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      isActive: user.is_active,
-      createdAt: user.created_at,
-    });
+    res.status(201).json(formatUser(result.rows[0]));
   } catch (error) {
     if (error.code === '23505') {
       return res.status(409).json({ message: 'Username or email already exists' });
@@ -96,57 +144,55 @@ router.post('/create', verifyToken, async (req, res, next) => {
 });
 
 // List Admins Route
-router.get('/list', verifyToken, async (req, res, next) => {
+router.get('/list', verifyToken, requireSuperAdmin, async (req, res, next) => {
   try {
     const result = await query(
-      'SELECT id, username, email, is_active, created_at, updated_at FROM admin_users ORDER BY created_at DESC'
+      `SELECT id, username, email, display_name, role, enclosure_id, is_active, created_at, updated_at
+       FROM admin_users ORDER BY created_at DESC`
     );
 
-    const users = result.rows.map(row => ({
-      id: row.id,
-      username: row.username,
-      email: row.email,
-      isActive: row.is_active,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    }));
-
-    res.json(users);
+    res.json(result.rows.map(formatUser));
   } catch (error) {
     next(error);
   }
 });
 
 // Update Admin Route
-router.put('/:id', verifyToken, async (req, res, next) => {
+router.put('/:id', verifyToken, requireSuperAdmin, async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { username, email, is_active } = req.body;
+    const { username, name, email, password, role, enclosureId, status } = req.body;
+    if (role !== undefined && !['superadmin', 'enclosure_admin'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid admin role' });
+    }
+    if (role === 'enclosure_admin' && !enclosureId) {
+      return res.status(400).json({ message: 'An enclosure is required for this role' });
+    }
+    if (password !== undefined && password !== '' && password.length < 8) {
+      return res.status(400).json({ message: 'Password must contain at least 8 characters' });
+    }
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
 
     const result = await query(
       `UPDATE admin_users 
-       SET username = COALESCE($1, username),
-           email = COALESCE($2, email),
-           is_active = COALESCE($3, is_active),
+       SET username = COALESCE(NULLIF($1, ''), username),
+           email = COALESCE(NULLIF($2, ''), email),
+           display_name = COALESCE(NULLIF($3, ''), display_name),
+           password = COALESCE($4, password),
+           role = COALESCE($5, role),
+           enclosure_id = CASE WHEN $5 = 'superadmin' THEN NULL ELSE COALESCE($6, enclosure_id) END,
+           is_active = COALESCE($7, is_active),
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $4
-       RETURNING id, username, email, is_active, created_at, updated_at`,
-      [username, email, is_active, id]
+       WHERE id = $8
+       RETURNING id, username, email, display_name, role, enclosure_id, is_active, created_at, updated_at`,
+      [username, email?.trim().toLowerCase(), name, hashedPassword, role, enclosureId, status === undefined ? null : status !== 'Inactivo', id]
     );
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Admin user not found' });
     }
 
-    const user = result.rows[0];
-    res.json({
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      isActive: user.is_active,
-      createdAt: user.created_at,
-      updatedAt: user.updated_at,
-    });
+    res.json(formatUser(result.rows[0]));
   } catch (error) {
     if (error.code === '23505') {
       return res.status(409).json({ message: 'Username or email already exists' });
@@ -156,10 +202,13 @@ router.put('/:id', verifyToken, async (req, res, next) => {
 });
 
 // Delete Admin Route
-router.delete('/:id', verifyToken, async (req, res, next) => {
+router.delete('/:id', verifyToken, requireSuperAdmin, async (req, res, next) => {
   try {
     const { id } = req.params;
 
+    if (Number(id) === Number(req.user.id)) {
+      return res.status(400).json({ message: 'You cannot delete your own account' });
+    }
     const result = await query('DELETE FROM admin_users WHERE id = $1 RETURNING id', [id]);
 
     if (result.rows.length === 0) {

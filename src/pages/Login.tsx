@@ -3,9 +3,6 @@ import { useNavigate } from "react-router";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') || '';
 
-const TEMP_ADMIN_USERNAME = "admin";
-const TEMP_ADMIN_PASSWORD = "zoomat-admin-2026";
-
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -37,6 +34,16 @@ export default function Login() {
       if (data.token) {
         sessionStorage.setItem('pro-zoo-admin-token', data.token);
         sessionStorage.setItem('pro-zoo-admin-auth', 'ok');
+        if (data.user) {
+          sessionStorage.setItem('pro-zoo-admin-user', JSON.stringify({
+            id: Number(data.user.id),
+            name: data.user.name || data.user.username,
+            email: data.user.email,
+            role: data.user.role || "superadmin",
+            enclosureId: data.user.enclosureId || null,
+            status: data.user.status || "Activo",
+          }));
+        }
         navigate('/admin');
       } else {
         setError('Respuesta inválida del servidor');

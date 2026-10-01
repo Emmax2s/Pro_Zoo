@@ -15,6 +15,7 @@ import { AdminAnimals } from "./pages/admin/AdminAnimals";
 import { AdminUsers } from "./pages/admin/AdminUsers";
 import { AdminEnclosures } from "./pages/admin/AdminEnclosures";
 import { AdminHome } from "./pages/admin/AdminHome";
+import Login from "../pages/Login";
 
 export const router = createBrowserRouter([
   {
@@ -38,6 +39,10 @@ export const router = createBrowserRouter([
   {
     path: "/links",
     Component: Redes,
+  },
+  {
+    path: "/login",
+    Component: Login,
   },
   {
     path: "/admin",

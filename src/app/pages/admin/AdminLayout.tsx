@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet, Link, Navigate, useLocation, useNavigate } from "react-router";
+import { Outlet, Link, useLocation } from "react-router";
 import { LayoutDashboard, Users, PawPrint, LogOut, Building2, ChevronDown, Home } from "lucide-react";
 import { useZoo } from "../../context/ZooContext";
 import logoZoomat from "../../../assets/logo-zoomat.png";
@@ -7,30 +7,10 @@ import logoZoomat from "../../../assets/logo-zoomat.png";
 export function AdminLayout() {
   const location = useLocation();
   const { currentUser, setCurrentUser, users, enclosures } = useZoo();
-  const navigate = useNavigate();
   const [showUserPicker, setShowUserPicker] = useState(false);
 
   const isSuperAdmin = currentUser.role === "superadmin";
   const myEnclosure = enclosures.find((e) => e.id === currentUser.enclosureId);
-
-  if (!sessionStorage.getItem("pro-zoo-admin-token") || currentUser.id === 0) {
-    return <Navigate to="/login" replace />;
-  }
-
-  function handleLogout() {
-    sessionStorage.removeItem("pro-zoo-admin-token");
-    sessionStorage.removeItem("pro-zoo-admin-auth");
-    sessionStorage.removeItem("pro-zoo-admin-user");
-    setCurrentUser({
-      id: 0,
-      name: "",
-      email: "",
-      role: "superadmin",
-      enclosureId: null,
-      status: "Activo",
-    });
-    navigate("/login", { replace: true });
-  }
 
   const superAdminMenu = [
     { path: "/admin", icon: LayoutDashboard, label: "Dashboard" },
@@ -151,14 +131,13 @@ export function AdminLayout() {
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={handleLogout}
+          <Link
+            to="/"
             className="flex items-center gap-3 px-4 py-3 rounded-2xl text-emerald-100 hover:bg-emerald-900 hover:text-amber-300 transition-colors text-base font-bold"
           >
             <LogOut size={20} />
-            Cerrar sesión
-          </button>
+            Volver al Sitio Público
+          </Link>
         </div>
       </aside>
 

@@ -32,8 +32,6 @@ const ZooContext = createContext<ZooContextValue | null>(null);
 
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || '').replace(/\/$/, '');
 const ADMIN_API_KEY = (import.meta.env.VITE_ADMIN_API_KEY as string | undefined) || '';
-const ADMIN_TOKEN_KEY = 'pro-zoo-admin-token';
-const ADMIN_USER_KEY = 'pro-zoo-admin-user';
 
 const EMPTY_CURRENT_USER: ZooUser = {
   id: 0,
@@ -55,15 +53,6 @@ type ApiSpecies = {
   imageUrl?: string;
   audioDescriptionUrl?: string;
   conservation?: string;
-};
-
-type ApiUser = {
-  id: number;
-  name: string;
-  email: string;
-  role: ZooUser["role"];
-  enclosureId: string | null;
-  status: ZooUser["status"];
 };
 
 const mapConservationStatus = (value: string | undefined): Animal["status"] => {
@@ -100,14 +89,7 @@ const FALLBACK: ZooContextValue = {
 };
 
 export function ZooProvider({ children }: { children: ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<ZooUser>(() => {
-    try {
-      const stored = sessionStorage.getItem(ADMIN_USER_KEY);
-      return stored ? (JSON.parse(stored) as ZooUser) : EMPTY_CURRENT_USER;
-    } catch {
-      return EMPTY_CURRENT_USER;
-    }
-  });
+  const [currentUser, setCurrentUser] = useState<ZooUser>(EMPTY_CURRENT_USER);
   const [animals, setAnimals] = useState<Animal[]>(INITIAL_ANIMALS);
   const [enclosures, setEnclosures] = useState<Enclosure[]>(DEFAULT_ENCLOSURES);
   const [users, setUsers] = useState<ZooUser[]>(INITIAL_USERS);
@@ -133,40 +115,6 @@ export function ZooProvider({ children }: { children: ReactNode }) {
         console.error("Unable to load species from API:", error);
       });
 
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!API_BASE_URL) return;
-    const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
-    if (!token) return;
-    let active = true;
-    const headers = { Authorization: `Bearer ${token}` };
-    Promise.all([
-      fetch(`${API_BASE_URL}/api/admin/me`, { headers }),
-      fetch(`${API_BASE_URL}/api/admin/list`, { headers }),
-    ])
-      .then(async ([meResponse, usersResponse]) => {
-        if (meResponse.status === 401 || usersResponse.status === 401) {
-          sessionStorage.removeItem(ADMIN_TOKEN_KEY);
-          sessionStorage.removeItem(ADMIN_USER_KEY);
-          throw new Error("La sesión administrativa expiró.");
-        }
-        if (!meResponse.ok || !usersResponse.ok) throw new Error("No se pudieron cargar los usuarios.");
-        return {
-          me: (await meResponse.json()) as ApiUser,
-          users: (await usersResponse.json()) as ApiUser[],
-        };
-      })
-      .then(({ me, users }) => {
-        if (!active) return;
-        setCurrentUser(me);
-        setUsers(users);
-        sessionStorage.setItem(ADMIN_USER_KEY, JSON.stringify(me));
-      })
-      .catch((error) => console.error("Unable to load admin users from API:", error));
     return () => {
       active = false;
     };
@@ -207,13 +155,8 @@ export function ZooProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const updateCurrentUser = (user: ZooUser) => {
-    setCurrentUser(user);
-    sessionStorage.setItem(ADMIN_USER_KEY, JSON.stringify(user));
-  };
-
   return (
-    <ZooContext.Provider value={{ currentUser, setCurrentUser: updateCurrentUser, animals, setAnimals, enclosures, setEnclosures, users, setUsers, slides, setSlides: persistSlides }}>
+    <ZooContext.Provider value={{ currentUser, setCurrentUser, animals, setAnimals, enclosures, setEnclosures, users, setUsers, slides, setSlides: persistSlides }}>
       {children}
     </ZooContext.Provider>
   );

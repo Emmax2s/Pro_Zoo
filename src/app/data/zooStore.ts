@@ -38,7 +38,6 @@ export type UserRole = "superadmin" | "enclosure_admin";
 
 export interface ZooUser {
   id: number;
-  username?: string;
   name: string;
   email: string;
   role: UserRole;

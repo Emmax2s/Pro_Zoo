@@ -36,18 +36,10 @@ CREATE TABLE IF NOT EXISTS admin_users (
   username VARCHAR(100) UNIQUE NOT NULL,
   email VARCHAR(100) UNIQUE NOT NULL,
   password VARCHAR(255) NOT NULL,
-  display_name VARCHAR(150) NOT NULL DEFAULT '',
-  role VARCHAR(30) NOT NULL DEFAULT 'superadmin',
-  enclosure_id VARCHAR(100),
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-ALTER TABLE admin_users
-  ADD COLUMN IF NOT EXISTS display_name VARCHAR(150) NOT NULL DEFAULT '',
-  ADD COLUMN IF NOT EXISTS role VARCHAR(30) NOT NULL DEFAULT 'superadmin',
-  ADD COLUMN IF NOT EXISTS enclosure_id VARCHAR(100);
 
 -- Crear tabla de contenido del sitio
 CREATE TABLE IF NOT EXISTS site_content (

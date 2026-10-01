@@ -3,11 +3,7 @@ import { Plus, Trash2, Mail, ShieldCheck, Building2, X, AlertTriangle } from "lu
 import { useZoo } from "../../context/ZooContext";
 import { ZooUser, UserRole } from "../../data/zooStore";
 
-type UserFormData = Omit<ZooUser, "id"> & { password?: string };
-
-const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
-const emptyForm: UserFormData = {
-  username: "",
+const emptyForm: Omit<ZooUser, "id"> = {
   name: "",
   email: "",
   role: "enclosure_admin",
@@ -20,14 +16,13 @@ function UserModal({
   onSave,
   onClose,
 }: {
-  user: ZooUser | UserFormData;
-  onSave: (data: UserFormData) => void;
+  user: ZooUser | Omit<ZooUser, "id">;
+  onSave: (data: Omit<ZooUser, "id">) => void;
   onClose: () => void;
 }) {
   const { enclosures } = useZoo();
   const isEditing = "id" in user;
-  const [form, setForm] = useState<UserFormData>({
-    username: "username" in user ? user.username : "",
+  const [form, setForm] = useState<Omit<ZooUser, "id">>({
     name: user.name,
     email: user.email,
     role: user.role,
@@ -65,27 +60,10 @@ function UserModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-              Usuario <span className="text-red-500">*</span>
-            </label>
-            <input name="username" value={form.username ?? ""} onChange={handle} required placeholder="usuario.zoomat"
-              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
               Nombre Completo <span className="text-red-500">*</span>
             </label>
             <input name="name" value={form.name} onChange={handle} required placeholder="Nombre del administrador"
                   className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-              Contraseña {!isEditing && <span className="text-red-500">*</span>}
-            </label>
-            <input name="password" type="password" value={form.password ?? ""} onChange={handle}
-              required={!isEditing} minLength={8} placeholder={isEditing ? "Dejar vacía para conservarla" : "Mínimo 8 caracteres"}
-              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
           </div>
 
           <div>
@@ -166,6 +144,7 @@ export function AdminUsers() {
   const { users, setUsers, enclosures, animals } = useZoo();
   const [modalState, setModalState] = useState<{ open: boolean; user: ZooUser | null }>({ open: false, user: null });
   const [deleteTarget, setDeleteTarget] = useState<ZooUser | null>(null);
+  const [nextId, setNextId] = useState(100);
 
   function estimatedDailyVisits(animalId: number, category: string) {
     const categoryBoost: Record<string, number> = {
@@ -199,74 +178,20 @@ export function AdminUsers() {
   const superAdmins = users.filter((u) => u.role === "superadmin");
   const enclosureAdmins = users.filter((u) => u.role === "enclosure_admin");
 
-  async function handleSave(data: UserFormData) {
-    const token = sessionStorage.getItem("pro-zoo-admin-token");
-    if (!API_BASE_URL || !token) {
-      window.alert("La sesión administrativa no está disponible.");
-      return;
+  function handleSave(data: Omit<ZooUser, "id">) {
+    if (modalState.user) {
+      setUsers(users.map((u) => (u.id === modalState.user!.id ? { ...data, id: u.id } : u)));
+    } else {
+      setUsers([...users, { ...data, id: nextId }]);
+      setNextId((n) => n + 1);
     }
-    try {
-      const isEditing = Boolean(modalState.user);
-      const response = await fetch(`${API_BASE_URL}/api/admin${isEditing ? `/${modalState.user!.id}` : "/create"}`, {
-        method: isEditing ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          username: data.username?.trim(),
-          name: data.name.trim(),
-          email: data.email.trim(),
-          password: data.password || undefined,
-          role: data.role,
-          enclosureId: data.enclosureId,
-          status: data.status,
-        }),
-      });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        window.alert(result.message || "No se pudo guardar el usuario.");
-        return;
-      }
-      const savedUser: ZooUser = {
-        id: Number(result.id),
-        username: result.username,
-        name: result.name,
-        email: result.email,
-        role: result.role,
-        enclosureId: result.enclosureId ?? null,
-        status: result.status,
-      };
-      setUsers(isEditing
-        ? users.map((user) => user.id === savedUser.id ? savedUser : user)
-        : [...users, savedUser]);
-      setModalState({ open: false, user: null });
-    } catch (error) {
-      console.error("Unable to save admin user:", error);
-      window.alert("No se pudo conectar con la API.");
-    }
+    setModalState({ open: false, user: null });
   }
 
-  async function handleDelete() {
+  function handleDelete() {
     if (!deleteTarget) return;
-    const token = sessionStorage.getItem("pro-zoo-admin-token");
-    if (!API_BASE_URL || !token) {
-      window.alert("La sesión administrativa no está disponible.");
-      return;
-    }
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/${deleteTarget.id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        window.alert(result.message || "No se pudo eliminar el usuario.");
-        return;
-      }
-      setUsers(users.filter((user) => user.id !== deleteTarget.id));
-      setDeleteTarget(null);
-    } catch (error) {
-      console.error("Unable to delete admin user:", error);
-      window.alert("No se pudo conectar con la API.");
-    }
+    setUsers(users.filter((u) => u.id !== deleteTarget.id));
+    setDeleteTarget(null);
   }
 
   function getEnclosure(id: string | null) {

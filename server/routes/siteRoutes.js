@@ -38,7 +38,7 @@ router.put('/', assertAdminKey, async (req, res, next) => {
          VALUES ($1, $2)
          ON CONFLICT (content_key)
          DO UPDATE SET content_value = EXCLUDED.content_value, updated_at = CURRENT_TIMESTAMP`,
-        ['siteData', siteData]
+        ['siteData', JSON.stringify(siteData)]
       );
     }
     if (Array.isArray(slides)) {
@@ -47,7 +47,7 @@ router.put('/', assertAdminKey, async (req, res, next) => {
          VALUES ($1, $2)
          ON CONFLICT (content_key)
          DO UPDATE SET content_value = EXCLUDED.content_value, updated_at = CURRENT_TIMESTAMP`,
-        ['carousel', slides]
+        ['carousel', JSON.stringify(slides)]
       );
     }
     const currentSiteData = Object.keys(siteData).length > 0

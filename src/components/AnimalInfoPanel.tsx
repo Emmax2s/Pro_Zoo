@@ -185,9 +185,9 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
   };
 
   const getActivityIcon = (activity?: string) => {
-    if (activity === 'Nocturno') return '';
-    if (activity === 'Crepuscular') return '';
-    return '';
+    if (activity === 'Nocturno') return '🌙';
+    if (activity === 'Crepuscular') return '🌅';
+    return '☀️';
   };
 
   const animalSummary = buildAnimalSummary(
@@ -395,7 +395,7 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
 
                   <div className="rounded-lg border-l-4 border-yellow-500 bg-yellow-100 p-3">
                     <div className="mb-1 flex items-center gap-2">
-                      <span className="text-2xl"></span>
+                      <span className="text-2xl">🍽️</span>
                       <h4 className="font-semibold text-slate-800">{t.animalPanel.feeding}</h4>
                     </div>
                     <p className="ml-9 text-sm text-gray-700">{translateContent(animal.diet) || t.animalPanel.variedDiet}</p>
@@ -452,7 +452,7 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
                   </div>
                   <p className="text-gray-700">{translateContent(animal.distribution)}</p>
                   <div className="mt-4 rounded-lg bg-green-100 p-4">
-                    <p className="text-sm italic text-gray-600">{t.animalPanel.naturalHabitat}: {translateContent(animal.habitat)}</p>
+                    <p className="text-sm italic text-gray-600">📍 {t.animalPanel.naturalHabitat}: {translateContent(animal.habitat)}</p>
                   </div>
                 </div>
               )}
@@ -476,7 +476,7 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
                   <ul className="space-y-2">
                     {translateList(animal.threats).map((threat, index) => (
                       <li key={index} className="flex items-start gap-2">
-                        <span className="mt-1 text-red-500"></span>
+                        <span className="mt-1 text-red-500">⚠️</span>
                         <span className="text-gray-700">{threat}</span>
                       </li>
                     ))}
@@ -493,7 +493,7 @@ export function AnimalInfoPanel({ animal, onClose }: AnimalInfoPanelProps) {
                   <ul className="space-y-2">
                     {translateList(animal.funFacts).map((fact, index) => (
                       <li key={index} className="flex items-start gap-2">
-                        <span className="mt-1 text-yellow-600"></span>
+                        <span className="mt-1 text-yellow-600">💡</span>
                         <span className="text-gray-700">{fact}</span>
                       </li>
                     ))}

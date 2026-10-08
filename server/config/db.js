@@ -9,6 +9,7 @@ const pool = new Pool({
   user: env.postgresUser,
   password: env.postgresPassword,
   database: env.postgresDatabase,
+  ssl: env.postgresSsl ? { rejectUnauthorized: false } : false,
 });
 
 pool.on('error', (err) => {

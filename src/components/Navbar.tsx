@@ -39,19 +39,19 @@ export function Navbar() {
     <>
       <nav className="sticky top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md shadow-md border-b border-emerald-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            {/* Logo oficial ZooMAT */}
-            <Link to="/" className="flex items-center space-x-3 group">
+          <div className="flex justify-between items-center h-28 md:h-32">
+            {/* Logo oficial ZooMAT (Enlarged) */}
+            <Link to="/" className="flex items-center space-x-4 group">
               <img
                 src={logoZoomat}
                 alt="Logo ZooMAT"
-                className="h-14 w-auto drop-shadow-sm transition-transform duration-300 group-hover:scale-105"
+                className="h-20 md:h-24 w-auto drop-shadow-md transition-transform duration-300 group-hover:scale-105"
               />
               <div className="flex flex-col">
-                <span className="text-xl font-extrabold tracking-tight text-emerald-950 leading-tight">
+                <span className="text-2xl md:text-3xl font-black tracking-tight text-emerald-950 leading-tight">
                   ZooMAT
                 </span>
-                <span className="text-[11px] font-semibold text-emerald-700 tracking-wider uppercase">
+                <span className="text-xs font-bold text-emerald-700 tracking-wider uppercase">
                   Miguel Álvarez del Toro
                 </span>
               </div>
@@ -90,7 +90,7 @@ export function Navbar() {
 
               {/* Language Selector */}
               <label className="flex items-center gap-1.5 text-xs text-stone-600 bg-stone-100 px-2.5 py-1.5 rounded-lg">
-                <span></span>
+                <span>🌐</span>
                 <select
                   value={language}
                   onChange={(event) => setLanguage(event.target.value as 'es' | 'en')}
@@ -145,7 +145,7 @@ export function Navbar() {
                   </Link>
 
                   <label className="flex items-center gap-1.5 text-xs text-stone-600 bg-stone-100 px-3 py-1.5 rounded-lg">
-                    <span></span>
+                    <span>🌐</span>
                     <select
                       value={language}
                       onChange={(event) => setLanguage(event.target.value as 'es' | 'en')}

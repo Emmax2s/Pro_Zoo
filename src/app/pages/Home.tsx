@@ -1,379 +1,347 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router";
-import { ArrowRight, Ticket, ChevronLeft, ChevronRight, Lightbulb, Compass, Award, Volume2, Info, MapPin, Clock } from "lucide-react";
+import { ArrowRight, Users, Heart, TreePine, Calendar, MapPin, Ticket, Clock, Shield, BookOpen, ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useZoo } from "../context/ZooContext";
 
-const statusConfig: Record<string, { color: string; label: string }> = {
-  "En Peligro de Extinción": { color: "#dc2626", label: "En peligro de extinción" },
-  "Amenazada": { color: "#d97706", label: "Amenazada" },
-  "Protegida Especial": { color: "#ca8a04", label: "Protegida especial" },
-  "Preocupación Menor": { color: "#16a34a", label: "Estable" },
-};
+function HeroCarousel() {
+  const { slides } = useZoo();
+  const [current, setCurrent] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const total = slides.length;
+
+  const next = useCallback(() => {
+    setCurrent((c) => (c + 1) % total);
+    setPlaying(false);
+  }, [total]);
+
+  const prev = useCallback(() => {
+    setCurrent((c) => (c - 1 + total) % total);
+    setPlaying(false);
+  }, [total]);
+
+  useEffect(() => {
+    if (!slides[current] || slides[current].type === "video") return;
+    const id = setTimeout(next, 4000);
+    return () => clearTimeout(id);
+  }, [current, next, slides]);
+
+  if (slides.length === 0) return <div className="w-full h-full bg-emerald-950" />;
+
+  const slide = slides[current];
+
+  return (
+    <div className="w-full h-full relative group bg-black overflow-hidden">
+      {/* Subtle top/bottom shadow gradients for contrast */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30 pointer-events-none z-10" />
+
+      {/* Slides */}
+      {slides.map((s, i) => (
+        <div
+          key={i}
+          className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${i === current ? "opacity-100 z-10" : "opacity-0 z-0"}`}
+        >
+          {s.type === "image" ? (
+            <img
+              src={s.src}
+              alt={s.alt}
+              className="w-full h-full object-cover object-center select-none"
+            />
+          ) : (
+            <div className="w-full h-full relative">
+              <video
+                src={s.src}
+                poster={s.poster}
+                className="w-full h-full object-cover object-center"
+                loop
+                playsInline
+                ref={(el) => {
+                  if (!el) return;
+                  if (i === current && playing) el.play();
+                  else el.pause();
+                }}
+              />
+              {!playing && (
+                <button
+                  onClick={() => setPlaying(true)}
+                  className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors z-20 cursor-pointer"
+                >
+                  <span className="w-20 h-20 rounded-full bg-white/95 flex items-center justify-center shadow-2xl hover:scale-110 transition-transform">
+                    <Play size={36} className="text-emerald-900 ml-1" />
+                  </span>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      ))}
+
+      {/* Counter (Photo 1 Style: 02 / 06) */}
+      <div className="absolute top-6 right-8 z-20 bg-black/50 backdrop-blur-md text-white font-mono text-sm sm:text-base font-bold px-4 py-1.5 rounded-full border border-white/20 shadow-lg tracking-wider">
+        {String(current + 1).padStart(2, "0")} <span className="text-white/60">/ {String(total).padStart(2, "0")}</span>
+      </div>
+
+      {/* Navigation Arrows */}
+      <button
+        onClick={prev}
+        className="absolute left-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-2xl hover:bg-white text-emerald-950 transition-all opacity-0 group-hover:opacity-100 hover:scale-110 cursor-pointer"
+        aria-label="Anterior"
+      >
+        <ChevronLeft size={28} />
+      </button>
+      <button
+        onClick={next}
+        className="absolute right-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-2xl hover:bg-white text-emerald-950 transition-all opacity-0 group-hover:opacity-100 hover:scale-110 cursor-pointer"
+        aria-label="Siguiente"
+      >
+        <ChevronRight size={28} />
+      </button>
+
+      {/* Dots / Indicators Bar */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2.5 bg-black/40 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/15 shadow-lg">
+        {slides.map((s, i) => (
+          <button
+            key={i}
+            onClick={() => { setCurrent(i); setPlaying(false); }}
+            className={`rounded-full transition-all cursor-pointer ${i === current ? "w-8 h-3 bg-amber-400" : "w-3 h-3 bg-white/60 hover:bg-white"}`}
+            aria-label={`Diapositiva ${i + 1}`}
+          />
+        ))}
+      </div>
+
+      {/* Video badge */}
+      {slide.type === "video" && (
+        <span className="absolute top-6 left-8 z-20 bg-black/60 backdrop-blur-md text-amber-300 text-xs font-black px-4 py-2 rounded-full flex items-center gap-2 border border-white/15 shadow-md">
+          <Play size={12} /> VIDEO EXPOSITIVO
+        </span>
+      )}
+    </div>
+  );
+}
 
 export function Home() {
   const { t, i18n } = useTranslation();
-  const isEs = i18n.language === "es";
+  const isEs = i18n.language === 'es';
   const { animals } = useZoo();
 
-  const [activeCategory, setActiveCategory] = useState("Todos");
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [autoplay, setAutoplay] = useState(true);
-  const [progress, setProgress] = useState(0);
-  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const categories = isEs
-    ? ["Todos", "Mamífero", "Ave", "Reptil"]
-    : ["All", "Mammal", "Bird", "Reptile"];
-
-  const filtered = animals.filter((a) => {
-    if (activeCategory === "Todos" || activeCategory === "All") return true;
-    return a.category === activeCategory;
-  });
-
-  const current = filtered[currentIndex] ?? filtered[0] ?? animals[0];
-  const st = statusConfig[current.status] ?? { color: "#16a34a", label: current.status };
-
-  const goTo = useCallback((index: number) => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    setProgress(0);
-    setTimeout(() => {
-      setCurrentIndex(index);
-      setIsTransitioning(false);
-    }, 350);
-  }, [isTransitioning]);
-
-  const next = useCallback(() => {
-    if (filtered.length === 0) return;
-    goTo((currentIndex + 1) % filtered.length);
-  }, [currentIndex, filtered.length, goTo]);
-
-  const prev = useCallback(() => {
-    if (filtered.length === 0) return;
-    goTo((currentIndex - 1 + filtered.length) % filtered.length);
-  }, [currentIndex, filtered.length, goTo]);
-
-  useEffect(() => {
-    setCurrentIndex(0);
-    setProgress(0);
-  }, [activeCategory]);
-
-  useEffect(() => {
-    if (!autoplay || filtered.length <= 1) return;
-    setProgress(0);
-    let p = 0;
-    progressRef.current = setInterval(() => {
-      p += 1;
-      setProgress(p);
-      if (p >= 100) next();
-    }, 50);
-    return () => {
-      if (progressRef.current) clearInterval(progressRef.current);
-    };
-  }, [autoplay, currentIndex, filtered.length, next]);
+  const highlights = [
+    {
+      icon: Users,
+      title: isEs ? "50+ Especies" : "50+ Species",
+      description: isEs ? "Fauna nativa de Chiapas" : "Native wildlife of Chiapas"
+    },
+    {
+      icon: TreePine,
+      title: t("home.highlights.conservation"),
+      description: t("home.highlights.conservationDesc")
+    },
+    {
+      icon: Heart,
+      title: t("home.highlights.education"),
+      description: t("home.highlights.educationDesc")
+    }
+  ];
 
   return (
-    <div className="bg-white text-gray-900 font-sans min-h-screen">
-      {/* ── HERO CAROUSEL (DISEÑO INMERSIVO INTERFAZ.GIT) ── */}
-      <section className="relative h-[90vh] min-h-[580px] overflow-hidden bg-[#0d1f15]">
-        {/* Imagen principal */}
-        <img
-          key={current.id}
-          src={current.image}
-          alt={current.name}
-          className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out ${
-            isTransitioning ? "opacity-0 scale-105" : "opacity-85 scale-100"
-          }`}
-        />
-
-        {/* Gradientes decorativos */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#05120a] via-[#05120a]/40 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#05120a]/80 via-transparent to-transparent" />
-
-        {/* Insignia de zona top-left */}
-        <div className="absolute top-8 left-8 sm:left-12 z-20">
-          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase bg-white/10 border border-white/20 text-white/90 backdrop-blur-md shadow-md">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            {current.zone || (isEs ? "Reserva El Zapotal" : "El Zapotal Reserve")}
-          </span>
-        </div>
-
-        {/* Contador top-right */}
-        <div className="absolute top-8 right-8 sm:right-12 z-20 flex items-baseline gap-1">
-          <span className="text-3xl font-light text-white/90 transition-opacity duration-300">
-            {current.num || String(currentIndex + 1).padStart(2, "0")}
-          </span>
-          <span className="text-sm text-white/40 font-medium">
-            / {String(filtered.length).padStart(2, "0")}
-          </span>
-        </div>
-
-        {/* Contenido inferior Hero */}
-        <div className="absolute bottom-0 inset-x-0 p-8 sm:p-12 md:p-16 flex flex-col md:flex-row items-start md:items-end justify-between gap-8 z-20">
-          {/* Título de la especie */}
-          <div className="max-w-2xl transition-opacity duration-300">
-            <p className="text-xs font-bold uppercase tracking-widest text-emerald-400 mb-2">
-              {isEs ? current.category : current.category} • ZooMAT Chiapas
-            </p>
-            <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black text-white leading-none tracking-tight mb-2">
-              {isEs ? current.name : (current.nameEn || current.name)}
-            </h1>
-            <p className="text-xl sm:text-2xl italic font-serif text-white/60 mb-6">
-              ({current.scientificName})
-            </p>
-
-            <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-white/70">
-              <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm px-3.5 py-1.5 rounded-full border border-white/10">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: st.color }} />
-                <span className="uppercase tracking-wider">{isEs ? current.status : (current.statusEn || current.status)}</span>
-              </div>
-              {current.feedingTime && (
-                <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm px-3.5 py-1.5 rounded-full border border-white/10">
-                  <Clock className="w-3.5 h-3.5 text-amber-300" />
-                  <span>{isEs ? `Alimentación: ${current.feedingTime}` : `Feeding: ${current.feedingTime}`}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Carrusel de miniaturas y controles */}
-          <div className="flex flex-col items-end gap-4 shrink-0 self-end">
-            {/* Tira de miniaturas */}
-            <div className="flex gap-2.5">
-              {filtered.map((a, i) => (
-                <button
-                  key={a.id}
-                  onClick={() => {
-                    setAutoplay(false);
-                    goTo(i);
-                  }}
-                  className={`w-14 h-14 rounded-xl overflow-hidden p-0 transition-all cursor-pointer border-2 ${
-                    a.id === current.id ? "border-emerald-400 scale-105 shadow-lg" : "border-transparent opacity-50 hover:opacity-80"
-                  }`}
-                >
-                  <img src={a.image} alt={a.name} className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-
-            {/* Barra de progreso y botones previo/siguiente */}
-            <div className="flex items-center gap-3">
-              <div className="w-32 h-1 bg-white/20 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-emerald-400 rounded-full transition-all duration-75 ease-linear"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-
-              <button
-                onClick={() => {
-                  setAutoplay(false);
-                  prev();
-                }}
-                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
-                title="Anterior"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => {
-                  setAutoplay(false);
-                  next();
-                }}
-                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
-                title="Siguiente"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
+    <div className="bg-white text-gray-900">
+      {/* 1. Full-bleed Edge-to-Edge Hero Carousel (Photo 1 Layout - 100% ancho completo) */}
+      <section className="relative w-full overflow-hidden bg-stone-900 border-b-4 border-amber-400">
+        <div className="w-full h-[450px] sm:h-[550px] md:h-[650px] lg:h-[720px] relative">
+          <HeroCarousel />
         </div>
       </section>
 
-      {/* ── BARRA DE FILTROS POR CATEGORÍA ── */}
-      <div className="bg-white border-b border-emerald-100 sticky top-24 z-30 shadow-xs">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-4 overflow-x-auto">
-          <div className="flex items-center gap-2">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                  activeCategory === cat
-                    ? "bg-emerald-800 text-white shadow-md"
-                    : "text-emerald-800 hover:bg-emerald-50 bg-stone-50"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-          <div className="text-xs font-semibold text-emerald-800 shrink-0">
-            {filtered.length} {isEs ? "especies exhibidas" : "species exhibited"}
-          </div>
-        </div>
-      </div>
-
-      {/* ── SECCIÓN DE DETALLE DE LA ESPECIE SELECCIONADA ── */}
-      <section className="max-w-7xl mx-auto px-6 py-16 sm:py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          {/* Columna Izquierda: Información Detallada */}
-          <div className="lg:col-span-7 space-y-8 transition-opacity duration-300">
-            <div>
-              <div className="flex items-center gap-3 mb-3">
-                <span className="w-8 h-0.5 bg-emerald-700" />
-                <span className="text-xs font-bold uppercase tracking-widest text-emerald-800">
-                  {current.zone || "Reserva Natural ZooMAT"}
-                </span>
-              </div>
-
-              <h2 className="text-4xl sm:text-6xl font-black text-emerald-950 tracking-tight leading-tight">
-                {isEs ? current.name : (current.nameEn || current.name)}
-              </h2>
-              <p className="text-lg text-emerald-700 italic font-serif mt-1">
-                ({current.scientificName})
-              </p>
+      {/* 2. Sección de Texto de Cabecera ABAJO (después de las imágenes) */}
+      <section className="relative bg-emerald-50 border-b border-emerald-100 py-14 md:py-20 overflow-hidden">
+        {/* Subtle decorative background pattern */}
+        <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(#10b981 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="max-w-4xl space-y-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100 text-emerald-900 text-sm font-extrabold tracking-wide uppercase shadow-sm border border-emerald-300">
+              <TreePine className="w-4 h-4 text-emerald-700" />
+              <span>{t("home.hero.tag")}</span>
             </div>
 
-            <p className="text-stone-700 text-base sm:text-lg leading-relaxed font-medium">
-              {current.description || current.habitat}
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-emerald-950 leading-[1.1]">
+              {t("home.hero.title")}
+            </h1>
+
+            <p className="text-xl md:text-2xl text-emerald-950 leading-relaxed font-semibold">
+              {t("home.hero.desc")}
             </p>
 
-            {/* Llamado de Dato Científico */}
-            <div className="flex items-start gap-4 p-6 rounded-2xl bg-emerald-50 border border-emerald-200 shadow-xs">
-              <div className="p-3 rounded-xl bg-emerald-100 text-amber-600 shrink-0">
-                <Lightbulb className="w-6 h-6" />
-              </div>
-              <div>
-                <h4 className="text-xs font-black uppercase tracking-wider text-emerald-900 mb-1">
-                  {isEs ? "DATO CIENTÍFICO INTERESANTE" : "INTERESTING SCIENTIFIC FACT"}
-                </h4>
-                <p className="text-sm sm:text-base text-emerald-950 font-medium leading-relaxed">
-                  {isEs ? current.funFact : (current.funFactEn || current.funFact)}
-                </p>
-              </div>
-            </div>
-
-            {/* Cuadrícula de Métricas de la Especie */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-stone-100 p-2 rounded-2xl border border-stone-200">
-              <div className="bg-white p-4 rounded-xl text-center shadow-2xs">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">
-                  {isEs ? "Dieta" : "Diet"}
-                </span>
-                <span className="text-base font-black text-emerald-950">
-                  {isEs ? current.diet : (current.dietEn || current.diet)}
-                </span>
-              </div>
-              <div className="bg-white p-4 rounded-xl text-center shadow-2xs">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">
-                  {isEs ? "Esperanza" : "Lifespan"}
-                </span>
-                <span className="text-base font-black text-emerald-950">
-                  {current.lifespan || "15–20 años"}
-                </span>
-              </div>
-              <div className="bg-white p-4 rounded-xl text-center shadow-2xs">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">
-                  {isEs ? "Peso Promedio" : "Avg Weight"}
-                </span>
-                <span className="text-base font-black text-emerald-950">
-                  {current.weight || "N/A"}
-                </span>
-              </div>
-              <div className="bg-white p-4 rounded-xl text-center shadow-2xs">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">
-                  {isEs ? "Estatura / Talla" : "Height / Size"}
-                </span>
-                <span className="text-base font-black text-emerald-950">
-                  {current.height || "N/A"}
-                </span>
-              </div>
-            </div>
-
-            {/* Botón para ver ficha completa en catálogo */}
-            <div className="pt-2 flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-5 pt-2">
               <Link
-                to={`/especie/${current.id}`}
-                className="inline-flex items-center gap-3 bg-emerald-800 hover:bg-emerald-900 text-white font-bold px-7 py-4 rounded-2xl transition-all shadow-md hover:scale-105 text-base"
+                to="/visita"
+                className="inline-flex items-center gap-3 bg-emerald-800 hover:bg-emerald-900 text-white px-8 py-4 rounded-2xl text-lg font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
               >
-                <span>{isEs ? "Ver Ficha Completa del Animal" : "View Full Animal File"}</span>
+                <Ticket className="w-5 h-5 text-amber-300" />
+                <span>{t("home.hero.planVisit")}</span>
                 <ArrowRight className="w-5 h-5" />
+              </Link>
+
+              <Link
+                to="/animales"
+                className="inline-flex items-center gap-3 bg-white hover:bg-emerald-50 text-emerald-950 border-2 border-emerald-300 px-8 py-4 rounded-2xl text-lg font-bold shadow-md hover:shadow-lg hover:scale-105 transition-all"
+              >
+                <BookOpen className="w-5 h-5 text-emerald-700" />
+                <span>{t("home.hero.exploreCatalog")}</span>
               </Link>
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* Columna Derecha: Colección de Especies */}
-          <div className="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-8 border border-emerald-100 shadow-xl space-y-4">
-            <h3 className="text-xs font-black uppercase tracking-widest text-emerald-800 pb-2 border-b border-stone-100">
-              {isEs ? "Colección de Fauna del ZooMAT" : "ZooMAT Fauna Collection"}
-            </h3>
+      {/* Highlights */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
+            {highlights.map((item, index) => (
+              <div key={index} className="flex flex-col items-start p-8 rounded-3xl bg-emerald-50/70 border-2 border-emerald-100 hover:border-emerald-300 hover:bg-emerald-50 transition-all shadow-sm hover:shadow-md">
+                <div className="bg-emerald-700 p-4 rounded-2xl mb-6 text-white shadow-md">
+                  <item.icon className="w-8 h-8" />
+                </div>
+                <h3 className="text-2xl font-black text-emerald-950 mb-3 tracking-tight">{item.title}</h3>
+                <p className="text-emerald-900/80 leading-relaxed font-medium text-lg">{item.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            <div className="space-y-2 max-h-[460px] overflow-y-auto pr-1">
-              {filtered.map((a, i) => {
-                const active = a.id === current.id;
-                return (
-                  <button
-                    key={a.id}
-                    onClick={() => {
-                      setAutoplay(false);
-                      goTo(i);
-                    }}
-                    className={`w-full flex items-center gap-4 p-3 rounded-2xl transition-all text-left cursor-pointer border ${
-                      active ? "bg-emerald-50 border-emerald-300 shadow-xs" : "bg-transparent border-transparent hover:bg-stone-50"
-                    }`}
-                  >
-                    <div className={`w-14 h-14 rounded-xl overflow-hidden shrink-0 border-2 ${active ? "border-emerald-700" : "border-transparent"}`}>
-                      <img src={a.image} alt={a.name} className="w-full h-full object-cover" />
+      {/* Featured Animals */}
+      <section className="py-24 bg-emerald-50/60 border-b border-emerald-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-14 gap-6">
+            <div>
+              <h2 className="text-3xl sm:text-5xl font-black text-emerald-950 mb-4 tracking-tight">{t("home.featured.title")}</h2>
+              <p className="text-emerald-900/80 max-w-2xl font-semibold text-lg md:text-xl">{t("home.featured.desc")}</p>
+            </div>
+            <Link
+              to="/animales"
+              className="text-base font-bold text-emerald-900 hover:text-emerald-950 transition-colors flex items-center gap-2 bg-emerald-200/80 hover:bg-emerald-200 px-6 py-3 rounded-xl border border-emerald-300 shadow-xs"
+            >
+              <span>{t("home.featured.viewAll")}</span>
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {animals.length === 0 ? (
+              <div className="col-span-full text-center py-12 bg-white rounded-3xl border-2 border-dashed border-emerald-200">
+                <p className="text-emerald-800 font-bold text-lg">
+                  {isEs ? "No hay especies registradas actualmente." : "No species currently registered."}
+                </p>
+                <p className="text-emerald-600 text-sm mt-1">
+                  {isEs ? "Las especies agregadas desde el panel de administración aparecerán aquí." : "Species added from the admin panel will appear here."}
+                </p>
+              </div>
+            ) : (
+              animals.slice(0, 3).map((animal) => (
+                <div key={animal.id} className="bg-white rounded-3xl overflow-hidden border-2 border-emerald-100 shadow-md hover:shadow-xl hover:shadow-emerald-900/10 transition-all duration-300 group">
+                  <div className="relative h-72 overflow-hidden bg-emerald-100">
+                    <img
+                      src={animal.image}
+                      alt={isEs ? animal.name : (animal.nameEn || animal.name)}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
+                    />
+                    <div className="absolute top-4 left-4 bg-emerald-950 text-white px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider shadow-md">
+                      {isEs ? animal.status : (animal.status === "En Peligro de Extinción" ? "Endangered" : animal.status === "Amenazada" ? "Threatened" : "Special Protection")}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className={`text-base font-extrabold truncate ${active ? "text-emerald-950" : "text-stone-800"}`}>
-                        {isEs ? a.name : (a.nameEn || a.name)}
-                      </h4>
-                      <p className="text-xs text-emerald-700 font-semibold">{a.zone || a.category}</p>
+                  </div>
+                  <div className="p-7 flex items-center justify-between">
+                    <h3 className="text-2xl font-black text-emerald-950">{isEs ? animal.name : (animal.nameEn || animal.name)}</h3>
+                    <Link to={`/animales?id=${animal.id}`} className="text-emerald-700 hover:text-emerald-900 font-bold text-sm bg-emerald-50 px-3.5 py-2 rounded-lg border border-emerald-200">
+                      {isEs ? "Ver más →" : "View more →"}
+                    </Link>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Visit Info */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="bg-emerald-950 rounded-[2.5rem] p-8 md:p-16 text-white overflow-hidden relative shadow-2xl shadow-emerald-900/20">
+            {/* Elegant dark green gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 to-emerald-950" />
+            <div className="absolute top-0 right-0 -mr-32 -mt-32 w-96 h-96 rounded-full bg-emerald-800 opacity-40 blur-3xl pointer-events-none" />
+            
+            <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-900/50 text-emerald-300 text-xs font-bold tracking-widest uppercase mb-6 border border-emerald-800">
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>{t("home.visit.tag")}</span>
+                </div>
+                <h2 className="text-3xl md:text-5xl font-extrabold mb-6 tracking-tight text-white">{t("home.visit.title")}</h2>
+                <p className="text-emerald-200/90 text-lg mb-10 leading-relaxed font-medium">
+                  {t("home.visit.desc")}
+                </p>
+                <div className="space-y-6 mb-10">
+                  <div className="flex items-center gap-4 text-emerald-100 bg-emerald-900/30 p-4 rounded-2xl border border-emerald-800/50">
+                    <Clock className="w-6 h-6 text-emerald-400 flex-shrink-0" />
+                    <div>
+                      <p className="font-bold text-white">{t("home.visit.hoursTitle")}</p>
+                      <p className="text-sm text-emerald-200">{t("home.visit.hoursDesc")}</p>
                     </div>
-                    <span className="text-xs font-black text-stone-400 shrink-0">
-                      {a.num || String(i + 1).padStart(2, "0")}
-                    </span>
-                  </button>
-                );
-              })}
+                  </div>
+                  <div className="flex items-center gap-4 text-emerald-100 bg-emerald-900/30 p-4 rounded-2xl border border-emerald-800/50">
+                    <MapPin className="w-6 h-6 text-emerald-400 flex-shrink-0" />
+                    <div>
+                      <p className="font-bold text-white">{t("home.visit.locationTitle")}</p>
+                      <p className="text-sm text-emerald-200">{t("home.visit.locationDesc")}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 text-emerald-100 bg-emerald-900/30 p-4 rounded-2xl border border-emerald-800/50">
+                    <Ticket className="w-6 h-6 text-emerald-400 flex-shrink-0" />
+                    <div>
+                      <p className="font-bold text-white">{t("home.visit.admissionTitle")}</p>
+                      <p className="text-sm text-emerald-200">{t("home.visit.admissionDesc")}</p>
+                    </div>
+                  </div>
+                </div>
+                <Link
+                  to="/visita"
+                  className="inline-flex items-center gap-2 bg-emerald-500 text-emerald-950 px-8 py-4 rounded-xl font-bold hover:bg-emerald-400 transition-colors shadow-lg"
+                >
+                  {t("home.visit.moreDetails")}
+                </Link>
+              </div>
+              <div className="relative h-[32rem] rounded-3xl overflow-hidden bg-emerald-900 border-8 border-emerald-900/50 shadow-2xl">
+                <iframe
+                  title="Google Maps ZooMAT"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3820.612711003444!2d-93.0975618!3d16.7460298!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85ed272bc9776d63%3A0xc3f6a2c2622fbb95!2sZool%C3%B3gico%20Regional%20Miguel%20%C3%81lvarez%20del%20Toro!5e0!3m2!1ses!2smx!45"
+                  className="w-full h-full border-0"
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                ></iframe>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── FRANJA DE ESTADÍSTICAS DEL PARQUE ── */}
-      <section className="bg-[#0d2b1a] text-white border-t border-emerald-900 py-16">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-          <div className="p-6 border-b md:border-b-0 md:border-r border-white/10">
-            <span className="text-5xl font-black text-white tracking-tight block mb-2">50+</span>
-            <span className="text-xs font-bold uppercase tracking-widest text-emerald-400 block mb-1">
-              {isEs ? "Especies Autóctonas" : "Native Species"}
-            </span>
-            <span className="text-xs text-emerald-200/70 font-medium">
-              {isEs ? "Protegidas exclusivamente en Chiapas" : "Protected exclusively in Chiapas"}
-            </span>
+      {/* Conservation Message */}
+      <section className="py-24 bg-emerald-50/50 text-center border-t border-emerald-100">
+        <div className="max-w-3xl mx-auto px-4">
+          <div className="bg-emerald-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-8 rotate-12">
+            <Heart className="w-8 h-8 text-emerald-700 -rotate-12" />
           </div>
-          <div className="p-6 border-b md:border-b-0 md:border-r border-white/10">
-            <span className="text-5xl font-black text-white tracking-tight block mb-2">100 ha</span>
-            <span className="text-xs font-bold uppercase tracking-widest text-emerald-400 block mb-1">
-              {isEs ? "Reserva El Zapotal" : "El Zapotal Reserve"}
-            </span>
-            <span className="text-xs text-emerald-200/70 font-medium">
-              {isEs ? "Hábitat selvático natural preservado" : "Preserved natural jungle habitat"}
-            </span>
-          </div>
-          <div className="p-6">
-            <span className="text-5xl font-black text-white tracking-tight block mb-2">1942</span>
-            <span className="text-xs font-bold uppercase tracking-widest text-emerald-400 block mb-1">
-              {isEs ? "Fundado por Don Miguel Álvarez" : "Founded by Don Miguel Álvarez"}
-            </span>
-            <span className="text-xs text-emerald-200/70 font-medium">
-              {isEs ? "Comprometidos con la conservación" : "Committed to wildlife conservation"}
-            </span>
-          </div>
+          <h2 className="text-3xl font-extrabold text-emerald-950 mb-6 tracking-tight">{t("home.conservation.title")}</h2>
+          <p className="text-lg text-emerald-800/80 leading-relaxed mb-10 font-medium">
+            {t("home.conservation.desc")}
+          </p>
+          <Link
+            to="/contacto"
+            className="inline-flex items-center gap-2 text-emerald-700 font-bold hover:text-emerald-900 transition-colors bg-white px-6 py-3 rounded-full border border-emerald-200 shadow-sm hover:shadow-md"
+          >
+            {t("home.conservation.support")}
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </section>
     </div>

@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
-import { useParams, useSearchParams } from "react-router";
-import { Search, Filter, Volume2, MapPin, AlertCircle, X, Info, Lightbulb } from "lucide-react";
+import { useState } from "react";
+import { Search, Filter, Volume2, MapPin, AlertCircle, X, Info, Lightbulb, Globe } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AnimalCard } from "../components/AnimalCard";
 import { useZoo } from "../context/ZooContext";
@@ -9,28 +8,15 @@ export function Animals() {
   const { t, i18n } = useTranslation();
   const isEs = i18n.language === 'es';
   const { animals } = useZoo();
-  const params = useParams();
-  const [searchParams] = useSearchParams();
+
+  const toggleLanguage = () => {
+    i18n.changeLanguage(i18n.language === 'es' ? 'en' : 'es');
+  };
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("Todos");
   const [selectedStatus, setSelectedStatus] = useState<string>("Todos");
   const [selectedAnimal, setSelectedAnimal] = useState<any | null>(null);
-
-  // Detect URL parameter for QR scanning (e.g. /especie/1 or /animales?id=1)
-  useEffect(() => {
-    const targetId = params.id || searchParams.get("id");
-    if (targetId && animals.length > 0) {
-      const match = animals.find(
-        (a) =>
-          String(a.id) === String(targetId) ||
-          a.name.toLowerCase().includes(String(targetId).toLowerCase())
-      );
-      if (match) {
-        setSelectedAnimal(match);
-      }
-    }
-  }, [params.id, searchParams, animals]);
 
   const categories = isEs
     ? ["Todos", "Mamífero", "Ave", "Reptil", "Anfibio"]
@@ -53,15 +39,6 @@ export function Animals() {
 
     return matchesSearch && matchesCategory && matchesStatus;
   });
-
-  const [modalLang, setModalLang] = useState<'es' | 'en'>(isEs ? 'es' : 'en');
-
-  const openAnimalModal = (animal: any) => {
-    setModalLang(i18n.language === 'en' ? 'en' : 'es');
-    setSelectedAnimal(animal);
-  };
-
-  const isModalEs = modalLang === 'es';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50/40 via-stone-50 to-emerald-100/30">
@@ -162,7 +139,7 @@ export function Animals() {
             {filteredAnimals.map((animal) => (
               <div
                 key={animal.id}
-                onClick={() => openAnimalModal(animal)}
+                onClick={() => setSelectedAnimal(animal)}
                 className="cursor-pointer transform transition-transform duration-300 hover:-translate-y-1"
               >
                 <AnimalCard {...animal} />
@@ -188,48 +165,33 @@ export function Animals() {
         )}
       </section>
 
-      {/* Modal de Detalle de Especie con Conmutador de Idioma (Español / Inglés) */}
+      {/* Modal de Detalle de Especie con Reproductor de Audio e Idioma Bilingüe */}
       {selectedAnimal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-sm" onClick={() => setSelectedAnimal(null)}>
-          <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col border border-emerald-200" onClick={(e) => e.stopPropagation()}>
-            {/* Header del Modal con Selector de Idioma */}
-            <div className="bg-gradient-to-r from-emerald-800 to-emerald-950 text-white p-6 flex flex-wrap justify-between items-center gap-4 border-b-4 border-amber-400">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedAnimal(null)}>
+          <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            {/* Header del Modal con Selector de Idioma (Photo 3) */}
+            <div className="bg-emerald-900 text-white p-6 flex flex-wrap justify-between items-center gap-4 border-b-4 border-amber-400">
               <div>
-                <h2 className="text-3xl sm:text-4xl font-black tracking-tight">
-                  {isModalEs ? selectedAnimal.name : (selectedAnimal.nameEn || selectedAnimal.name)}
-                </h2>
-                <p className="text-emerald-200 italic font-semibold text-base mt-0.5">({selectedAnimal.scientificName})</p>
+                <h2 className="text-3xl sm:text-4xl font-black">{isEs ? selectedAnimal.name : (selectedAnimal.nameEn || selectedAnimal.name)}</h2>
+                <p className="text-amber-300 italic font-medium text-base mt-0.5">({selectedAnimal.scientificName})</p>
               </div>
-
               <div className="flex items-center gap-3">
-                {/* Conmutador Bilingüe de Idioma para el Modal */}
-                <div className="flex items-center bg-emerald-950/80 p-1 rounded-full border border-emerald-700 shadow-inner">
-                  <button
-                    onClick={() => setModalLang('es')}
-                    className={`px-3 py-1 rounded-full text-xs font-black transition-all ${
-                      isModalEs ? "bg-amber-400 text-emerald-950 shadow-md scale-105" : "text-emerald-200 hover:text-white"
-                    }`}
-                    title="Ver información en Español"
-                  >
-                    ES
-                  </button>
-                  <button
-                    onClick={() => setModalLang('en')}
-                    className={`px-3 py-1 rounded-full text-xs font-black transition-all ${
-                      !isModalEs ? "bg-amber-400 text-emerald-950 shadow-md scale-105" : "text-emerald-200 hover:text-white"
-                    }`}
-                    title="View information in English"
-                  >
-                    EN
-                  </button>
-                </div>
+                {/* Botón de Cambio de Idioma (ES / EN) directamente en el Modal */}
+                <button
+                  onClick={toggleLanguage}
+                  className="bg-amber-400 hover:bg-amber-300 text-emerald-950 font-black px-4 py-2 rounded-full text-xs sm:text-sm flex items-center gap-2 shadow-md border-2 border-amber-300 transition-transform hover:scale-105 cursor-pointer"
+                  title="Cambiar idioma del modal / Switch modal language"
+                >
+                  <Globe className="w-4 h-4 text-emerald-950" />
+                  <span>{isEs ? "ESPAÑOL | ENGLISH" : "ENGLISH | ESPAÑOL"}</span>
+                </button>
 
-                <span className="bg-red-500 text-white text-xs font-black px-3.5 py-1.5 rounded-full shadow-sm uppercase tracking-wide">
-                  {isModalEs ? selectedAnimal.status : (selectedAnimal.statusEn || selectedAnimal.status)}
+                <span className="bg-emerald-950 border border-emerald-700 text-amber-300 text-xs font-black uppercase px-3.5 py-1.5 rounded-full shadow-xs">
+                  {isEs ? selectedAnimal.status : (selectedAnimal.status === "En Peligro de Extinción" ? "Endangered" : selectedAnimal.status === "Amenazada" ? "Threatened" : "Special Protection")}
                 </span>
                 <button
                   onClick={() => setSelectedAnimal(null)}
-                  className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors cursor-pointer"
+                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -238,34 +200,28 @@ export function Animals() {
 
             {/* Modal Body Grid */}
             <div className="p-6 md:p-8 overflow-y-auto space-y-6 flex-1 bg-stone-50">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Left Column: Image & Audio Player */}
                 <div className="space-y-6">
-                  <div className="rounded-2xl overflow-hidden border-4 border-amber-400 shadow-xl bg-stone-900 h-72">
-                    <img
-                      src={selectedAnimal.image}
-                      alt={isModalEs ? selectedAnimal.name : (selectedAnimal.nameEn || selectedAnimal.name)}
-                      className="w-full h-full object-cover"
-                    />
+                  <div className="rounded-3xl overflow-hidden border-4 border-emerald-800 shadow-lg bg-stone-900 h-72">
+                    <img src={selectedAnimal.image} alt={selectedAnimal.name} className="w-full h-full object-cover" />
                   </div>
 
                   {/* Audio Player Section */}
-                  <div className="bg-white rounded-2xl p-6 border border-emerald-200 shadow-sm space-y-3">
+                  <div className="bg-white rounded-2xl p-5 border-2 border-emerald-100 shadow-sm space-y-3">
                     <div className="flex items-center gap-2 text-emerald-900 font-black text-sm uppercase tracking-wider">
                       <Volume2 className="w-5 h-5 text-emerald-700" />
-                      <span>{isModalEs ? "AUDIO DE LA ESPECIE" : "SPECIES AUDIO"}</span>
+                      <span>{isEs ? "AUDIO DE LA ESPECIE" : "SPECIES AUDIO"}</span>
                     </div>
 
                     {selectedAnimal.audioUrl ? (
-                      <audio controls className="w-full rounded-xl bg-stone-900 p-1">
+                      <audio controls className="w-full rounded-xl bg-emerald-950 p-2 text-white">
                         <source src={selectedAnimal.audioUrl} />
                         Tu navegador no soporta el elemento de audio.
                       </audio>
                     ) : (
-                      <div className="bg-stone-100 text-stone-700 text-xs sm:text-sm p-4 rounded-xl font-medium border border-stone-200">
-                        {isModalEs
-                          ? "Grabación ambiental disponible en la estación educativa del parque."
-                          : "Environmental recording available at park educational stations."}
+                      <div className="bg-stone-100 text-stone-700 text-xs font-semibold p-3.5 rounded-xl border border-stone-200">
+                        {isEs ? "Audio ilustrativo de especie nativa no disponible en este momento." : "Illustrative native species audio not available at this moment."}
                       </div>
                     )}
 
@@ -274,9 +230,9 @@ export function Animals() {
                         href={selectedAnimal.audioUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-block border border-emerald-300 hover:bg-emerald-50 text-emerald-950 font-extrabold text-xs px-4 py-2 rounded-xl transition shadow-xs"
+                        className="inline-block bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-900 font-bold text-xs px-4 py-2 rounded-xl transition"
                       >
-                        {isModalEs ? "Abrir archivo de audio" : "Open audio file"}
+                        {isEs ? "Abrir audio" : "Open audio"}
                       </a>
                     )}
                   </div>
@@ -284,33 +240,33 @@ export function Animals() {
 
                 {/* Right Column: Information & Facts */}
                 <div className="space-y-5">
-                  <div className="bg-white p-6 rounded-2xl border border-emerald-200 shadow-sm">
-                    <div className="flex items-center gap-2.5 text-emerald-900 font-black text-sm uppercase tracking-wider mb-2.5 border-b border-stone-100 pb-2.5">
+                  <div className="bg-white p-6 rounded-2xl border-2 border-emerald-100 shadow-sm">
+                    <div className="flex items-center gap-2 text-emerald-900 font-black text-sm uppercase tracking-wider mb-3 border-b border-stone-100 pb-2">
                       <Info className="w-5 h-5 text-emerald-700" />
-                      <span>{isModalEs ? "SOBRE ESTA ESPECIE" : "ABOUT THIS SPECIES"}</span>
+                      <span>{isEs ? "SOBRE ESTA ESPECIE" : "ABOUT THIS SPECIES"}</span>
                     </div>
-                    <p className="text-stone-800 text-base leading-relaxed font-medium">
-                      {isModalEs ? selectedAnimal.funFact : (selectedAnimal.funFactEn || selectedAnimal.funFact)}
+                    <p className="text-stone-800 text-base font-medium leading-relaxed">
+                      {isEs ? selectedAnimal.funFact : (selectedAnimal.funFactEn || selectedAnimal.funFact)}
                     </p>
                   </div>
 
-                  <div className="bg-white p-6 rounded-2xl border border-emerald-200 shadow-sm">
-                    <div className="flex items-center gap-2.5 text-emerald-900 font-black text-sm uppercase tracking-wider mb-2.5 border-b border-stone-100 pb-2.5">
+                  <div className="bg-white p-6 rounded-2xl border-2 border-emerald-100 shadow-sm">
+                    <div className="flex items-center gap-2 text-emerald-900 font-black text-sm uppercase tracking-wider mb-3 border-b border-stone-100 pb-2">
                       <MapPin className="w-5 h-5 text-emerald-700" />
-                      <span>{isModalEs ? "HÁBITAT & DISTRIBUCIÓN" : "HABITAT & DISTRIBUTION"}</span>
+                      <span>{isEs ? "HÁBITAT & DISTRIBUCIÓN" : "HABITAT & DISTRIBUTION"}</span>
                     </div>
-                    <p className="text-stone-800 text-base leading-relaxed font-medium">
-                      {isModalEs ? selectedAnimal.habitat : (selectedAnimal.habitatEn || selectedAnimal.habitat)}
+                    <p className="text-stone-800 text-base font-medium leading-relaxed">
+                      {isEs ? selectedAnimal.habitat : (selectedAnimal.habitatEn || selectedAnimal.habitat)}
                     </p>
                   </div>
 
-                  <div className="bg-white p-6 rounded-2xl border border-emerald-200 shadow-sm">
-                    <div className="flex items-center gap-2.5 text-emerald-900 font-black text-sm uppercase tracking-wider mb-2.5 border-b border-stone-100 pb-2.5">
+                  <div className="bg-white p-6 rounded-2xl border-2 border-emerald-100 shadow-sm">
+                    <div className="flex items-center gap-2 text-emerald-900 font-black text-sm uppercase tracking-wider mb-3 border-b border-stone-100 pb-2">
                       <Lightbulb className="w-5 h-5 text-amber-500" />
-                      <span>{isModalEs ? "ALIMENTACIÓN" : "DIET"}</span>
+                      <span>{isEs ? "ALIMENTACIÓN" : "DIET"}</span>
                     </div>
-                    <p className="text-stone-800 text-base leading-relaxed font-medium">
-                      {isModalEs ? selectedAnimal.diet : (selectedAnimal.dietEn || selectedAnimal.diet)}
+                    <p className="text-stone-800 text-base font-medium leading-relaxed">
+                      {isEs ? selectedAnimal.diet : (selectedAnimal.dietEn || selectedAnimal.diet)}
                     </p>
                   </div>
                 </div>

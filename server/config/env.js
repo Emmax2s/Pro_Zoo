@@ -12,10 +12,10 @@ export const env = {
   postgresUser: process.env.POSTGRES_USER || 'postgres',
   postgresPassword: process.env.POSTGRES_PASSWORD || 'postgres',
   postgresDatabase: process.env.POSTGRES_DATABASE || 'pro_zoo',
+  postgresSsl: process.env.POSTGRES_SSL === 'true',
 
   // Admin & Security
   adminKey: process.env.ADMIN_API_KEY || 'zoomat-admin-key',
   corsOrigin: process.env.CORS_ORIGIN || '*',
   jwtSecret: process.env.JWT_SECRET || 'super-secret-zoomat-key-2026',
 };
-

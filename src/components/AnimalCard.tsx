@@ -186,7 +186,7 @@ export function AnimalCard(animal: AnimalCardProps) {
           </div>
 
           <div className="flex items-center justify-between pt-1 border-t border-stone-100 text-xs text-stone-600">
-            <span className="truncate max-w-[200px]">{t.animalCard.habitatLabel}: {translateContent(animal.habitat)}</span>
+            <span className="truncate max-w-[200px]">📍 {t.animalCard.habitatLabel}: {translateContent(animal.habitat)}</span>
             <span className="inline-flex items-center gap-1 font-semibold text-emerald-700 hover:text-emerald-900 group-hover:underline">
               Ver ficha & QR &rarr;
             </span>

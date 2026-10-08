@@ -113,7 +113,7 @@ export function QrDownloadModal({ isOpen, onClose }: QrDownloadModalProps) {
                   <div>
                     <h4 className="text-lg font-bold text-emerald-900">{translateContent(selectedAnimal.name)}</h4>
                     <p className="text-xs text-emerald-700 italic">{selectedAnimal.species}</p>
-                    <p className="text-xs text-stone-600 mt-1">{translateContent(selectedAnimal.habitat)}</p>
+                    <p className="text-xs text-stone-600 mt-1">📍 {translateContent(selectedAnimal.habitat)}</p>
                   </div>
                 </div>
 

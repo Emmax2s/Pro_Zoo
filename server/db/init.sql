@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS species (
   id SERIAL PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
   slug VARCHAR(100) UNIQUE NOT NULL,
+  category VARCHAR(50) NOT NULL DEFAULT 'Mamífero',
+  taxonomic_family VARCHAR(100),
   species_name VARCHAR(100),
   description TEXT,
   image_url VARCHAR(500),

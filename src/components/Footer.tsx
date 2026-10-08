@@ -24,15 +24,15 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
           {/* About & Logo */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-4">
               <img
                 src={footerLogo}
                 alt="Zoológico Regional Miguel Álvarez del Toro"
-                className="h-16 w-auto bg-white/95 rounded-xl p-1.5 shadow-md"
+                className="h-24 md:h-28 w-auto bg-white/95 rounded-2xl p-2 shadow-lg"
               />
               <div>
-                <h3 className="font-extrabold text-lg text-white leading-tight">ZooMAT</h3>
-                <p className="text-xs text-emerald-300 font-medium">Zoológico Regional Miguel Álvarez del Toro</p>
+                <h3 className="font-black text-2xl text-white leading-tight">ZooMAT</h3>
+                <p className="text-sm text-emerald-300 font-bold">Zoológico Regional Miguel Álvarez del Toro</p>
               </div>
             </div>
             <p className="text-emerald-100/80 text-sm leading-relaxed">

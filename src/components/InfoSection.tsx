@@ -241,7 +241,7 @@ export function InfoSection() {
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg mt-4">
                   <p className="text-sm text-green-800">
-                    {translateContent(info.groupDiscountNote)}
+                    💡 {translateContent(info.groupDiscountNote)}
                   </p>
                 </div>
               </CardContent>
@@ -299,7 +299,7 @@ export function InfoSection() {
                 )}
                 <div className="bg-green-50 p-4 rounded-lg">
                   <p className="text-sm text-green-800">
-                    {translateContent(info.parkingNote)}
+                    🚗 {translateContent(info.parkingNote)}
                   </p>
                 </div>
               </CardContent>

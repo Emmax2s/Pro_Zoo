@@ -33,7 +33,7 @@ jobs:
       - name: Build
         env:
           VITE_API_BASE_URL: https://api.pruzo.me
-          VITE_ADMIN_API_KEY: ${{ vars.VITE_ADMIN_API_KEY }}
+          VITE_ADMIN_API_KEY: ${{ secrets.ADMIN_API_KEY }}
         run: npm run build
 
       - name: Generate SPA fallback

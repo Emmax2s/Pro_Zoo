@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Trash2, Mail, ShieldCheck, Building2, X, AlertTriangle } from "lucide-react";
 import { useZoo } from "../../context/ZooContext";
+import { useAuth } from "../../context/AuthContext";
 import { ZooUser, UserRole } from "../../data/zooStore";
 
 const emptyForm: Omit<ZooUser, "id"> = {
@@ -142,9 +143,32 @@ function DeleteUserDialog({ user, onConfirm, onClose }: { user: ZooUser; onConfi
 
 export function AdminUsers() {
   const { users, setUsers, enclosures, animals } = useZoo();
+  const { token } = useAuth();
   const [modalState, setModalState] = useState<{ open: boolean; user: ZooUser | null }>({ open: false, user: null });
   const [deleteTarget, setDeleteTarget] = useState<ZooUser | null>(null);
   const [nextId, setNextId] = useState(100);
+
+  useEffect(() => {
+    if (!token) return;
+    fetch(`${((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "")}/api/admin/list`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("No se pudieron cargar las cuentas.");
+        return response.json();
+      })
+      .then((remoteUsers) => {
+        setUsers(remoteUsers.map((user: { id: number; name: string; email: string; role: string; enclosureId: string | null; isActive: boolean }) => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role === "enclosure_admin" ? "enclosure_admin" : "superadmin",
+          enclosureId: user.enclosureId,
+          status: user.isActive ? "Activo" : "Inactivo",
+        })));
+      })
+      .catch((error) => window.alert(error instanceof Error ? error.message : "No se pudieron cargar las cuentas."));
+  }, [setUsers, token]);
 
   function estimatedDailyVisits(animalId: number, category: string) {
     const categoryBoost: Record<string, number> = {
@@ -178,18 +202,59 @@ export function AdminUsers() {
   const superAdmins = users.filter((u) => u.role === "superadmin");
   const enclosureAdmins = users.filter((u) => u.role === "enclosure_admin");
 
-  function handleSave(data: Omit<ZooUser, "id">) {
-    if (modalState.user) {
-      setUsers(users.map((u) => (u.id === modalState.user!.id ? { ...data, id: u.id } : u)));
-    } else {
-      setUsers([...users, { ...data, id: nextId }]);
-      setNextId((n) => n + 1);
+  async function handleSave(data: Omit<ZooUser, "id">) {
+    const api = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
+    if (!token) return;
+    const password = modalState.user ? undefined : window.prompt("Contraseña inicial (mínimo 10 caracteres):") || undefined;
+    if (!modalState.user && (!password || password.length < 10)) {
+      window.alert("La contraseña debe tener al menos 10 caracteres.");
+      return;
     }
+    const response = await fetch(`${api}/api/admin${modalState.user ? `/${modalState.user.id}` : "/create"}`, {
+      method: modalState.user ? "PUT" : "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        username: data.email.split("@")[0],
+        email: data.email,
+        name: data.name,
+        role: data.role,
+        enclosureId: data.enclosureId,
+        isActive: data.status === "Activo",
+        password,
+      }),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      window.alert(result.message || "No se pudo guardar la cuenta.");
+      return;
+    }
+    const remote = result.user;
+    const saved = {
+      id: remote.id,
+      name: remote.name,
+      email: remote.email,
+      role: remote.role,
+      enclosureId: remote.enclosureId,
+      status: remote.isActive ? "Activo" : "Inactivo",
+    } as ZooUser;
+    setUsers(modalState.user ? users.map((u) => (u.id === saved.id ? saved : u)) : [...users, saved]);
+    if (!modalState.user) setNextId((n) => Math.max(n, saved.id + 1));
     setModalState({ open: false, user: null });
   }
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!deleteTarget) return;
+    if (!token) return;
+    const api = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
+    const response = await fetch(`${api}/api/admin/${deleteTarget.id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      window.alert(result.message || "No se pudo eliminar la cuenta.");
+      return;
+    }
     setUsers(users.filter((u) => u.id !== deleteTarget.id));
     setDeleteTarget(null);
   }

@@ -35,10 +35,26 @@ CREATE TABLE IF NOT EXISTS admin_users (
   id SERIAL PRIMARY KEY,
   username VARCHAR(100) UNIQUE NOT NULL,
   email VARCHAR(100) UNIQUE NOT NULL,
+  display_name VARCHAR(150),
+  role VARCHAR(30) NOT NULL DEFAULT 'superadmin',
+  enclosure_id VARCHAR(100),
   password VARCHAR(255) NOT NULL,
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS display_name VARCHAR(150);
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS role VARCHAR(30) NOT NULL DEFAULT 'superadmin';
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS enclosure_id VARCHAR(100);
+
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id SERIAL PRIMARY KEY,
+  admin_user_id INTEGER NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
+  token_hash VARCHAR(64) UNIQUE NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  used_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Crear tabla de contenido del sitio
@@ -68,6 +84,7 @@ CREATE INDEX IF NOT EXISTS idx_species_slug ON species(slug);
 CREATE INDEX IF NOT EXISTS idx_species_created ON species(created_at);
 CREATE INDEX IF NOT EXISTS idx_admin_username ON admin_users(username);
 CREATE INDEX IF NOT EXISTS idx_admin_email ON admin_users(email);
+CREATE INDEX IF NOT EXISTS idx_reset_tokens_hash ON password_reset_tokens(token_hash);
 CREATE INDEX IF NOT EXISTS idx_visits_species_id ON species_visits(species_id);
 CREATE INDEX IF NOT EXISTS idx_visits_timestamp ON species_visits(timestamp);
 CREATE INDEX IF NOT EXISTS idx_visits_species_language ON species_visits(species_id, visitor_language);

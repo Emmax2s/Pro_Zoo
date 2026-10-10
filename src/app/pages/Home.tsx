@@ -42,11 +42,13 @@ function HeroCarousel() {
           className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${i === current ? "opacity-100 z-10" : "opacity-0 z-0"}`}
         >
           {s.type === "image" ? (
-            <img
-              src={s.src}
-              alt={s.alt}
-              className="w-full h-full object-cover object-center select-none"
-            />
+            <div className="w-full h-full relative bg-emerald-950 flex items-center justify-center overflow-hidden">
+              <img
+                src={s.src}
+                alt={s.alt}
+                className="w-full h-full object-cover object-center sm:object-cover select-none transition-transform duration-700 hover:scale-105"
+              />
+            </div>
           ) : (
             <div className="w-full h-full relative">
               <video

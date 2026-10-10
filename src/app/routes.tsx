@@ -15,24 +15,18 @@ import { AdminAnimals } from "./pages/admin/AdminAnimals";
 import { AdminUsers } from "./pages/admin/AdminUsers";
 import { AdminEnclosures } from "./pages/admin/AdminEnclosures";
 import { AdminHome } from "./pages/admin/AdminHome";
-import { Login } from "./pages/Login";
-import { PasswordRecovery } from "./pages/PasswordRecovery";
 
 export const router = createBrowserRouter([
-  {
-    path: "/login",
-    Component: Login,
-  },
-  {
-    path: "/recuperar-cuenta",
-    Component: PasswordRecovery,
-  },
   {
     path: "/",
     Component: RootLayout,
     children: [
       { index: true, Component: Home },
       { path: "animales", Component: Animals },
+      { path: "especie/:id", Component: Animals },
+      { path: "especies/:id", Component: Animals },
+      { path: "especie", Component: Animals },
+      { path: "especies", Component: Animals },
       { path: "visita", Component: Visit },
       { path: "mapa", Component: ZooMap },
       { path: "contacto", Component: Contact },

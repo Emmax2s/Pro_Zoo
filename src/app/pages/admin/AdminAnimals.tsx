@@ -116,25 +116,21 @@ function AnimalModal({
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      window.alert("Selecciona un archivo de imagen válido.");
-      e.target.value = "";
-      return;
-    }
-    if (file.size > 2 * 1024 * 1024) {
-      window.alert("La imagen no puede superar 2 MB.");
-      e.target.value = "";
-      return;
-    }
-
     const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result;
-      if (typeof dataUrl === "string") {
-        setForm((previous) => ({ ...previous, image: dataUrl }));
+    reader.onload = async () => {
+      const dataURL = reader.result as string;
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: file.name, data: dataURL }),
+        });
+        const json = await res.json();
+        setForm((p) => ({ ...p, image: json.url }));
+      } catch (err) {
+        console.error('Upload failed', err);
       }
     };
-    reader.onerror = () => window.alert("No se pudo leer la imagen seleccionada.");
     reader.readAsDataURL(file);
   }
 
@@ -148,10 +144,6 @@ function AnimalModal({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim()) return;
-    if (!form.scientificName.trim()) {
-      window.alert("El nombre científico es obligatorio.");
-      return;
-    }
     const saved = currentUser.role === "enclosure_admin"
       ? { ...form, enclosureId: currentUser.enclosureId }
       : form;
@@ -367,58 +359,41 @@ export function AdminAnimals() {
       return;
     }
 
-    const slug = data.name
-      .trim()
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
     const payload = {
-      slug,
-      name: data.name.trim(),
-      category: data.category,
-      species: data.scientificName.trim(),
-      habitat: data.habitat.trim(),
-      imageUrl: data.image.trim(),
+      slug: (data.name.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")),
+      name: data.name,
+      species: data.scientificName,
+      habitat: data.habitat,
+      imageUrl: data.image,
       conservation: data.status,
-      description: data.funFact.trim(),
-      diet: data.diet.trim(),
-      audioDescriptionUrl: data.audioUrl?.trim() || null,
+      description: data.funFact,
+      diet: data.diet,
+      audioDescriptionUrl: data.audioUrl,
     };
     const isEditing = Boolean(modalState.animal);
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/species${isEditing ? `/${modalState.animal!.id}` : ""}`,
-        {
-          method: isEditing ? "PUT" : "POST",
-          headers: { "Content-Type": "application/json", "x-admin-key": ADMIN_API_KEY },
-          body: JSON.stringify(payload),
-        }
-      );
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        window.alert(result.message || `No se pudo ${isEditing ? "actualizar" : "guardar"} la especie.`);
-        return;
+    const response = await fetch(
+      `${API_BASE_URL}/api/species${isEditing ? `/${modalState.animal!.id}` : ""}`,
+      {
+        method: isEditing ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json", "x-admin-key": ADMIN_API_KEY },
+        body: JSON.stringify(payload),
       }
-
-      const savedId = Number(result.id ?? modalState.animal?.id);
-      if (!Number.isInteger(savedId) || savedId <= 0) {
-        window.alert("La API guardó la especie, pero no devolvió un identificador válido.");
-        return;
-      }
-
-      const savedAnimal: Animal = { ...data, ...payload, id: savedId };
-      setAnimals(isEditing
-        ? animals.map((animal) => (animal.id === savedId ? savedAnimal : animal))
-        : [...animals, savedAnimal]);
-      if (!isEditing) setNextId((n) => Math.max(n, savedId + 1));
-      setModalState({ open: false, animal: null });
-    } catch (error) {
-      console.error("Error de red al guardar la especie:", error);
-      window.alert("No se pudo conectar con la API. Verifica que el servidor esté disponible.");
+    );
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      window.alert(result.message || "No se pudo guardar la especie.");
       return;
     }
+
+    const savedAnimal: Animal = {
+      ...data,
+      id: Number(result.id),
+    };
+    setAnimals(isEditing
+      ? animals.map((animal) => (animal.id === savedAnimal.id ? savedAnimal : animal))
+      : [...animals, savedAnimal]);
+    if (!isEditing) setNextId((n) => Math.max(n, savedAnimal.id + 1));
+    setModalState({ open: false, animal: null });
   }
 
   async function handleDelete() {
@@ -427,23 +402,17 @@ export function AdminAnimals() {
       window.alert("La configuración de producción no permite eliminar especies.");
       return;
     }
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/species/${deleteTarget.id}`, {
-        method: "DELETE",
-        headers: { "x-admin-key": ADMIN_API_KEY },
-      });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        window.alert(result.message || "No se pudo eliminar la especie.");
-        return;
-      }
-      setAnimals(animals.filter((animal) => animal.id !== deleteTarget.id));
-      setDeleteTarget(null);
-    } catch (error) {
-      console.error("Error de red al eliminar la especie:", error);
-      window.alert("No se pudo conectar con la API. La especie no fue eliminada.");
+    const response = await fetch(`${API_BASE_URL}/api/species/${deleteTarget.id}`, {
+      method: "DELETE",
+      headers: { "x-admin-key": ADMIN_API_KEY },
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      window.alert(result.message || "No se pudo eliminar la especie.");
       return;
     }
+    setAnimals(animals.filter((animal) => animal.id !== deleteTarget.id));
+    setDeleteTarget(null);
   }
 
   const getEnclosure = (id: string | null) => enclosures.find((e) => e.id === id);

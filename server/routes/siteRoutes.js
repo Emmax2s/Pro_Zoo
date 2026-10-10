@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { query } from '../config/db.js';
 import { env } from '../config/env.js';
 
 const router = Router();
@@ -15,15 +14,8 @@ const assertAdminKey = (req, res, next) => {
 
 router.get('/', async (_req, res, next) => {
   try {
-    const result = await query(
-      'SELECT content_key, content_value FROM site_content WHERE content_key IN ($1, $2)',
-      ['siteData', 'carousel']
-    );
-    const content = Object.fromEntries(result.rows.map((row) => [row.content_key, row.content_value]));
-    res.json({
-      ...(content.siteData || {}),
-      slides: Array.isArray(content.carousel) ? content.carousel : [],
-    });
+    // DB removed: return empty site data placeholder
+    res.json({});
   } catch (error) {
     next(error);
   }
@@ -31,29 +23,7 @@ router.get('/', async (_req, res, next) => {
 
 router.put('/', assertAdminKey, async (req, res, next) => {
   try {
-    const { slides, ...siteData } = req.body || {};
-    if (Object.keys(siteData).length > 0) {
-      await query(
-        `INSERT INTO site_content (content_key, content_value)
-         VALUES ($1, $2)
-         ON CONFLICT (content_key)
-         DO UPDATE SET content_value = EXCLUDED.content_value, updated_at = CURRENT_TIMESTAMP`,
-        ['siteData', JSON.stringify(siteData)]
-      );
-    }
-    if (Array.isArray(slides)) {
-      await query(
-        `INSERT INTO site_content (content_key, content_value)
-         VALUES ($1, $2)
-         ON CONFLICT (content_key)
-         DO UPDATE SET content_value = EXCLUDED.content_value, updated_at = CURRENT_TIMESTAMP`,
-        ['carousel', JSON.stringify(slides)]
-      );
-    }
-    const currentSiteData = Object.keys(siteData).length > 0
-      ? siteData
-      : (await query('SELECT content_value FROM site_content WHERE content_key = $1', ['siteData'])).rows[0]?.content_value || {};
-    res.json({ ...currentSiteData, slides: Array.isArray(slides) ? slides : [] });
+    res.status(501).json({ message: 'Site update not implemented (DB removed)' });
   } catch (error) {
     next(error);
   }

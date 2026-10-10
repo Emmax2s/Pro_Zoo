@@ -18,17 +18,9 @@ const COLORS_STATUS = ["#dc2626", "#f59e0b", "#10b981", "#6366f1"];
 const COLORS_ENCLOSURE = ["#047857", "#0369a1", "#b45309", "#6d28d9", "#be123c", "#334155"];
 const COLORS_VISITORS = ["#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ec4899"];
 
-function estimatedDailyVisits(animalId: number, category: string) {
-  const categoryBoost: Record<string, number> = {
-    "Mamífero": 70,
-    "Ave": 55,
-    "Reptil": 45,
-    "Anfibio": 35,
-    "Pez": 30,
-    "Invertebrado": 25,
-  };
-  const base = 40 + (animalId % 5) * 9;
-  return base + (categoryBoost[category] ?? 20);
+function estimatedDailyVisits(_animalId: number, _category: string) {
+  // Sin escaneos QR registrados actualmente (0 visitas reales)
+  return 0;
 }
 
 export function AdminDashboard() {
@@ -213,8 +205,9 @@ export function AdminDashboard() {
             <Eye size={28} />
           </div>
           <div>
-            <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Visitantes ({periodMeta.label})</p>
-            <p className="text-3xl font-black text-purple-950 mt-0.5">{totalsByPeriod.find((p) => p.key === selectedPeriod)?.total.toLocaleString("es-MX") ?? 0}</p>
+            <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Escaneos QR / Visitas ({periodMeta.label})</p>
+            <p className="text-3xl font-black text-purple-950 mt-0.5">0</p>
+            <p className="text-[11px] text-purple-700 font-semibold mt-0.5">Sin escaneos QR registrados aún</p>
           </div>
         </div>
       </div>

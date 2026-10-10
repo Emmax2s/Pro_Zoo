@@ -224,40 +224,7 @@ export function Contact() {
           </div>
         </div>
 
-        {/* Departamentos */}
-        <section className="mt-12 bg-white rounded-2xl shadow-xl p-8 border border-emerald-100">
-          <h2 className="text-3xl font-bold text-emerald-950 mb-6">{t("contact.departmentsTitle")}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {departments.map((dept, index) => (
-              <div key={index} className="bg-gradient-to-br from-emerald-50/70 to-stone-50 rounded-xl p-6 border border-emerald-200/80 shadow-xs">
-                <h3 className="font-bold text-lg text-emerald-900 mb-2">{dept.name}</h3>
-                <p className="text-sm text-stone-600 mb-4">{dept.description}</p>
-                <div className="space-y-1 text-sm font-medium">
-                  <div className="flex items-center gap-2 text-emerald-800">
-                    <Mail className="w-4 h-4 text-emerald-600" />
-                    <span className="break-all">{dept.email}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-emerald-800">
-                    <Phone className="w-4 h-4 text-emerald-600" />
-                    <span>{dept.phone}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
 
-        {/* Apoyo */}
-        <section className="mt-12 bg-gradient-to-r from-emerald-800 to-emerald-950 text-white rounded-2xl shadow-xl p-8 text-center">
-          <Heart className="w-16 h-16 mx-auto mb-4 text-emerald-300 animate-pulse" />
-          <h2 className="text-3xl font-bold mb-4">{t("contact.supportTitle")}</h2>
-          <p className="text-emerald-100 text-base sm:text-lg max-w-2xl mx-auto mb-6 leading-relaxed">
-            {t("contact.supportDesc")}
-          </p>
-          <button className="bg-white text-emerald-900 px-8 py-3.5 rounded-xl font-bold hover:bg-emerald-50 transition shadow-md">
-            {t("contact.supportBtn")}
-          </button>
-        </section>
       </div>
     </div>
   );

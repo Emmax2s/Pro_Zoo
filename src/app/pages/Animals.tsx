@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Search, Filter, Volume2, MapPin, AlertCircle, X, Info, Lightbulb, Globe } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useSearchParams, useNavigate } from "react-router";
+import { Search, Filter, Volume2, MapPin, X, Info, Lightbulb, Globe, VolumeX, Mic } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AnimalCard } from "../components/AnimalCard";
 import { useZoo } from "../context/ZooContext";
@@ -8,15 +9,89 @@ export function Animals() {
   const { t, i18n } = useTranslation();
   const isEs = i18n.language === 'es';
   const { animals } = useZoo();
-
-  const toggleLanguage = () => {
-    i18n.changeLanguage(i18n.language === 'es' ? 'en' : 'es');
-  };
+  const { id: pathId } = useParams<{ id?: string }>();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("Todos");
   const [selectedStatus, setSelectedStatus] = useState<string>("Todos");
   const [selectedAnimal, setSelectedAnimal] = useState<any | null>(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  // Auto-open modal if scanned via QR or linked via URL parameter (/especie/:id or ?id=...)
+  useEffect(() => {
+    const targetId = pathId || searchParams.get('id') || searchParams.get('animal');
+    if (targetId && animals.length > 0) {
+      const found = animals.find(
+        (a) =>
+          String(a.id) === String(targetId) ||
+          a.name.toLowerCase().includes(String(targetId).toLowerCase().replace(/-/g, ' ')) ||
+          a.scientificName.toLowerCase().includes(String(targetId).toLowerCase())
+      );
+      if (found) {
+        setSelectedAnimal(found);
+      }
+    }
+  }, [pathId, searchParams, animals]);
+
+  // Stop speech synthesis when modal closes or unmounts
+  const stopSpeech = useCallback(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    setIsSpeaking(false);
+  }, []);
+
+  const closeModal = () => {
+    stopSpeech();
+    setSelectedAnimal(null);
+    if (pathId) {
+      navigate('/animales', { replace: true });
+    }
+  };
+
+  const toggleLanguage = () => {
+    stopSpeech();
+    i18n.changeLanguage(isEs ? 'en' : 'es');
+  };
+
+  // Text-to-Speech narrate species info in selected language
+  const handleSpeakInfo = () => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      alert(isEs ? "Tu navegador no soporta lectura de voz." : "Your browser does not support text-to-speech.");
+      return;
+    }
+
+    if (isSpeaking) {
+      stopSpeech();
+      return;
+    }
+
+    if (!selectedAnimal) return;
+
+    const name = isEs ? selectedAnimal.name : (selectedAnimal.nameEn || selectedAnimal.name);
+    const scientific = selectedAnimal.scientificName ? `(${selectedAnimal.scientificName}).` : '';
+    const aboutHeader = isEs ? "Sobre esta especie:" : "About this species:";
+    const aboutText = isEs ? selectedAnimal.funFact : (selectedAnimal.funFactEn || selectedAnimal.funFact);
+    const habitatHeader = isEs ? "Hábitat y distribución:" : "Habitat and distribution:";
+    const habitatText = isEs ? selectedAnimal.habitat : (selectedAnimal.habitatEn || selectedAnimal.habitat);
+    const dietHeader = isEs ? "Alimentación:" : "Diet:";
+    const dietText = isEs ? selectedAnimal.diet : (selectedAnimal.dietEn || selectedAnimal.diet);
+
+    const fullSpeechText = `${name}. ${scientific} ${aboutHeader} ${aboutText}. ${habitatHeader} ${habitatText}. ${dietHeader} ${dietText}.`;
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(fullSpeechText);
+    utterance.lang = isEs ? 'es-MX' : 'en-US';
+    utterance.rate = 0.95;
+
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    setIsSpeaking(true);
+    window.speechSynthesis.speak(utterance);
+  };
 
   const categories = isEs
     ? ["Todos", "Mamífero", "Ave", "Reptil", "Anfibio"]
@@ -167,9 +242,9 @@ export function Animals() {
 
       {/* Modal de Detalle de Especie con Reproductor de Audio e Idioma Bilingüe */}
       {selectedAnimal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedAnimal(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={closeModal}>
           <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-            {/* Header del Modal con Selector de Idioma (Photo 3) */}
+            {/* Header del Modal con Selector de Idioma (Photo 2 Fix) */}
             <div className="bg-emerald-900 text-white p-6 flex flex-wrap justify-between items-center gap-4 border-b-4 border-amber-400">
               <div>
                 <h2 className="text-3xl sm:text-4xl font-black">{isEs ? selectedAnimal.name : (selectedAnimal.nameEn || selectedAnimal.name)}</h2>
@@ -183,14 +258,14 @@ export function Animals() {
                   title="Cambiar idioma del modal / Switch modal language"
                 >
                   <Globe className="w-4 h-4 text-emerald-950" />
-                  <span>{isEs ? "ESPAÑOL | ENGLISH" : "ENGLISH | ESPAÑOL"}</span>
+                  <span>{isEs ? "ENGLISH | ESPAÑOL" : "ESPAÑOL | ENGLISH"}</span>
                 </button>
 
                 <span className="bg-emerald-950 border border-emerald-700 text-amber-300 text-xs font-black uppercase px-3.5 py-1.5 rounded-full shadow-xs">
                   {isEs ? selectedAnimal.status : (selectedAnimal.status === "En Peligro de Extinción" ? "Endangered" : selectedAnimal.status === "Amenazada" ? "Threatened" : "Special Protection")}
                 </span>
                 <button
-                  onClick={() => setSelectedAnimal(null)}
+                  onClick={closeModal}
                   className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
                 >
                   <X className="w-6 h-6" />
@@ -201,39 +276,62 @@ export function Animals() {
             {/* Modal Body Grid */}
             <div className="p-6 md:p-8 overflow-y-auto space-y-6 flex-1 bg-stone-50">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Left Column: Image & Audio Player */}
+                {/* Left Column: Image, In-Place Audio Player & Text-to-Speech */}
                 <div className="space-y-6">
-                  <div className="rounded-3xl overflow-hidden border-4 border-emerald-800 shadow-lg bg-stone-900 h-72">
-                    <img src={selectedAnimal.image} alt={selectedAnimal.name} className="w-full h-full object-cover" />
+                  <div className="rounded-3xl overflow-hidden border-4 border-emerald-800 shadow-lg bg-stone-900 h-72 sm:h-80">
+                    <img
+                      src={selectedAnimal.image}
+                      alt={selectedAnimal.name}
+                      className="w-full h-full object-cover object-center"
+                    />
                   </div>
 
-                  {/* Audio Player Section */}
+                  {/* Mode Voice / Lectura en Voz Alta (Text to Speech) */}
+                  <div className="bg-gradient-to-r from-emerald-800 to-emerald-950 text-white rounded-2xl p-5 shadow-md flex items-center justify-between border-2 border-emerald-700">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-amber-400 text-emerald-950 rounded-xl font-bold shadow-sm">
+                        <Mic className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="font-extrabold text-sm sm:text-base text-amber-300">
+                          {isEs ? "Modo Voz Narradora" : "Voice Reader Mode"}
+                        </p>
+                        <p className="text-xs text-emerald-100/90 font-medium">
+                          {isSpeaking
+                            ? (isEs ? "Leyendo información en voz alta..." : "Reading information out loud...")
+                            : (isEs ? "Escucha la información de esta especie" : "Listen to this species information")}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleSpeakInfo}
+                      className={`px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer shadow-md ${
+                        isSpeaking
+                          ? "bg-rose-500 hover:bg-rose-600 text-white animate-pulse"
+                          : "bg-amber-400 hover:bg-amber-300 text-emerald-950 hover:scale-105"
+                      }`}
+                    >
+                      {isSpeaking ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                      <span>{isSpeaking ? (isEs ? "Detener" : "Stop") : (isEs ? "Escuchar" : "Listen")}</span>
+                    </button>
+                  </div>
+
+                  {/* Audio Player Section (Reproduce en el apartado sin abrir nueva página) */}
                   <div className="bg-white rounded-2xl p-5 border-2 border-emerald-100 shadow-sm space-y-3">
                     <div className="flex items-center gap-2 text-emerald-900 font-black text-sm uppercase tracking-wider">
                       <Volume2 className="w-5 h-5 text-emerald-700" />
-                      <span>{isEs ? "AUDIO DE LA ESPECIE" : "SPECIES AUDIO"}</span>
+                      <span>{isEs ? "AUDIO DE LA ESPECIE (NATIVO)" : "SPECIES AUDIO (NATIVE)"}</span>
                     </div>
 
                     {selectedAnimal.audioUrl ? (
                       <audio controls className="w-full rounded-xl bg-emerald-950 p-2 text-white">
                         <source src={selectedAnimal.audioUrl} />
-                        Tu navegador no soporta el elemento de audio.
+                        {isEs ? "Tu navegador no soporta el elemento de audio." : "Your browser does not support the audio element."}
                       </audio>
                     ) : (
                       <div className="bg-stone-100 text-stone-700 text-xs font-semibold p-3.5 rounded-xl border border-stone-200">
-                        {isEs ? "Audio ilustrativo de especie nativa no disponible en este momento." : "Illustrative native species audio not available at this moment."}
+                        {isEs ? "Audio ilustrativo disponible a través del botón 'Escuchar' del Modo Voz Narradora arriba." : "Illustrative audio available via the 'Listen' button in Voice Reader Mode above."}
                       </div>
-                    )}
-
-                    {selectedAnimal.audioUrl && (
-                      <a
-                        href={selectedAnimal.audioUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-block bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-900 font-bold text-xs px-4 py-2 rounded-xl transition"
-                      >
-                        {isEs ? "Abrir audio" : "Open audio"}
-                      </a>
                     )}
                   </div>
                 </div>

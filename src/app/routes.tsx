@@ -23,6 +23,10 @@ export const router = createBrowserRouter([
     children: [
       { index: true, Component: Home },
       { path: "animales", Component: Animals },
+      { path: "especie/:id", Component: Animals },
+      { path: "especies/:id", Component: Animals },
+      { path: "especie", Component: Animals },
+      { path: "especies", Component: Animals },
       { path: "visita", Component: Visit },
       { path: "mapa", Component: ZooMap },
       { path: "contacto", Component: Contact },

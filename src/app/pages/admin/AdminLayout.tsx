@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router";
 import { LayoutDashboard, Users, PawPrint, LogOut, Building2, ChevronDown, Home } from "lucide-react";
 import { useZoo } from "../../context/ZooContext";
@@ -8,6 +8,19 @@ export function AdminLayout() {
   const location = useLocation();
   const { currentUser, setCurrentUser, users, enclosures } = useZoo();
   const [showUserPicker, setShowUserPicker] = useState(false);
+
+  useEffect(() => {
+    if (authUser) {
+      setCurrentUser({
+        id: authUser.id,
+        name: authUser.name,
+        email: authUser.email,
+        role: authUser.role === "enclosure_admin" ? "enclosure_admin" : "superadmin",
+        enclosureId: authUser.enclosureId,
+        status: authUser.isActive ? "Activo" : "Inactivo",
+      });
+    }
+  }, [authUser, setCurrentUser]);
 
   const isSuperAdmin = currentUser.role === "superadmin";
   const myEnclosure = enclosures.find((e) => e.id === currentUser.enclosureId);

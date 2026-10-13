@@ -15,6 +15,9 @@ import { AdminAnimals } from "./pages/admin/AdminAnimals";
 import { AdminUsers } from "./pages/admin/AdminUsers";
 import { AdminEnclosures } from "./pages/admin/AdminEnclosures";
 import { AdminHome } from "./pages/admin/AdminHome";
+import { Login } from "./pages/Login";
+import { PasswordRecovery } from "./pages/PasswordRecovery";
+import { SpeciesDetail } from "./pages/SpeciesDetail";
 
 export const router = createBrowserRouter([
   {
@@ -23,10 +26,8 @@ export const router = createBrowserRouter([
     children: [
       { index: true, Component: Home },
       { path: "animales", Component: Animals },
-      { path: "especie/:id", Component: Animals },
-      { path: "especies/:id", Component: Animals },
-      { path: "especie", Component: Animals },
-      { path: "especies", Component: Animals },
+      { path: "especie/:idOrSlug", Component: SpeciesDetail },
+      { path: "especies/:idOrSlug", Component: SpeciesDetail },
       { path: "visita", Component: Visit },
       { path: "mapa", Component: ZooMap },
       { path: "contacto", Component: Contact },

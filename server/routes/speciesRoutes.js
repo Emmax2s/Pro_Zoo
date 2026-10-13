@@ -1,17 +1,8 @@
 import { Router } from 'express';
 import { query } from '../config/db.js';
-import { env } from '../config/env.js';
+import { verifyToken } from './adminRoutes.js';
 
 const router = Router();
-
-const assertAdminKey = (req, res, next) => {
-  const adminKey = req.header('x-admin-key');
-  if (!adminKey || adminKey !== env.adminKey) {
-    res.status(401).json({ message: 'Unauthorized admin request' });
-    return;
-  }
-  next();
-};
 
 // Helper function to format species response
 const formatSpeciesResponse = (row) => ({
@@ -73,7 +64,7 @@ router.get('/:idOrSlug', async (req, res, next) => {
 });
 
 // POST create species
-router.post('/', assertAdminKey, async (req, res, next) => {
+router.post('/', verifyToken, async (req, res, next) => {
   try {
     const {
       slug,
@@ -119,7 +110,7 @@ router.post('/', assertAdminKey, async (req, res, next) => {
 });
 
 // PUT update species
-router.put('/:id', assertAdminKey, async (req, res, next) => {
+router.put('/:id', verifyToken, async (req, res, next) => {
   try {
     const { id } = req.params;
     const {
@@ -184,7 +175,7 @@ router.put('/:id', assertAdminKey, async (req, res, next) => {
 });
 
 // DELETE species
-router.delete('/:id', assertAdminKey, async (req, res, next) => {
+router.delete('/:id', verifyToken, async (req, res, next) => {
   try {
     const { id } = req.params;
 

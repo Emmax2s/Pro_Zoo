@@ -127,7 +127,6 @@ export function Footer() {
           <div className="flex gap-6 text-sm font-semibold">
             <Link to="/privacidad" className="hover:text-white transition-colors">{t("footer.privacy")}</Link>
             <Link to="/terminos" className="hover:text-white transition-colors">{t("footer.terms")}</Link>
-            <Link to="/admin" className="text-amber-400 hover:text-amber-300 transition-colors font-bold">{t("footer.adminPortal")}</Link>
           </div>
         </div>
       </div>

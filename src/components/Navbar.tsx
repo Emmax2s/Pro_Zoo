@@ -1,4 +1,4 @@
-import { Menu, X, QrCode, ShieldCheck } from 'lucide-react';
+import { Menu, X, QrCode } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import logoZoomat from '../assets/logo-zoomat.png';
@@ -80,14 +80,6 @@ export function Navbar() {
                 <span>{language === 'en' ? 'QR & Downloads' : 'Códigos QR'}</span>
               </Button>
 
-              {/* Admin Quick Link */}
-              <Link to="/admin">
-                <Button size="sm" className="bg-emerald-800 hover:bg-emerald-900 text-white font-semibold gap-1.5">
-                  <ShieldCheck className="h-4 w-4" />
-                  <span>Admin</span>
-                </Button>
-              </Link>
-
               {/* Language Selector */}
               <label className="flex items-center gap-1.5 text-xs text-stone-600 bg-stone-100 px-2.5 py-1.5 rounded-lg">
                 <span>🌐</span>
@@ -137,13 +129,6 @@ export function Navbar() {
                 ))}
 
                 <div className="flex items-center justify-between pt-2">
-                  <Link to="/admin" onClick={() => setIsMenuOpen(false)}>
-                    <Button size="sm" className="bg-emerald-800 text-white font-semibold gap-1.5">
-                      <ShieldCheck className="h-4 w-4" />
-                      <span>Panel Admin</span>
-                    </Button>
-                  </Link>
-
                   <label className="flex items-center gap-1.5 text-xs text-stone-600 bg-stone-100 px-3 py-1.5 rounded-lg">
                     <span>🌐</span>
                     <select
@@ -167,4 +152,3 @@ export function Navbar() {
     </>
   );
 }
-

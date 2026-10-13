@@ -1,4 +1,4 @@
-import { Facebook, Instagram, Twitter, Youtube, ShieldCheck } from 'lucide-react';
+import { Facebook, Instagram, Twitter, Youtube } from 'lucide-react';
 import { Link } from 'react-router';
 import footerLogo from '../assets/logo-zoomat.png';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -64,12 +64,6 @@ export function Footer() {
                   {t.navbar.contact}
                 </button>
               </li>
-              <li className="pt-2">
-                <Link to="/admin" className="inline-flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-200 transition-colors">
-                  <ShieldCheck className="h-4 w-4" />
-                  <span>{language === 'en' ? 'Admin Portal' : 'Acceso Administrativo'}</span>
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -103,4 +97,3 @@ export function Footer() {
     </footer>
   );
 }
-

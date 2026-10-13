@@ -23,6 +23,18 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+function normalizeUser(data: Partial<AuthUser> & { is_active?: boolean }): AuthUser {
+  return {
+    id: Number(data.id),
+    username: data.username || "",
+    email: data.email || "",
+    name: data.name || data.username || "",
+    role: data.role || "superadmin",
+    enclosureId: data.enclosureId ?? null,
+    isActive: data.isActive ?? data.is_active ?? true,
+  };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState(() => sessionStorage.getItem(TOKEN_KEY));
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -33,12 +45,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return;
     }
+
     fetch(`${API_BASE_URL}/api/admin/me`, { headers: { Authorization: `Bearer ${token}` } })
       .then(async (response) => {
         if (!response.ok) throw new Error("session");
         return response.json();
       })
-      .then((data) => setUser(data.user))
+      .then((data) => setUser(normalizeUser(data.user)))
       .catch(() => {
         sessionStorage.removeItem(TOKEN_KEY);
         setToken(null);
@@ -55,9 +68,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.message || "No se pudo iniciar sesión.");
+    if (!data.token || !data.user) throw new Error("Respuesta inválida del servidor.");
+
     sessionStorage.setItem(TOKEN_KEY, data.token);
     setToken(data.token);
-    setUser(data.user);
+    setUser(normalizeUser(data.user));
   };
 
   const logout = () => {

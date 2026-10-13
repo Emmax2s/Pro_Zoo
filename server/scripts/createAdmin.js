@@ -8,7 +8,6 @@ const rl = readline.createInterface({ input, output });
 try {
   const username = (await rl.question('Usuario: ')).trim();
   const email = (await rl.question('Correo: ')).trim().toLowerCase();
-  const name = (await rl.question('Nombre: ')).trim() || username;
   const password = await rl.question('Contraseña (mínimo 10 caracteres): ', { hideEchoBack: true });
 
   if (!username || !email || password.length < 10) {
@@ -17,9 +16,9 @@ try {
 
   const passwordHash = await bcrypt.hash(password, 12);
   await query(
-    `INSERT INTO admin_users (username, email, display_name, role, password)
-     VALUES ($1, $2, $3, 'superadmin', $4)`,
-    [username, email, name, passwordHash]
+    `INSERT INTO admin_users (username, email, password)
+     VALUES ($1, $2, $3)`,
+    [username, email, passwordHash]
   );
   console.log('Administrador creado correctamente.');
 } catch (error) {

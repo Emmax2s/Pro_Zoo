@@ -45,6 +45,14 @@ export const router = createBrowserRouter([
     Component: Redes,
   },
   {
+    path: "/login",
+    Component: Login,
+  },
+  {
+    path: "/recuperar-cuenta",
+    Component: PasswordRecovery,
+  },
+  {
     path: "/admin",
     Component: AdminLayout,
     children: [

@@ -6,6 +6,16 @@ import { env } from '../config/env.js';
 
 const router = Router();
 
+const serializeUser = (user) => ({
+  id: user.id,
+  username: user.username,
+  email: user.email,
+  name: user.name || user.username,
+  role: user.role || 'superadmin',
+  enclosureId: user.enclosure_id || null,
+  isActive: user.is_active,
+});
+
 // Middleware to verify JWT token
 export const verifyToken = (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -31,7 +41,10 @@ router.post('/login', async (req, res, next) => {
       return res.status(400).json({ message: 'Username and password required' });
     }
 
-    const result = await query('SELECT * FROM admin_users WHERE username = $1', [username]);
+    const result = await query(
+      'SELECT * FROM admin_users WHERE username = $1 OR email = $1',
+      [username]
+    );
 
     if (result.rows.length === 0) {
       return res.status(401).json({ message: 'Invalid username or password' });
@@ -55,7 +68,22 @@ router.post('/login', async (req, res, next) => {
       { expiresIn: '24h' }
     );
 
-    res.json({ token, user: { id: user.id, username: user.username, email: user.email } });
+    res.json({ token, user: serializeUser(user) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/me', verifyToken, async (req, res, next) => {
+  try {
+    const result = await query(
+      'SELECT id, username, email, is_active FROM admin_users WHERE id = $1',
+      [req.user.id]
+    );
+    if (result.rows.length === 0 || !result.rows[0].is_active) {
+      return res.status(401).json({ message: 'La sesión ya no es válida.' });
+    }
+    res.json({ user: serializeUser(result.rows[0]) });
   } catch (error) {
     next(error);
   }

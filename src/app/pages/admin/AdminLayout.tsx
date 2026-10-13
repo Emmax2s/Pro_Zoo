@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { Outlet, Link, useLocation } from "react-router";
+import { Navigate, Outlet, Link, useLocation } from "react-router";
 import { LayoutDashboard, Users, PawPrint, LogOut, Building2, ChevronDown, Home } from "lucide-react";
 import { useZoo } from "../../context/ZooContext";
+import { useAuth } from "../../context/AuthContext";
 import logoZoomat from "../../../assets/logo-zoomat.png";
 
 export function AdminLayout() {
   const location = useLocation();
+  const { user: authUser, loading } = useAuth();
   const { currentUser, setCurrentUser, users, enclosures } = useZoo();
   const [showUserPicker, setShowUserPicker] = useState(false);
 
@@ -21,6 +23,14 @@ export function AdminLayout() {
       });
     }
   }, [authUser, setCurrentUser]);
+
+  if (loading) {
+    return <main className="min-h-screen bg-emerald-50 flex items-center justify-center text-emerald-900 font-semibold">Verificando sesión...</main>;
+  }
+
+  if (!authUser) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
 
   const isSuperAdmin = currentUser.role === "superadmin";
   const myEnclosure = enclosures.find((e) => e.id === currentUser.enclosureId);

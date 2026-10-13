@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { query } from '../config/db.js';
-import { verifyToken } from './adminRoutes.js';
 
 const router = Router();
 
@@ -64,7 +63,7 @@ router.get('/:idOrSlug', async (req, res, next) => {
 });
 
 // POST create species
-router.post('/', verifyToken, async (req, res, next) => {
+router.post('/', async (req, res, next) => {
   try {
     const {
       slug,
@@ -110,7 +109,7 @@ router.post('/', verifyToken, async (req, res, next) => {
 });
 
 // PUT update species
-router.put('/:id', verifyToken, async (req, res, next) => {
+router.put('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
     const {
@@ -175,7 +174,7 @@ router.put('/:id', verifyToken, async (req, res, next) => {
 });
 
 // DELETE species
-router.delete('/:id', verifyToken, async (req, res, next) => {
+router.delete('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
 

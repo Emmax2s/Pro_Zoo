@@ -1,20 +1,27 @@
 import cors from 'cors';
 import express from 'express';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { checkDatabaseConnection } from './config/db.js';
 import { env } from './config/env.js';
 import speciesRoutes from './routes/speciesRoutes.js';
 import siteRoutes from './routes/siteRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
 
 export const app = express();
+const uploadsDirectory = path.join(path.dirname(fileURLToPath(import.meta.url)), 'uploads');
 
 app.use(
   cors({
-    origin: env.corsOrigin === '*' ? true : env.corsOrigin,
+    origin: env.corsOrigin === '*'
+      ? true
+      : env.corsOrigin.split(',').map((origin) => origin.trim()).filter(Boolean),
   })
 );
 app.use(express.json({ limit: '4mb' }));
+app.use('/uploads', express.static(uploadsDirectory));
 
 app.get('/api/health', async (_req, res) => {
   try {
@@ -29,6 +36,7 @@ app.use('/api/species', speciesRoutes);
 app.use('/api/site-content', siteRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/upload', uploadRoutes);
 
 app.use((error, _req, res, _next) => {
   const message = error instanceof Error ? error.message : 'Unexpected error';

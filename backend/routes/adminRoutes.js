@@ -77,7 +77,7 @@ router.post('/login', async (req, res, next) => {
 router.get('/me', verifyToken, async (req, res, next) => {
   try {
     const result = await query(
-      'SELECT id, username, email, is_active FROM admin_users WHERE id = $1',
+      'SELECT id, username, email, name, role, enclosure_id, is_active FROM admin_users WHERE id = $1',
       [req.user.id]
     );
     if (result.rows.length === 0 || !result.rows[0].is_active) {
@@ -92,7 +92,8 @@ router.get('/me', verifyToken, async (req, res, next) => {
 // Create Admin Route
 router.post('/create', verifyToken, async (req, res, next) => {
   try {
-    const { username, email, password } = req.body;
+    const { username: providedUsername, email, password, name, role, enclosureId } = req.body;
+    const username = providedUsername || email?.split('@')[0];
 
     if (!username || !email || !password) {
       return res.status(400).json({ message: 'Username, email, and password required' });
@@ -101,10 +102,10 @@ router.post('/create', verifyToken, async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await query(
-      `INSERT INTO admin_users (username, email, password, is_active)
-       VALUES ($1, $2, $3, true)
-       RETURNING id, username, email, is_active, created_at`,
-      [username, email, hashedPassword]
+      `INSERT INTO admin_users (username, email, password, name, role, enclosure_id, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6, true)
+       RETURNING id, username, email, name, role, enclosure_id, is_active, created_at`,
+      [username, email, hashedPassword, name || username, role || 'superadmin', enclosureId || null]
     );
 
     const user = result.rows[0];
@@ -112,6 +113,9 @@ router.post('/create', verifyToken, async (req, res, next) => {
       id: user.id,
       username: user.username,
       email: user.email,
+      name: user.name,
+      role: user.role,
+      enclosureId: user.enclosure_id,
       isActive: user.is_active,
       createdAt: user.created_at,
     });
@@ -127,13 +131,16 @@ router.post('/create', verifyToken, async (req, res, next) => {
 router.get('/list', verifyToken, async (req, res, next) => {
   try {
     const result = await query(
-      'SELECT id, username, email, is_active, created_at, updated_at FROM admin_users ORDER BY created_at DESC'
+      'SELECT id, username, email, name, role, enclosure_id, is_active, created_at, updated_at FROM admin_users ORDER BY created_at DESC'
     );
 
     const users = result.rows.map(row => ({
       id: row.id,
       username: row.username,
       email: row.email,
+      name: row.name || row.username,
+      role: row.role || 'superadmin',
+      enclosureId: row.enclosure_id,
       isActive: row.is_active,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
@@ -149,17 +156,22 @@ router.get('/list', verifyToken, async (req, res, next) => {
 router.put('/:id', verifyToken, async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { username, email, is_active } = req.body;
+    const { username, email, password, name, role, enclosureId, is_active } = req.body;
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
 
     const result = await query(
-      `UPDATE admin_users 
+      `UPDATE admin_users
        SET username = COALESCE($1, username),
            email = COALESCE($2, email),
-           is_active = COALESCE($3, is_active),
+           password = COALESCE($3, password),
+           name = COALESCE($4, name),
+           role = COALESCE($5, role),
+           enclosure_id = COALESCE($6, enclosure_id),
+           is_active = COALESCE($7, is_active),
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $4
-       RETURNING id, username, email, is_active, created_at, updated_at`,
-      [username, email, is_active, id]
+       WHERE id = $8
+       RETURNING id, username, email, name, role, enclosure_id, is_active, created_at, updated_at`,
+      [username, email, hashedPassword, name, role, enclosureId, is_active, id]
     );
 
     if (result.rows.length === 0) {
@@ -171,6 +183,9 @@ router.put('/:id', verifyToken, async (req, res, next) => {
       id: user.id,
       username: user.username,
       email: user.email,
+      name: user.name,
+      role: user.role,
+      enclosureId: user.enclosure_id,
       isActive: user.is_active,
       createdAt: user.created_at,
       updatedAt: user.updated_at,

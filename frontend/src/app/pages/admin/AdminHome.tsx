@@ -2,6 +2,9 @@ import { useState } from "react";
 import { Plus, Trash2, GripVertical, X, Image, Video, Eye, EyeOff, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useZoo } from "../../context/ZooContext";
 import { SlideItem } from "../../data/zooStore";
+import { useAuth } from "../../context/AuthContext";
+
+const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
 
 // ── Add Slide Modal ───────────────────────────────────────────────────────────
 
@@ -10,6 +13,7 @@ type NewSlide =
   | { type: "video"; src: string; poster: string; alt: string };
 
 function AddSlideModal({ onSave, onClose }: { onSave: (s: NewSlide) => void; onClose: () => void }) {
+  const { token } = useAuth();
   const [type, setType] = useState<"image" | "video">("image");
   const [form, setForm] = useState({ src: "", alt: "", poster: "" });
 
@@ -20,12 +24,19 @@ function AddSlideModal({ onSave, onClose }: { onSave: (s: NewSlide) => void; onC
     reader.onload = async () => {
       const dataURL = reader.result as string;
       try {
-        const res = await fetch('/api/upload', {
+        const res = await fetch(`${API_BASE_URL}/api/upload`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token || ""}`,
+          },
           body: JSON.stringify({ filename: file.name, data: dataURL }),
         });
         const json = await res.json();
+        if (!res.ok) {
+          window.alert(json.message || "No se pudo subir el archivo.");
+          return;
+        }
         setForm((p) => ({ ...p, [target]: json.url }));
         if (file.type.startsWith('video')) setType('video');
       } catch (err) {

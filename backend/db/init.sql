@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS species (
   name VARCHAR(100) NOT NULL,
   slug VARCHAR(100) UNIQUE NOT NULL,
   species_name VARCHAR(100),
+  category VARCHAR(50),
+  enclosure_id VARCHAR(100),
   description TEXT,
   image_url VARCHAR(500),
   habitat VARCHAR(100),
@@ -34,6 +36,9 @@ CREATE TABLE IF NOT EXISTS admin_users (
   username VARCHAR(100) UNIQUE NOT NULL,
   email VARCHAR(100) UNIQUE NOT NULL,
   password VARCHAR(255) NOT NULL,
+  name VARCHAR(150),
+  role VARCHAR(30) NOT NULL DEFAULT 'superadmin',
+  enclosure_id VARCHAR(100),
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

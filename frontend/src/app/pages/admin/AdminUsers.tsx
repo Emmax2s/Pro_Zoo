@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Trash2, Mail, ShieldCheck, Building2, X, AlertTriangle } from "lucide-react";
 import { useZoo } from "../../context/ZooContext";
 import { ZooUser, UserRole } from "../../data/zooStore";
+import { useAuth } from "../../context/AuthContext";
+
+const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
+type UserFormData = Omit<ZooUser, "id"> & { password?: string };
 
 const emptyForm: Omit<ZooUser, "id"> = {
   name: "",
@@ -17,7 +21,7 @@ function UserModal({
   onClose,
 }: {
   user: ZooUser | Omit<ZooUser, "id">;
-  onSave: (data: Omit<ZooUser, "id">) => void;
+  onSave: (data: UserFormData) => void;
   onClose: () => void;
 }) {
   const { enclosures } = useZoo();
@@ -29,6 +33,7 @@ function UserModal({
     enclosureId: user.enclosureId,
     status: user.status,
   });
+  const [password, setPassword] = useState("");
 
   function handle(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = e.target;
@@ -43,7 +48,7 @@ function UserModal({
     e.preventDefault();
     if (!form.name.trim() || !form.email.trim()) return;
     if (form.role === "enclosure_admin" && !form.enclosureId) return;
-    onSave(form);
+    onSave({ ...form, password: password || undefined });
   }
 
   return (
@@ -58,6 +63,23 @@ function UserModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          {!isEditing && (
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                Contraseña inicial <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                minLength={8}
+                required
+                placeholder="Mínimo 8 caracteres"
+                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
               Nombre Completo <span className="text-red-500">*</span>
@@ -142,9 +164,33 @@ function DeleteUserDialog({ user, onConfirm, onClose }: { user: ZooUser; onConfi
 
 export function AdminUsers() {
   const { users, setUsers, enclosures, animals } = useZoo();
+  const { token } = useAuth();
   const [modalState, setModalState] = useState<{ open: boolean; user: ZooUser | null }>({ open: false, user: null });
   const [deleteTarget, setDeleteTarget] = useState<ZooUser | null>(null);
   const [nextId, setNextId] = useState(100);
+
+  useEffect(() => {
+    if (!API_BASE_URL || !token) return;
+    fetch(`${API_BASE_URL}/api/admin/list`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(async (response) => {
+        const data = await response.json().catch(() => []);
+        if (!response.ok) throw new Error(data.message || "No se pudieron cargar los usuarios.");
+        return data;
+      })
+      .then((data) => {
+        setUsers(data.map((user: Record<string, unknown>) => ({
+          id: Number(user.id),
+          name: String(user.name || user.username || ""),
+          email: String(user.email || ""),
+          role: user.role === "enclosure_admin" ? "enclosure_admin" : "superadmin",
+          enclosureId: user.enclosureId ? String(user.enclosureId) : null,
+          status: user.isActive ? "Activo" : "Inactivo",
+        })));
+      })
+      .catch((error) => window.alert(error instanceof Error ? error.message : "No se pudieron cargar los usuarios."));
+  }, [setUsers, token]);
 
   function estimatedDailyVisits(animalId: number, category: string) {
     const categoryBoost: Record<string, number> = {
@@ -178,20 +224,65 @@ export function AdminUsers() {
   const superAdmins = users.filter((u) => u.role === "superadmin");
   const enclosureAdmins = users.filter((u) => u.role === "enclosure_admin");
 
-  function handleSave(data: Omit<ZooUser, "id">) {
-    if (modalState.user) {
-      setUsers(users.map((u) => (u.id === modalState.user!.id ? { ...data, id: u.id } : u)));
-    } else {
-      setUsers([...users, { ...data, id: nextId }]);
-      setNextId((n) => n + 1);
+  async function handleSave(data: UserFormData) {
+    if (!API_BASE_URL || !token) {
+      window.alert("Tu sesión administrativa no está disponible.");
+      return;
     }
-    setModalState({ open: false, user: null });
+    const isEditing = Boolean(modalState.user);
+    const body = {
+      username: data.email.split("@")[0],
+      email: data.email,
+      password: data.password,
+      name: data.name,
+      role: data.role,
+      enclosureId: data.enclosureId,
+      is_active: data.status === "Activo",
+    };
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin${isEditing ? `/${modalState.user!.id}` : "/create"}`, {
+        method: isEditing ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.message || "No se pudo guardar el usuario.");
+      const saved: ZooUser = {
+        id: Number(result.id),
+        name: result.name || data.name,
+        email: result.email || data.email,
+        role: result.role === "enclosure_admin" ? "enclosure_admin" : "superadmin",
+        enclosureId: result.enclosureId ?? data.enclosureId,
+        status: result.isActive === false ? "Inactivo" : "Activo",
+      };
+      setUsers(isEditing
+        ? users.map((user) => user.id === saved.id ? saved : user)
+        : [...users, saved]);
+      setNextId((current) => Math.max(current, saved.id + 1));
+      setModalState({ open: false, user: null });
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "No se pudo guardar el usuario.");
+    }
   }
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!deleteTarget) return;
-    setUsers(users.filter((u) => u.id !== deleteTarget.id));
-    setDeleteTarget(null);
+    if (!API_BASE_URL || !token) {
+      window.alert("Tu sesión administrativa no está disponible.");
+      return;
+    }
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin/${deleteTarget.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.message || "No se pudo eliminar el usuario.");
+      setUsers(users.filter((user) => user.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "No se pudo eliminar el usuario.");
+    }
   }
 
   function getEnclosure(id: string | null) {

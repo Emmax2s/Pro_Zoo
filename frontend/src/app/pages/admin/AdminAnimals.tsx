@@ -121,12 +121,19 @@ function AnimalModal({
     reader.onload = async () => {
       const dataURL = reader.result as string;
       try {
-        const res = await fetch('/api/upload', {
+        const res = await fetch(`${API_BASE_URL}/api/upload`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionStorage.getItem("pro-zoo-admin-token") || ""}`,
+          },
           body: JSON.stringify({ filename: file.name, data: dataURL }),
         });
         const json = await res.json();
+        if (!res.ok) {
+          window.alert(json.message || "No se pudo subir la imagen.");
+          return;
+        }
         setForm((p) => ({ ...p, image: json.url }));
       } catch (err) {
         console.error('Upload failed', err);
@@ -365,6 +372,8 @@ export function AdminAnimals() {
       slug: (data.name.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")),
       name: data.name,
       species: data.scientificName,
+      category: data.category,
+      enclosureId: data.enclosureId,
       habitat: data.habitat,
       imageUrl: data.image,
       conservation: data.status,

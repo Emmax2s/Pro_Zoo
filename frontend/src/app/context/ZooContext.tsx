@@ -51,6 +51,8 @@ type ApiSpecies = {
   imageUrl?: string;
   audioDescriptionUrl?: string;
   conservation?: string;
+  category?: Animal["category"];
+  enclosureId?: string | null;
 };
 
 const mapConservationStatus = (value: string | undefined): Animal["status"] => {
@@ -63,14 +65,14 @@ const mapSpecies = (species: ApiSpecies): Animal => ({
   id: Number(species.id),
   name: species.name,
   scientificName: species.species || "",
-  category: "Mamífero",
+  category: species.category || "Mamífero",
   status: mapConservationStatus(species.conservation),
   habitat: species.habitat || "",
   diet: species.diet || "",
   funFact: species.description || "",
   image: species.imageUrl || "/assets/images/placeholder.svg",
   audioUrl: species.audioDescriptionUrl,
-  enclosureId: null,
+  enclosureId: species.enclosureId ?? null,
 });
 
 const FALLBACK: ZooContextValue = {

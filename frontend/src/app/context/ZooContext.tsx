@@ -120,6 +120,25 @@ export function ZooProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!API_BASE_URL) return;
+    let active = true;
+    fetch(`${API_BASE_URL}/api/site-content`, { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`Carousel request failed with status ${response.status}`);
+        return response.json();
+      })
+      .then((carousel) => {
+        if (active && Array.isArray(carousel)) {
+          setSlides(carousel as SlideItem[]);
+        }
+      })
+      .catch((error) => console.error("Unable to load carousel from API:", error));
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <ZooContext.Provider value={{ currentUser, setCurrentUser, animals, setAnimals, enclosures, setEnclosures, users, setUsers, slides, setSlides }}>
       {children}

@@ -20,7 +20,7 @@ app.use(
       : env.corsOrigin.split(',').map((origin) => origin.trim()).filter(Boolean),
   })
 );
-app.use(express.json({ limit: '4mb' }));
+app.use(express.json({ limit: '30mb' }));
 app.use('/uploads', express.static(uploadsDirectory));
 
 app.get('/api/health', async (_req, res) => {

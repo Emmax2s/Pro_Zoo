@@ -102,7 +102,7 @@ function AddSlideModal({ onSave, onClose }: { onSave: (s: NewSlide) => void; onC
               <input name="src" value={form.src} onChange={handle} required
                   placeholder={type === "image" ? "URL de imagen" : "URL de video"}
                 className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-              <input type="file" accept="image/*,video/*" onChange={(e) => handleFileUpload(e, 'src')} className="px-3 py-2 bg-white border border-gray-200 rounded-xl" />
+              <input type="file" accept={type === "image" ? "image/*" : "video/*"} onChange={(e) => handleFileUpload(e, 'src')} className="px-3 py-2 bg-white border border-gray-200 rounded-xl" />
             </div>
           </div>
 
@@ -198,39 +198,64 @@ function PreviewModal({ slides, onClose }: { slides: SlideItem[]; onClose: () =>
 
 export function AdminHome() {
   const { slides, setSlides } = useZoo();
+  const { token } = useAuth();
   const [showAdd, setShowAdd] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [dragging, setDragging] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
 
-  function addSlide(data: NewSlide) {
-    const id = `slide-${Date.now()}`;
-    if (data.type === "image") {
-      setSlides([...slides, { id, type: "image", src: data.src, alt: data.alt }]);
-    } else {
-      setSlides([...slides, { id, type: "video", src: data.src, poster: data.poster, alt: data.alt }]);
+  async function persistSlides(nextSlides: SlideItem[]) {
+    if (!API_BASE_URL || !token) {
+      throw new Error("Tu sesión administrativa no está disponible.");
     }
-    setShowAdd(false);
+    const response = await fetch(`${API_BASE_URL}/api/site-content`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ carousel: nextSlides }),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.message || "No se pudo guardar el carrusel.");
+    setSlides(result as SlideItem[]);
   }
 
-  function removeSlide(id: string) {
-    setSlides(slides.filter((s) => s.id !== id));
-    setDeleteTarget(null);
+  async function addSlide(data: NewSlide) {
+    const id = `slide-${Date.now()}`;
+    const nextSlides: SlideItem[] = data.type === "image"
+      ? [...slides, { id, type: "image", src: data.src, alt: data.alt }]
+      : [...slides, { id, type: "video", src: data.src, poster: data.poster, alt: data.alt }];
+    try {
+      await persistSlides(nextSlides);
+      setShowAdd(false);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "No se pudo guardar el slide.");
+    }
+  }
+
+  async function removeSlide(id: string) {
+    try {
+      await persistSlides(slides.filter((s) => s.id !== id));
+      setDeleteTarget(null);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "No se pudo eliminar el slide.");
+    }
   }
 
   function moveUp(index: number) {
     if (index === 0) return;
     const next = [...slides];
     [next[index - 1], next[index]] = [next[index], next[index - 1]];
-    setSlides(next);
+    void persistSlides(next).catch((error) => window.alert(error instanceof Error ? error.message : "No se pudo guardar el orden."));
   }
 
   function moveDown(index: number) {
     if (index === slides.length - 1) return;
     const next = [...slides];
     [next[index], next[index + 1]] = [next[index + 1], next[index]];
-    setSlides(next);
+    void persistSlides(next).catch((error) => window.alert(error instanceof Error ? error.message : "No se pudo guardar el orden."));
   }
 
   // Drag-and-drop reorder
@@ -241,7 +266,7 @@ export function AdminHome() {
       const next = [...slides];
       const [moved] = next.splice(dragging, 1);
       next.splice(dragOver, 0, moved);
-      setSlides(next);
+      void persistSlides(next).catch((error) => window.alert(error instanceof Error ? error.message : "No se pudo guardar el orden."));
     }
     setDragging(null);
     setDragOver(null);

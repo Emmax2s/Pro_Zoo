@@ -12,24 +12,27 @@ const allowedTypes = new Map([
   ['image/png', 'png'],
   ['image/webp', 'webp'],
   ['image/gif', 'gif'],
+  ['video/mp4', 'mp4'],
+  ['video/webm', 'webm'],
+  ['video/ogg', 'ogv'],
 ]);
 
 router.post('/', verifyToken, async (req, res, next) => {
   try {
     const { data, filename } = req.body;
-    if (typeof data !== 'string' || !data.startsWith('data:image/')) {
-      return res.status(400).json({ message: 'Se requiere una imagen válida.' });
+    if (typeof data !== 'string' || !data.startsWith('data:')) {
+      return res.status(400).json({ message: 'Se requiere un archivo válido.' });
     }
 
-    const match = data.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=\s]+)$/);
+    const match = data.match(/^data:((?:image|video)\/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=\s]+)$/);
     const extension = match && allowedTypes.get(match[1].toLowerCase());
     if (!match || !extension) {
-      return res.status(400).json({ message: 'Formato de imagen no permitido. Usa JPG, PNG, WEBP o GIF.' });
+      return res.status(400).json({ message: 'Formato no permitido. Usa JPG, PNG, WEBP, MP4, WEBM u OGG.' });
     }
 
     const buffer = Buffer.from(match[2], 'base64');
-    if (buffer.length > 4 * 1024 * 1024) {
-      return res.status(413).json({ message: 'La imagen no puede superar 4 MB.' });
+    if (buffer.length > 20 * 1024 * 1024) {
+      return res.status(413).json({ message: 'El archivo no puede superar 20 MB.' });
     }
 
     await fs.mkdir(uploadsDirectory, { recursive: true });

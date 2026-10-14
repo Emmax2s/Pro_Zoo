@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Plus, Edit2, Trash2, Search, X, AlertTriangle, MapPin, Volume2, QrCode, Download } from "lucide-react";
 import QRCode from "qrcode";
 import { useZoo } from "../../context/ZooContext";
+import { useAuth } from "../../context/AuthContext";
 import {
   Animal,
   ANIMAL_CATEGORIES,
@@ -334,6 +335,7 @@ function DeleteDialog({ animal, onConfirm, onClose }: { animal: Animal; onConfir
 
 export function AdminAnimals() {
   const { animals, setAnimals, enclosures, currentUser } = useZoo();
+  const { token } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEnclosure, setFilterEnclosure] = useState<string>("all");
   const [modalState, setModalState] = useState<{ open: boolean; animal: Animal | null }>({ open: false, animal: null });
@@ -354,8 +356,8 @@ export function AdminAnimals() {
   });
 
   async function handleSave(data: Omit<Animal, "id">) {
-    if (!API_BASE_URL) {
-      window.alert("La API administrativa no está configurada.");
+    if (!API_BASE_URL || !token) {
+      window.alert("Tu sesión administrativa no está disponible.");
       return;
     }
 
@@ -376,7 +378,10 @@ export function AdminAnimals() {
         `${API_BASE_URL}/api/species${isEditing ? `/${modalState.animal!.id}` : ""}`,
         {
           method: isEditing ? "PUT" : "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(payload),
         }
       );
@@ -399,13 +404,14 @@ export function AdminAnimals() {
 
   async function handleDelete() {
     if (!deleteTarget) return;
-    if (!API_BASE_URL) {
-      window.alert("La API administrativa no está configurada.");
+    if (!API_BASE_URL || !token) {
+      window.alert("Tu sesión administrativa no está disponible.");
       return;
     }
     try {
       const response = await fetch(`${API_BASE_URL}/api/species/${deleteTarget.id}`, {
         method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) {

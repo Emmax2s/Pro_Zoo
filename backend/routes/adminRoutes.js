@@ -231,9 +231,12 @@ router.post('/forgot-password', async (req, res, next) => {
     const email = String(req.body.email || '').trim().toLowerCase();
     const genericMessage = 'Si el correo está registrado, recibirás un código de verificación.';
     if (!email) return res.status(400).json({ message: 'El correo es obligatorio.' });
+    if (!mailTransport) {
+      return res.status(503).json({ message: 'El servicio de correo no está configurado en la API.' });
+    }
 
     const result = await query('SELECT id, email FROM admin_users WHERE LOWER(email) = $1 AND is_active = true', [email]);
-    if (!result.rows.length || !mailTransport) return res.json({ message: genericMessage });
+    if (!result.rows.length) return res.json({ message: genericMessage });
 
     const code = String(crypto.randomInt(100000, 1000000));
     const tokenHash = crypto.createHash('sha256').update(code).digest('hex');
@@ -247,12 +250,21 @@ router.post('/forgot-password', async (req, res, next) => {
        VALUES ($1, $2, CURRENT_TIMESTAMP + INTERVAL '10 minutes')`,
       [result.rows[0].id, tokenHash]
     );
-    await mailTransport.sendMail({
-      from: env.mailFrom,
-      to: email,
-      subject: 'Código para recuperar tu cuenta de ZooMAT',
-      text: `Tu código de verificación es ${code}. Caduca en 10 minutos y solo puede usarse una vez.`,
-    });
+    try {
+      await mailTransport.sendMail({
+        from: env.mailFrom,
+        to: email,
+        subject: 'Código para recuperar tu cuenta de ZooMAT',
+        text: `Tu código de verificación es ${code}. Caduca en 10 minutos y solo puede usarse una vez.`,
+      });
+    } catch (error) {
+      console.error('Password recovery email failed:', error);
+      await query(
+        'UPDATE password_reset_tokens SET used_at = CURRENT_TIMESTAMP WHERE token_hash = $1',
+        [tokenHash]
+      );
+      return res.status(502).json({ message: 'No se pudo enviar el correo de recuperación. Verifica la configuración SMTP.' });
+    }
     res.json({ message: genericMessage });
   } catch (error) {
     next(error);

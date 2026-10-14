@@ -53,6 +53,25 @@ CREATE TABLE IF NOT EXISTS site_content (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS enclosures (
+  id VARCHAR(100) PRIMARY KEY,
+  name VARCHAR(150) NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  color VARCHAR(50) NOT NULL DEFAULT 'bg-emerald-600',
+  icon VARCHAR(100) NOT NULL DEFAULT 'Vivario',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
+  token_hash VARCHAR(64) NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  used_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Crear tabla de visitas de especies para estadísticas
 CREATE TABLE IF NOT EXISTS species_visits (
   id SERIAL PRIMARY KEY,

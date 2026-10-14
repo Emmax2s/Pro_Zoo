@@ -9,6 +9,7 @@ import siteRoutes from './routes/siteRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import enclosureRoutes from './routes/enclosureRoutes.js';
 
 export const app = express();
 const uploadsDirectory = path.join(path.dirname(fileURLToPath(import.meta.url)), 'uploads');
@@ -37,6 +38,7 @@ app.use('/api/site-content', siteRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/enclosures', enclosureRoutes);
 
 app.use((error, _req, res, _next) => {
   const message = error instanceof Error ? error.message : 'Unexpected error';

@@ -139,6 +139,23 @@ export function ZooProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!API_BASE_URL) return;
+    let active = true;
+    fetch(`${API_BASE_URL}/api/enclosures`, { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`Enclosures request failed with status ${response.status}`);
+        return response.json();
+      })
+      .then((data) => {
+        if (active && Array.isArray(data)) setEnclosures(data as Enclosure[]);
+      })
+      .catch((error) => console.error("Unable to load enclosures from API:", error));
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <ZooContext.Provider value={{ currentUser, setCurrentUser, animals, setAnimals, enclosures, setEnclosures, users, setUsers, slides, setSlides }}>
       {children}

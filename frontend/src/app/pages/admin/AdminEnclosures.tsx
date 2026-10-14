@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Edit2, Trash2, X, AlertTriangle, PawPrint, Users } from "lucide-react";
 import { useZoo } from "../../context/ZooContext";
 import { Enclosure } from "../../data/zooStore";
+import { useAuth } from "../../context/AuthContext";
+
+const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
 
 const ENCLOSURE_COLORS = [
   { label: "Esmeralda", value: "bg-emerald-600" },
@@ -162,28 +165,60 @@ function DeleteEnclosureDialog({ enclosure, animalCount, adminCount, onConfirm, 
 
 export function AdminEnclosures() {
   const { enclosures, setEnclosures, animals, setAnimals, users, setUsers } = useZoo();
+  const { token } = useAuth();
   const [modalState, setModalState] = useState<{ open: boolean; enclosure: Enclosure | null }>({ open: false, enclosure: null });
   const [deleteTarget, setDeleteTarget] = useState<Enclosure | null>(null);
   const [nextId, setNextId] = useState(10);
 
-  function handleSave(data: Omit<Enclosure, "id">) {
-    if (modalState.enclosure) {
-      setEnclosures(enclosures.map((e) => (e.id === modalState.enclosure!.id ? { ...data, id: e.id } : e)));
-    } else {
-      const id = data.name.toLowerCase().replace(/\s+/g, "-") + "-" + nextId;
-      setEnclosures([...enclosures, { ...data, id }]);
-      setNextId((n) => n + 1);
+  useEffect(() => {
+    if (!API_BASE_URL || !token) return;
+    fetch(`${API_BASE_URL}/api/enclosures`, { cache: "no-store" })
+      .then(async (response) => {
+        const data = await response.json().catch(() => []);
+        if (!response.ok) throw new Error(data.message || "No se pudieron cargar los recintos.");
+        return data;
+      })
+      .then((data) => setEnclosures(data))
+      .catch((error) => window.alert(error instanceof Error ? error.message : "No se pudieron cargar los recintos."));
+  }, [setEnclosures, token]);
+
+  async function handleSave(data: Omit<Enclosure, "id">) {
+    if (!API_BASE_URL || !token) return window.alert("Tu sesión administrativa no está disponible.");
+    const isEditing = Boolean(modalState.enclosure);
+    const id = modalState.enclosure?.id || `${data.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-${nextId}`;
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/enclosures${isEditing ? `/${id}` : ""}`, {
+        method: isEditing ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ ...data, id }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.message || "No se pudo guardar el recinto.");
+      setEnclosures(isEditing ? enclosures.map((enclosure) => enclosure.id === id ? result : enclosure) : [...enclosures, result]);
+      if (!isEditing) setNextId((n) => n + 1);
+      setModalState({ open: false, enclosure: null });
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "No se pudo guardar el recinto.");
     }
-    setModalState({ open: false, enclosure: null });
   }
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!deleteTarget) return;
     const id = deleteTarget.id;
-    setEnclosures(enclosures.filter((e) => e.id !== id));
-    setAnimals(animals.map((a) => a.enclosureId === id ? { ...a, enclosureId: null } : a));
-    setUsers(users.map((u) => u.enclosureId === id ? { ...u, enclosureId: null, role: "superadmin" } : u));
-    setDeleteTarget(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/enclosures/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token || ""}` },
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.message || "No se pudo eliminar el recinto.");
+      setEnclosures(enclosures.filter((enclosure) => enclosure.id !== id));
+      setAnimals(animals.map((animal) => animal.enclosureId === id ? { ...animal, enclosureId: null } : animal));
+      setUsers(users.map((user) => user.enclosureId === id ? { ...user, enclosureId: null, role: "superadmin" } : user));
+      setDeleteTarget(null);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "No se pudo eliminar el recinto.");
+    }
   }
 
   return (

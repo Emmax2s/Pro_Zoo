@@ -1,16 +1,7 @@
 import { Router } from 'express';
-import { env } from '../config/env.js';
+import { verifyToken } from './adminRoutes.js';
 
 const router = Router();
-
-const assertAdminKey = (req, res, next) => {
-  const adminKey = req.header('x-admin-key');
-  if (!adminKey || adminKey !== env.adminKey) {
-    res.status(401).json({ message: 'Unauthorized admin request' });
-    return;
-  }
-  next();
-};
 
 router.get('/', async (_req, res, next) => {
   try {
@@ -21,7 +12,7 @@ router.get('/', async (_req, res, next) => {
   }
 });
 
-router.put('/', assertAdminKey, async (req, res, next) => {
+router.put('/', verifyToken, async (req, res, next) => {
   try {
     res.status(501).json({ message: 'Site update not implemented (DB removed)' });
   } catch (error) {

@@ -1,13 +1,32 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router";
+import { Navigate } from "react-router";
 import { LayoutDashboard, Users, PawPrint, LogOut, Building2, ChevronDown, Home } from "lucide-react";
 import { useZoo } from "../../context/ZooContext";
+import { useAuth } from "../../context/AuthContext";
 import logoZoomat from "../../../assets/logo-zoomat.png";
 
 export function AdminLayout() {
   const location = useLocation();
-  const { currentUser, users, enclosures } = useZoo();
+  const { user: authUser, loading: authLoading, logout } = useAuth();
+  const { currentUser, setCurrentUser, users, enclosures } = useZoo();
   const [showUserPicker, setShowUserPicker] = useState(false);
+
+  useEffect(() => {
+    if (authUser) {
+      setCurrentUser({
+        id: authUser.id,
+        name: authUser.name,
+        email: authUser.email,
+        role: authUser.role === "enclosure_admin" ? "enclosure_admin" : "superadmin",
+        enclosureId: authUser.enclosureId,
+        status: authUser.isActive ? "Activo" : "Inactivo",
+      });
+    }
+  }, [authUser, setCurrentUser]);
+
+  if (authLoading) return <div className="min-h-screen grid place-items-center">Cargando sesión...</div>;
+  if (!authUser) return <Navigate to="/login" state={{ from: location.pathname }} replace />;
 
   const isSuperAdmin = currentUser.role === "superadmin";
   const myEnclosure = enclosures.find((e) => e.id === currentUser.enclosureId);
@@ -138,6 +157,13 @@ export function AdminLayout() {
             <LogOut size={20} />
             Volver al Sitio Público
           </Link>
+          <button
+            onClick={logout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-red-200 hover:bg-red-950 transition-colors text-base font-bold"
+          >
+            <LogOut size={20} />
+            Cerrar sesión
+          </button>
         </div>
       </aside>
 

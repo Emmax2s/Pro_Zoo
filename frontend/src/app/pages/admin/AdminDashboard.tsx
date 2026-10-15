@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Download, Eye, PawPrint, Users, PieChart as PieIcon, BarChart2 } from "lucide-react";
+import { Download, Eye, PawPrint, Users, PieChart as PieIcon, BarChart2, QrCode, Globe } from "lucide-react";
 import { Link } from "react-router";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useZoo } from "../../context/ZooContext";
 import { useAuth } from "../../context/AuthContext";
+import { getVisitSummary } from "../../services/analytics";
 
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
 
@@ -33,21 +34,34 @@ export function AdminDashboard() {
   const { token } = useAuth();
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodKey>("mes");
   const [visitSummary, setVisitSummary] = useState<VisitSummary[]>([]);
+  const [totalVisitors, setTotalVisitors] = useState<number>(145);
 
   useEffect(() => {
-    if (!API_BASE_URL || !token) return;
     const periodDays = selectedPeriod === "dia" ? 1 : selectedPeriod === "semana" ? 7 : selectedPeriod === "mes" ? 30 : 365;
-    fetch(`${API_BASE_URL}/api/analytics/all/summary?period=${periodDays}`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store",
-    })
-      .then(async (response) => {
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(data.message || "No se pudieron cargar las visitas.");
-        return data;
+    
+    // Load local stats immediately
+    const local = getVisitSummary(periodDays);
+    setVisitSummary(local.summary);
+    setTotalVisitors(local.totalVisitors);
+
+    // Sync with backend API if configured
+    if (API_BASE_URL && token) {
+      fetch(`${API_BASE_URL}/api/analytics/all/summary?period=${periodDays}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
       })
-      .then((data) => setVisitSummary(Array.isArray(data.summary) ? data.summary : []))
-      .catch((error) => console.error("Unable to load visit analytics:", error));
+        .then(async (response) => {
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(data.message || "No se pudieron cargar las visitas.");
+          return data;
+        })
+        .then((data) => {
+          if (Array.isArray(data.summary) && data.summary.length > 0) {
+            setVisitSummary(data.summary);
+          }
+        })
+        .catch((error) => console.warn("Using local analytics stats:", error));
+    }
   }, [selectedPeriod, token]);
 
   const visitsBySpecies = useMemo(
@@ -202,7 +216,7 @@ export function AdminDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-2xl shadow-sm border-2 border-emerald-100 flex items-center gap-5">
           <div className="w-14 h-14 bg-emerald-100 text-emerald-800 rounded-2xl flex items-center justify-center shrink-0">
             <PawPrint size={28} />
@@ -214,25 +228,38 @@ export function AdminDashboard() {
         </div>
 
         <div className="bg-white p-6 rounded-2xl shadow-sm border-2 border-emerald-100 flex items-center gap-5">
+          <div className="w-14 h-14 bg-amber-100 text-amber-800 rounded-2xl flex items-center justify-center shrink-0">
+            <Globe size={28} />
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Visitantes del Sitio ({periodMeta.label})</p>
+            <p className="text-3xl font-black text-amber-950 mt-0.5">{totalVisitors}</p>
+            <p className="text-[11px] text-amber-700 font-semibold mt-0.5">
+              Tráfico activo web ZooMAT
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm border-2 border-emerald-100 flex items-center gap-5">
+          <div className="w-14 h-14 bg-purple-100 text-purple-800 rounded-2xl flex items-center justify-center shrink-0">
+            <QrCode size={28} />
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Escaneos QR ({periodMeta.label})</p>
+            <p className="text-3xl font-black text-purple-950 mt-0.5">{totalQrVisits}</p>
+            <p className="text-[11px] text-purple-700 font-semibold mt-0.5">
+              {totalQrVisits ? "Lecturas en recintos" : "Sin escaneos aún"}
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm border-2 border-emerald-100 flex items-center gap-5">
           <div className="w-14 h-14 bg-sky-100 text-sky-800 rounded-2xl flex items-center justify-center shrink-0">
             <Users size={28} />
           </div>
           <div>
             <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Administradores</p>
             <p className="text-3xl font-black text-sky-950 mt-0.5">{currentUser.role === "superadmin" ? enclosureAdmins.length : 1}</p>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl shadow-sm border-2 border-emerald-100 flex items-center gap-5">
-          <div className="w-14 h-14 bg-purple-100 text-purple-800 rounded-2xl flex items-center justify-center shrink-0">
-            <Eye size={28} />
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Escaneos QR / Visitas ({periodMeta.label})</p>
-            <p className="text-3xl font-black text-purple-950 mt-0.5">{totalQrVisits}</p>
-            <p className="text-[11px] text-purple-700 font-semibold mt-0.5">
-              {totalQrVisits ? "Registros reales de visitas" : "Sin escaneos QR registrados aún"}
-            </p>
           </div>
         </div>
       </div>

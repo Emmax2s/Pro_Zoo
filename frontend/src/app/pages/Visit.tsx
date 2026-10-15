@@ -1,9 +1,9 @@
-import { Clock, MapPin, Ticket, CreditCard, Users, Info, Car, Bus, AlertCircle } from "lucide-react";
+import { Clock, MapPin, Ticket, CreditCard, Users, Info, Car, Bus, AlertCircle, TreePine, Sparkles, Navigation } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 export function Visit() {
   const { i18n } = useTranslation();
-  const isEs = i18n.language === 'es';
+  const isEs = i18n.language === "es";
 
   const prices = [
     { type: isEs ? "Adultos" : "Adults", price: "$30 MXN", description: isEs ? "Mayores de 12 años" : "Older than 12 years" },
@@ -14,211 +14,274 @@ export function Visit() {
   ];
 
   const schedule = [
-    { day: isEs ? "Martes a Domingo" : "Tuesday to Sunday", hours: "9:00 - 17:00", note: isEs ? "Último acceso: 16:00" : "Last entry: 4:00 PM" },
-    { day: isEs ? "Lunes" : "Monday", hours: isEs ? "Cerrado" : "Closed", note: isEs ? "Excepto días festivos" : "Except holidays" },
+    { day: isEs ? "Martes a Domingo" : "Tuesday to Sunday", hours: "8:30 AM - 4:30 PM", note: isEs ? "Último acceso al parque: 3:30 PM" : "Last park access: 3:30 PM" },
+    { day: isEs ? "Lunes" : "Monday", hours: isEs ? "Cerrado" : "Closed", note: isEs ? "Mantenimiento y descanso de fauna silvestre" : "Maintenance and wildlife rest day" },
   ];
 
   const recommendations = isEs ? [
-    "Usa ropa y calzado cómodo para caminar",
-    "Lleva protector solar y repelente de insectos",
-    "Trae agua y snacks (no se permite alimentar a los animales)",
-    "Respeta las señalizaciones y no cruces las barreras",
-    "Mantén limpio el zoológico usando los botes de basura",
-    "No uses flash al tomar fotografías"
+    "Usa calzado cómodo y antiderrapante para los senderos empedrados",
+    "Lleva protector solar biodegradable y repelente de mosquitos",
+    "Lleva agua para hidratarte (por favor conserva tus botellas)",
+    "Respeta las vallas de seguridad y no alimentes a los animales",
+    "Mantén limpio el entorno utilizando los contenedores ecológicos",
+    "No utilices flash al tomar fotografías para no estresar a los ejemplares"
   ] : [
-    "Wear comfortable clothing and walking shoes",
-    "Bring sunscreen and insect repellent",
-    "Bring water and snacks (feeding animals is prohibited)",
-    "Respect signs and do not cross safety barriers",
-    "Keep the zoo clean using waste bins",
-    "Do not use flash photography near animals"
+    "Wear comfortable, non-slip shoes for cobblestone trails",
+    "Bring biodegradable sunscreen and insect repellent",
+    "Bring drinking water to stay hydrated (keep your trash with you)",
+    "Respect safety railings and never feed any wildlife",
+    "Keep the nature reserve clean using eco-friendly trash bins",
+    "Never use flash photography to prevent animal stress"
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50/50 via-stone-50 to-emerald-100/40">
-      {/* Header */}
-      <section className="bg-gradient-to-r from-emerald-800 to-emerald-950 text-white py-16 shadow-md">
-        <div className="max-w-7xl mx-auto px-4">
-          <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 tracking-tight">
-            {isEs ? "Planifica tu Visita" : "Plan Your Visit"}
-          </h1>
-          <p className="text-lg sm:text-xl text-emerald-100/90 font-medium max-w-2xl">
-            {isEs
-              ? "Toda la información que necesitas para disfrutar tu día en la reserva natural ZooMAT."
-              : "All the information you need to enjoy your day at the ZooMAT nature reserve."}
-          </p>
+    <div className="min-h-screen bg-[#faf8f2] text-stone-900 pb-20">
+      {/* 1. Header Banner matching photo 1 style */}
+      <section className="relative bg-[#f7f3e8] border-b-4 border-[#2b1706] py-14 md:py-20 overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-20 pointer-events-none"
+          style={{
+            backgroundImage: "radial-gradient(#854d0e 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
+          }}
+        />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="max-w-4xl space-y-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100/90 text-amber-950 text-xs sm:text-sm font-black tracking-wide uppercase shadow-xs border border-amber-300">
+              <TreePine className="w-4 h-4 text-emerald-800" />
+              <span>ZOOLÓGICO REGIONAL MIGUEL ÁLVAREZ DEL TORO</span>
+            </div>
+
+            <h1 className="font-adventure text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-stone-900 leading-[1.1] text-adventure-shadow">
+              {isEs ? "Planifica tu Visita" : "Plan Your Visit"}
+            </h1>
+
+            <p className="text-xl md:text-2xl text-stone-700 leading-relaxed font-semibold">
+              {isEs
+                ? "Toda la información sobre horarios, cuotas de acceso, recomendaciones y rutas para disfrutar una experiencia inolvidable en la selva del ZooMAT."
+                : "All information regarding operating hours, admission fees, tips, and directions for an unforgettable experience in the ZooMAT reserve."}
+            </p>
+          </div>
         </div>
+
+        {/* Rustic Wood Beam */}
+        <div className="wood-texture-bg h-5 sm:h-6 w-full border-t border-b-2 border-amber-950/80 shadow-md mt-10" />
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 py-12 space-y-10">
+      {/* 2. Main Content Sections */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 space-y-12">
         {/* Horarios */}
-        <section className="bg-white rounded-3xl shadow-xl p-8 md:p-10 border-2 border-emerald-100">
+        <section className="bg-white rounded-3xl shadow-xl p-8 md:p-10 border-2 border-[#e2d5bd]">
           <div className="flex items-center gap-4 mb-8">
-            <div className="bg-emerald-700 p-3.5 rounded-2xl text-white shadow-md">
+            <div className="wood-texture-bg p-4 rounded-2xl text-amber-200 border-2 border-amber-600 shadow-md">
               <Clock className="w-8 h-8" />
             </div>
             <div>
-              <h2 className="text-3xl md:text-4xl font-black text-emerald-950">{isEs ? "Horarios de Apertura" : "Opening Hours"}</h2>
-              <p className="text-base text-emerald-800 font-semibold">{isEs ? "Planifica tu tiempo para recorrer los senderos con tranquilidad" : "Plan your time to walk the trails at a leisurely pace"}</p>
+              <h2 className="font-adventure text-3xl sm:text-4xl text-[#2b1810] tracking-wide">
+                {isEs ? "Horarios de Apertura" : "Opening Hours"}
+              </h2>
+              <p className="text-lg text-stone-600 font-medium">
+                {isEs
+                  ? "Planifica tu tiempo para recorrer los 2.5 km de senderos con tranquilidad"
+                  : "Plan your time to comfortably walk the 2.5 km jungle trail network"}
+              </p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {schedule.map((item, index) => (
-              <div key={index} className="border-l-8 border-emerald-600 bg-emerald-50/70 p-6 rounded-r-3xl shadow-xs">
-                <div className="font-extrabold text-xl text-emerald-950">{item.day}</div>
-                <div className="text-3xl text-emerald-800 font-black mt-2">{item.hours}</div>
-                <div className="text-base text-emerald-900 mt-2 font-bold">{item.note}</div>
+              <div
+                key={index}
+                className="border-l-8 border-amber-600 bg-[#fcfaf5] p-6 rounded-r-3xl shadow-xs border border-amber-900/10"
+              >
+                <div className="font-adventure text-2xl text-[#2b1810]">{item.day}</div>
+                <div className="text-3xl sm:text-4xl text-amber-900 font-black mt-2 font-adventure">{item.hours}</div>
+                <div className="text-base text-stone-700 mt-2 font-bold">{item.note}</div>
               </div>
             ))}
           </div>
         </section>
 
         {/* Precios */}
-        <section className="bg-white rounded-3xl shadow-xl p-8 md:p-10 border-2 border-emerald-100">
+        <section className="bg-white rounded-3xl shadow-xl p-8 md:p-10 border-2 border-[#e2d5bd]">
           <div className="flex items-center gap-4 mb-8">
-            <div className="bg-emerald-700 p-3.5 rounded-2xl text-white shadow-md">
+            <div className="wood-texture-bg p-4 rounded-2xl text-amber-200 border-2 border-amber-600 shadow-md">
               <Ticket className="w-8 h-8" />
             </div>
             <div>
-              <h2 className="text-3xl md:text-4xl font-black text-emerald-950">{isEs ? "Precios de Entrada" : "Admission Prices"}</h2>
-              <p className="text-base text-emerald-800 font-semibold">{isEs ? "Cuotas de acceso destinadas a la manutención y conservación animal" : "Access fees dedicated to animal care and conservation"}</p>
+              <h2 className="font-adventure text-3xl sm:text-4xl text-[#2b1810] tracking-wide">
+                {isEs ? "Cuotas de Recuperación" : "Admission Prices"}
+              </h2>
+              <p className="text-lg text-stone-600 font-medium">
+                {isEs
+                  ? "Cuotas oficiales destinadas a la manutención, atención médica y nutrición animal"
+                  : "Official fees dedicated to animal nutrition, veterinary care, and habitat conservation"}
+              </p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {prices.map((item, index) => (
-              <div key={index} className="bg-gradient-to-br from-emerald-50 to-stone-50 rounded-3xl p-7 border-2 border-emerald-200/80 shadow-sm hover:shadow-md transition-all">
-                <div className="font-bold text-lg text-emerald-950 mb-1">{item.type}</div>
-                <div className="text-4xl font-black text-emerald-800 mb-2">{item.price}</div>
-                <div className="text-sm text-emerald-900 font-semibold">{item.description}</div>
+              <div
+                key={index}
+                className="bg-[#fcfaf5] rounded-3xl p-7 border-2 border-amber-900/15 shadow-sm hover:shadow-lg transition-all hover:scale-105"
+              >
+                <div className="font-adventure text-xl text-stone-900 mb-1">{item.type}</div>
+                <div className="text-4xl sm:text-5xl font-black text-amber-900 mb-2 font-adventure">{item.price}</div>
+                <div className="text-base text-stone-700 font-semibold">{item.description}</div>
               </div>
             ))}
           </div>
-          <div className="mt-8 bg-amber-50 border-l-8 border-amber-400 p-6 rounded-2xl border border-amber-200 shadow-xs">
+          <div className="mt-8 bg-amber-50 border-l-8 border-amber-500 p-6 rounded-2xl border border-amber-300 shadow-xs">
             <div className="flex items-start gap-4">
-              <CreditCard className="w-7 h-7 text-amber-700 mt-0.5 shrink-0" />
+              <CreditCard className="w-7 h-7 text-amber-800 mt-0.5 shrink-0" />
               <div>
-                <p className="font-black text-emerald-950 text-lg">{isEs ? "Métodos de Pago" : "Payment Methods"}</p>
-                <p className="text-base text-emerald-900 font-medium">{isEs ? "Aceptamos efectivo en taquilla y tarjetas de crédito/débito." : "We accept cash at the ticket office and credit/debit cards."}</p>
+                <p className="font-adventure text-xl text-[#2b1810]">{isEs ? "Métodos de Pago" : "Payment Methods"}</p>
+                <p className="text-base text-stone-800 font-medium">
+                  {isEs
+                    ? "Aceptamos efectivo en taquillas y cobro con tarjetas bancarias de débito y crédito."
+                    : "We accept cash at the ticket counter as well as debit and credit cards."}
+                </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Ubicación */}
-        <section className="bg-white rounded-3xl shadow-xl p-8 md:p-10 border-2 border-emerald-100">
+        {/* Ubicación y Cómo Llegar */}
+        <section className="bg-white rounded-3xl shadow-xl p-8 md:p-10 border-2 border-[#e2d5bd]">
           <div className="flex items-center gap-4 mb-8">
-            <div className="bg-emerald-700 p-3.5 rounded-2xl text-white shadow-md">
+            <div className="wood-texture-bg p-4 rounded-2xl text-amber-200 border-2 border-amber-600 shadow-md">
               <MapPin className="w-8 h-8" />
             </div>
             <div>
-              <h2 className="text-3xl md:text-4xl font-black text-emerald-950">{isEs ? "Cómo Llegar" : "How to Get There"}</h2>
-              <p className="text-base text-emerald-800 font-semibold">{isEs ? "Ubicación estratégica en Tuxtla Gutiérrez" : "Strategic location in Tuxtla Gutiérrez"}</p>
+              <h2 className="font-adventure text-3xl sm:text-4xl text-[#2b1810] tracking-wide">
+                {isEs ? "Ubicación & Cómo Llegar" : "How to Get There"}
+              </h2>
+              <p className="text-lg text-stone-600 font-medium">
+                {isEs
+                  ? "Ubicado dentro de la Reserva Natural El Zapotal, al sur de Tuxtla Gutiérrez"
+                  : "Located inside the El Zapotal Nature Reserve, south of Tuxtla Gutiérrez"}
+              </p>
             </div>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="space-y-7">
-              <div className="bg-emerald-50/60 p-6 rounded-2xl border border-emerald-200">
-                <h3 className="font-black text-xl text-emerald-950 mb-2">{isEs ? "Dirección Oficial" : "Official Address"}</h3>
-                <p className="text-emerald-900 text-base font-semibold leading-relaxed">
+            <div className="space-y-6">
+              <div className="bg-[#fcfaf5] p-6 rounded-2xl border-2 border-amber-900/10">
+                <h3 className="font-adventure text-2xl text-[#2b1810] mb-2">{isEs ? "Dirección Oficial" : "Official Address"}</h3>
+                <p className="text-stone-800 text-lg font-medium leading-relaxed">
                   Calzada Cerro Hueco S/N<br />
                   Col. El Zapotal, C.P. 29094<br />
                   Tuxtla Gutiérrez, Chiapas, México
                 </p>
               </div>
-              <div className="bg-emerald-50/60 p-6 rounded-2xl border border-emerald-200">
-                <h3 className="font-black text-xl text-emerald-950 mb-2 flex items-center gap-3">
-                  <Car className="w-6 h-6 text-emerald-700" />
-                  {isEs ? "En Vehículo Particular" : "By Car"}
+              <div className="bg-[#fcfaf5] p-6 rounded-2xl border-2 border-amber-900/10">
+                <h3 className="font-adventure text-xl text-[#2b1810] mb-2 flex items-center gap-3">
+                  <Car className="w-6 h-6 text-amber-700" />
+                  {isEs ? "En Automóvil" : "By Car"}
                 </h3>
-                <p className="text-emerald-900 text-base font-medium leading-relaxed">
+                <p className="text-stone-800 text-base font-medium leading-relaxed">
                   {isEs
-                    ? "Ubicado a solo 15 minutos del centro de Tuxtla Gutiérrez tomando la Calzada Cerro Hueco. Estacionamiento amplio y gratuito disponible."
-                    : "Located just 15 minutes from downtown Tuxtla Gutiérrez via Cerro Hueco Road. Ample free parking available."}
+                    ? "A solo 15 minutos del centro de la ciudad transitando por Calzada Cerro Hueco. Estacionamiento amplio y vigilado disponible."
+                    : "Only 15 minutes from downtown via Cerro Hueco Road. Free monitored parking area available."}
                 </p>
               </div>
-              <div className="bg-emerald-50/60 p-6 rounded-2xl border border-emerald-200">
-                <h3 className="font-black text-xl text-emerald-950 mb-2 flex items-center gap-3">
-                  <Bus className="w-6 h-6 text-emerald-700" />
-                  {isEs ? "Transporte Público" : "Public Transportation"}
+              <div className="bg-[#fcfaf5] p-6 rounded-2xl border-2 border-amber-900/10">
+                <h3 className="font-adventure text-xl text-[#2b1810] mb-2 flex items-center gap-3">
+                  <Bus className="w-6 h-6 text-amber-700" />
+                  {isEs ? "En Colectivo / Transporte Público" : "Public Transportation"}
                 </h3>
-                <p className="text-emerald-900 text-base font-medium leading-relaxed">
+                <p className="text-stone-800 text-base font-medium leading-relaxed">
                   {isEs
-                    ? "Rutas de colectivo locales hacia 'Cerro Hueco' o 'El Zapotal'. Pide al conductor la bajada directa en la entrada principal del ZooMAT."
-                    : "Take local transport routes towards 'Cerro Hueco' or 'El Zapotal'. Ask the driver for the ZooMAT main entrance stop."}
+                    ? "Ruta de transporte colectivo local hacia Cerro Hueco / El Zapotal con parada directa en la entrada principal del ZooMAT."
+                    : "Local public transport collective heading to Cerro Hueco / El Zapotal stops directly in front of the ZooMAT entrance."}
                 </p>
               </div>
             </div>
-            <div className="bg-gradient-to-br from-emerald-900 to-emerald-950 rounded-3xl p-8 text-white flex flex-col justify-between shadow-2xl border-4 border-amber-400/60">
+
+            <div className="wood-texture-bg rounded-3xl p-8 text-amber-100 flex flex-col justify-between shadow-2xl border-4 border-amber-600">
               <div>
-                <MapPin className="w-14 h-14 text-amber-400 mb-4" />
-                <h3 className="text-3xl font-black mb-3">{isEs ? "Reserva Natural El Zapotal" : "El Zapotal Nature Reserve"}</h3>
-                <p className="text-emerald-100 text-lg leading-relaxed mb-6 font-medium">
+                <TreePine className="w-14 h-14 text-amber-400 mb-4" />
+                <h3 className="font-adventure text-3xl sm:text-4xl text-amber-200 mb-3 text-adventure-shadow">
+                  {isEs ? "Reserva Natural El Zapotal" : "El Zapotal Nature Reserve"}
+                </h3>
+                <p className="text-amber-100/90 text-lg sm:text-xl leading-relaxed mb-6 font-medium">
                   {isEs
-                    ? "100 hectáreas de selva mediana subperennifolia protegidas para la conservación e investigación de la fauna silvestre nativa de Chiapas."
-                    : "100 hectares of protected semi-evergreen jungle for the conservation and research of native Chiapas wildlife."}
+                    ? "Más de 100 hectáreas de selva mediana subperennifolia protegida. Un verdadero pulmón verde donde conviven especies de fauna nativa en su hábitat original."
+                    : "Over 100 hectares of protected native Chiapas semi-evergreen forest. A pristine ecosystem where native fauna thrives in its natural habitat."}
                 </p>
               </div>
               <a
                 href="https://www.google.com/maps/dir//Zool%C3%B3gico+Regional+Miguel+%C3%81lvarez+del+Toro,+Calz.+Cerro+Hueco+s%2Fn,+El+Zapotal,+29094+Tuxtla+Guti%C3%A9rrez,+Chis./"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-bold px-6 py-3.5 rounded-xl transition shadow-md text-sm"
+                className="inline-flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-300 text-stone-950 font-adventure text-lg px-8 py-4 rounded-2xl transition-all shadow-xl hover:scale-105"
               >
-                {isEs ? "Abrir Ruta en GPS" : "Open GPS Directions"}
+                <Navigation className="w-5 h-5 text-stone-950" />
+                <span>{isEs ? "Abrir Ruta en Google Maps GPS" : "Open Google Maps Directions"}</span>
               </a>
             </div>
           </div>
         </section>
 
         {/* Recomendaciones */}
-        <section className="bg-white rounded-3xl shadow-xl p-8 border border-emerald-100">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-emerald-100 p-2.5 rounded-2xl text-emerald-800">
+        <section className="bg-white rounded-3xl shadow-xl p-8 md:p-10 border-2 border-[#e2d5bd]">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="wood-texture-bg p-3.5 rounded-2xl text-amber-200 border-2 border-amber-600 shadow-md">
               <Info className="w-7 h-7" />
             </div>
-            <h2 className="text-3xl font-extrabold text-emerald-950">{isEs ? "Recomendaciones para tu Visita" : "Visit Recommendations"}</h2>
+            <h2 className="font-adventure text-3xl sm:text-4xl text-[#2b1810]">
+              {isEs ? "Recomendaciones para tu Recorrido" : "Visitor Recommendations"}
+            </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {recommendations.map((rec, index) => (
-              <div key={index} className="flex items-start gap-3 bg-stone-50 p-4 rounded-xl border border-stone-200/60">
-                <div className="bg-emerald-700 rounded-full p-1 mt-1 text-white">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
+              <div
+                key={index}
+                className="flex items-start gap-3.5 bg-[#fcfaf5] p-5 rounded-2xl border border-amber-900/10 shadow-xs"
+              >
+                <div className="wood-texture-bg rounded-full p-1.5 mt-0.5 text-amber-200 flex-shrink-0">
+                  <div className="w-2 h-2 bg-amber-300 rounded-full" />
                 </div>
-                <p className="text-stone-700 text-sm font-medium">{rec}</p>
+                <p className="text-stone-800 text-base sm:text-lg font-medium">{rec}</p>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Grupos */}
-        <section className="bg-gradient-to-r from-emerald-800 to-emerald-950 text-white rounded-3xl shadow-xl p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <Users className="w-8 h-8 text-emerald-300" />
-            <h2 className="text-3xl font-bold">{isEs ? "Visitas Grupales y Escolares" : "Group & School Visits"}</h2>
+        {/* Grupos y Escuelas */}
+        <section className="bg-gradient-to-r from-[#2b1706] to-[#4a2e12] text-amber-100 rounded-3xl shadow-xl p-8 md:p-10 border-2 border-amber-600">
+          <div className="flex items-center gap-4 mb-6">
+            <Users className="w-8 h-8 text-amber-400" />
+            <h2 className="font-adventure text-3xl sm:text-4xl text-amber-200">
+              {isEs ? "Visitas Escolares y Recorridos Guiados" : "School & Group Tours"}
+            </h2>
           </div>
-          <p className="text-emerald-100 text-base sm:text-lg mb-6 leading-relaxed">
+          <p className="text-amber-100/90 text-lg sm:text-xl mb-6 leading-relaxed font-medium">
             {isEs
-              ? "Ofrecemos recorridos guiados y talleres interactivos para instituciones educativas y grupos organizados."
-              : "We offer guided tours and interactive workshops for educational institutions and organized groups."}
+              ? "Ofrecemos talleres educativos interactivos y recorridos guiados por biólogos y educadores ambientales para escuelas y grupos organizados."
+              : "We provide interactive educational workshops and guided tours led by biologists for schools and organized group visits."}
           </p>
-          <div className="bg-white/10 rounded-2xl p-6 border border-white/10">
-            <p className="font-bold text-emerald-300 mb-2">{isEs ? "Contacto para Reservaciones Grupales:" : "Group Reservation Contact:"}</p>
-            <p className="text-emerald-100 text-sm">Tel: (961) 614-4700 ext. 123</p>
-            <p className="text-emerald-100 text-sm">Email: educacion@zoomat.chiapas.gob.mx</p>
+          <div className="bg-black/30 rounded-2xl p-6 border border-amber-500/30">
+            <p className="font-adventure text-xl text-amber-300 mb-2">
+              {isEs ? "Contacto para Reservaciones de Grupos:" : "Group Reservation Inquiries:"}
+            </p>
+            <p className="text-amber-100 text-base font-semibold">Teléfono: (961) 614-4700 ext. 123</p>
+            <p className="text-amber-100 text-base font-semibold">Correo: educacion@zoomat.chiapas.gob.mx</p>
           </div>
         </section>
 
-        {/* Aviso */}
-        <section className="bg-amber-50 border-l-4 border-amber-500 rounded-2xl p-6 shadow-sm">
+        {/* Aviso de Reglamento */}
+        <section className="bg-amber-100/80 border-l-8 border-amber-600 rounded-2xl p-6 shadow-sm border border-amber-300">
           <div className="flex items-start gap-4">
-            <AlertCircle className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
+            <AlertCircle className="w-7 h-7 text-amber-800 shrink-0 mt-0.5" />
             <div>
-              <h3 className="font-bold text-amber-950 mb-2">{isEs ? "Reglamento Importante" : "Important Rules"}</h3>
-              <ul className="text-amber-900 space-y-1 text-xs sm:text-sm font-medium">
-                <li>• {isEs ? "Prohibido alimentar a los animales" : "Feeding animals is strictly prohibited"}</li>
-                <li>• {isEs ? "No se permite fumar dentro de las instalaciones" : "Smoking inside the park is strictly prohibited"}</li>
-                <li>• {isEs ? "No se permite el ingreso de mascotas" : "No pets allowed"}</li>
-                <li>• {isEs ? "Respeta el silencio cerca de los recintos" : "Please maintain quiet near animal enclosures"}</li>
+              <h3 className="font-adventure text-2xl text-amber-950 mb-2">
+                {isEs ? "Reglamento del Parque y Bienestar Animal" : "Park Rules & Animal Welfare"}
+              </h3>
+              <ul className="text-stone-800 space-y-2 text-base font-medium">
+                <li>• {isEs ? "Prohibido estrictamente alimentar a los animales." : "Strictly prohibited to feed animals."}</li>
+                <li>• {isEs ? "Área 100% libre de humo y colillas de cigarro." : "100% smoke-free reserve."}</li>
+                <li>• {isEs ? "No se permite el acceso con mascotas para salvaguardar la fauna nativa." : "No pets allowed to protect native wildlife."}</li>
+                <li>• {isEs ? "Guarda silencio y respeta el descanso de las especies." : "Maintain quiet and respect the animals' natural rhythms."}</li>
               </ul>
             </div>
           </div>

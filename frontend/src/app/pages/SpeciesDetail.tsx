@@ -1,69 +1,102 @@
-import { useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { Link, useParams, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
+import { Volume2, VolumeX, ArrowLeft, Globe, TreePine, MapPin, Sparkles, ShieldCheck, Play, Pause } from "lucide-react";
+import { useZoo } from "../context/ZooContext";
+import { recordSpeciesVisit } from "../services/analytics";
+import { INITIAL_ANIMALS, Animal } from "../data/zooStore";
 
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
 
-type Species = {
-  id: number;
-  name: string;
-  species?: string;
-  category?: string;
-  habitat?: string;
-  diet?: string;
-  description?: string;
-  imageUrl?: string;
-  conservation?: string;
-  audioDescriptionUrl?: string;
-};
-
 export function SpeciesDetail() {
-  const { idOrSlug } = useParams();
+  const { idOrSlug } = useParams<{ idOrSlug: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { i18n } = useTranslation();
-  const requestedLanguage = new URLSearchParams(window.location.search).get("lang");
-  const [species, setSpecies] = useState<Species | null>(null);
+  const { animals } = useZoo();
+
+  const [species, setSpecies] = useState<Animal | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [audioBlocked, setAudioBlocked] = useState(false);
-  const visitRecorded = useRef(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  const [speechActive, setSpeechActive] = useState(false);
 
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const visitLoggedRef = useRef(false);
+
+  // 1. Language detection: if ?lang is present, use it; otherwise detect phone language
   useEffect(() => {
-    if (requestedLanguage === "es" || requestedLanguage === "en") {
-      void i18n.changeLanguage(requestedLanguage);
+    const urlLang = searchParams.get("lang");
+    if (urlLang === "en" || urlLang === "es") {
+      void i18n.changeLanguage(urlLang);
+    } else {
+      // Auto-detect visitor's mobile/browser language
+      const phoneLang = typeof navigator !== "undefined" && navigator.language?.toLowerCase().startsWith("en") ? "en" : "es";
+      void i18n.changeLanguage(phoneLang);
     }
-  }, [i18n, requestedLanguage]);
+  }, [searchParams, i18n]);
 
+  const isEnglish = i18n.language === "en";
+
+  // 2. Load species from API or fallback to local zooStore
   useEffect(() => {
-    if (!idOrSlug || !API_BASE_URL) {
-      setError("No se pudo identificar la especie.");
+    if (!idOrSlug) {
+      setError("No se especificó la especie.");
+      setLoading(false);
+      return;
+    }
+
+    const availableAnimals = animals && animals.length > 0 ? animals : INITIAL_ANIMALS;
+    const findLocal = () =>
+      availableAnimals.find(
+        (a) =>
+          String(a.id) === String(idOrSlug) ||
+          a.name.toLowerCase().trim() === decodeURIComponent(idOrSlug).toLowerCase().trim() ||
+          a.scientificName.toLowerCase().trim() === decodeURIComponent(idOrSlug).toLowerCase().trim()
+      );
+
+    if (!API_BASE_URL) {
+      const match = findLocal();
+      if (match) {
+        setSpecies(match);
+      } else {
+        setError(isEnglish ? "Species not found in catalog." : "Especie no encontrada en el catálogo.");
+      }
       setLoading(false);
       return;
     }
 
     let active = true;
     fetch(`${API_BASE_URL}/api/species/${encodeURIComponent(idOrSlug)}`, { cache: "no-store" })
-      .then(async (response) => {
-        if (!response.ok) throw new Error("La especie no está disponible.");
-        return response.json() as Promise<Species>;
-      })
-      .then((data) => {
+      .then(async (res) => {
+        if (!res.ok) throw new Error("API not available");
+        const data = await res.json();
         if (active) {
-          setSpecies(data);
-          if (!visitRecorded.current) {
-            visitRecorded.current = true;
-            void fetch(`${API_BASE_URL}/api/analytics/${encodeURIComponent(data.id)}/visit`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                language: requestedLanguage === "en" ? "en" : "es",
-                accessedVia: "qr",
-              }),
-            }).catch((visitError) => console.error("Unable to record QR visit:", visitError));
-          }
+          setSpecies({
+            id: Number(data.id) || 1,
+            name: data.name,
+            scientificName: data.species || data.scientificName || "",
+            category: data.category || "Mamífero",
+            status: data.conservation || "Preocupación Menor",
+            habitat: data.habitat || "",
+            diet: data.diet || "",
+            funFact: data.description || data.funFact || "",
+            image: data.imageUrl || data.image || "",
+            audioUrl: data.audioDescriptionUrl || data.audioUrl,
+            enclosureId: data.enclosureId ?? null,
+          });
         }
       })
-      .catch((reason) => {
-        if (active) setError(reason instanceof Error ? reason.message : "No se pudo cargar la especie.");
+      .catch(() => {
+        // Fallback to local animals store seamlessly
+        if (active) {
+          const match = findLocal();
+          if (match) {
+            setSpecies(match);
+          } else {
+            setError(isEnglish ? "Species not found." : "Especie no encontrada.");
+          }
+        }
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -72,70 +105,362 @@ export function SpeciesDetail() {
     return () => {
       active = false;
     };
-  }, [idOrSlug]);
+  }, [idOrSlug, animals, isEnglish]);
 
-  if (loading) return <main className="min-h-screen grid place-items-center">Cargando especie...</main>;
-  if (error || !species) {
+  // 3. Record visit (QR or Direct)
+  useEffect(() => {
+    if (!species || visitLoggedRef.current) return;
+    visitLoggedRef.current = true;
+
+    const isQr = searchParams.get("scan") === "qr" || window.location.search.includes("qr");
+    recordSpeciesVisit(species.id, i18n.language, isQr ? "qr" : "direct");
+  }, [species, searchParams, i18n.language]);
+
+  // 4. Text-to-speech fallback if no MP3 audio URL exists
+  const stopSpeech = useCallback(() => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    setSpeechActive(false);
+  }, []);
+
+  const playSpeechNarration = useCallback(() => {
+    if (!species || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+
+    const name = isEnglish ? (species.nameEn || species.name) : species.name;
+    const sci = species.scientificName ? `(${species.scientificName}).` : "";
+    const fact = isEnglish ? (species.funFactEn || species.funFact) : species.funFact;
+    const hab = isEnglish ? (species.habitatEn || species.habitat) : species.habitat;
+    const diet = isEnglish ? (species.dietEn || species.diet) : species.diet;
+
+    const intro = isEnglish ? "Welcome to the ZooMAT audio guide." : "Bienvenido a la audioguía del ZooMAT.";
+    const text = `${intro} ${name}. ${sci} ${fact}. ${hab}. ${diet}.`;
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = isEnglish ? "en-US" : "es-MX";
+    utterance.rate = 0.95;
+
+    utterance.onend = () => setSpeechActive(false);
+    utterance.onerror = () => setSpeechActive(false);
+
+    setSpeechActive(true);
+    window.speechSynthesis.speak(utterance);
+  }, [species, isEnglish]);
+
+  // 5. Auto-play audio when scanned via QR or requested
+  useEffect(() => {
+    if (!species) return;
+
+    const isQr = searchParams.get("scan") === "qr" || window.location.search.includes("qr");
+    if (!isQr) return;
+
+    if (species.audioUrl) {
+      const audio = new Audio(species.audioUrl);
+      audioRef.current = audio;
+
+      audio.onplay = () => {
+        setIsPlayingAudio(true);
+        setAutoplayBlocked(false);
+      };
+      audio.onpause = () => setIsPlayingAudio(false);
+      audio.onended = () => setIsPlayingAudio(false);
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.warn("Autoplay blocked by mobile browser policy:", err);
+          setAutoplayBlocked(true);
+          setIsPlayingAudio(false);
+        });
+      }
+    } else {
+      // Try text-to-speech
+      try {
+        playSpeechNarration();
+      } catch (err) {
+        console.warn("TTS autoplay blocked:", err);
+        setAutoplayBlocked(true);
+      }
+    }
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      stopSpeech();
+    };
+  }, [species, searchParams, playSpeechNarration, stopSpeech]);
+
+  // Audio button toggle
+  const toggleAudio = () => {
+    if (species?.audioUrl) {
+      if (!audioRef.current) {
+        audioRef.current = new Audio(species.audioUrl);
+        audioRef.current.onplay = () => setIsPlayingAudio(true);
+        audioRef.current.onpause = () => setIsPlayingAudio(false);
+        audioRef.current.onended = () => setIsPlayingAudio(false);
+      }
+
+      if (isPlayingAudio) {
+        audioRef.current.pause();
+      } else {
+        setAutoplayBlocked(false);
+        audioRef.current.play().catch((e) => {
+          console.warn("Manual audio play error:", e);
+        });
+      }
+    } else {
+      // Toggle Speech
+      if (speechActive) {
+        stopSpeech();
+      } else {
+        setAutoplayBlocked(false);
+        playSpeechNarration();
+      }
+    }
+  };
+
+  const toggleLanguage = () => {
+    stopSpeech();
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    const nextLang = isEnglish ? "es" : "en";
+    void i18n.changeLanguage(nextLang);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("lang", nextLang);
+    setSearchParams(newParams);
+  };
+
+  if (loading) {
     return (
-      <main className="min-h-screen grid place-items-center p-6 text-center">
-        <div>
-          <p className="text-red-700 font-bold mb-4">{error || "Especie no encontrada."}</p>
-          <Link to="/animales" className="text-emerald-700 font-bold hover:underline">Volver al catálogo</Link>
+      <div className="min-h-screen bg-[#faf8f2] flex items-center justify-center p-6">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="font-adventure text-2xl text-[#2b1810]">
+            {isEnglish ? "Loading ZooMAT Species..." : "Cargando Especie de ZooMAT..."}
+          </p>
         </div>
-      </main>
+      </div>
     );
   }
 
-  const isEnglish = i18n.language === "en";
-  return (
-    <main className="min-h-screen bg-emerald-50 p-4 md:p-10">
-      <article className="max-w-3xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden">
-        <div className="flex justify-end p-4 pb-0">
-          <button
-            type="button"
-            onClick={() => {
-              const language = isEnglish ? "es" : "en";
-              void i18n.changeLanguage(language);
-              const url = new URL(window.location.href);
-              url.searchParams.set("lang", language);
-              window.history.replaceState({}, "", url);
-            }}
-            className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-800 hover:bg-emerald-100"
-          >
-            {isEnglish ? "Ver en español" : "View in English"}
-          </button>
-        </div>
-        {species.imageUrl && <img src={species.imageUrl} alt={species.name} className="w-full max-h-96 object-cover" />}
-        <div className="p-6 md:p-10 space-y-5">
-          <p className="text-sm font-bold uppercase tracking-wider text-emerald-700">{species.category}</p>
-          <h1 className="text-4xl font-black text-emerald-950">{species.name}</h1>
-          {species.species && <p className="text-xl italic text-gray-600">{species.species}</p>}
-          <div className="grid sm:grid-cols-2 gap-4 text-gray-700">
-            {species.habitat && <p><strong>{isEnglish ? "Habitat" : "Hábitat"}:</strong> {species.habitat}</p>}
-            {species.diet && <p><strong>{isEnglish ? "Diet" : "Dieta"}:</strong> {species.diet}</p>}
-            {species.conservation && <p><strong>{isEnglish ? "Conservation" : "Conservación"}:</strong> {species.conservation}</p>}
+  if (error || !species) {
+    return (
+      <div className="min-h-screen bg-[#faf8f2] flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white rounded-3xl p-8 border-2 border-amber-800/20 shadow-2xl text-center space-y-6">
+          <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto text-amber-800">
+            <TreePine className="w-8 h-8" />
           </div>
-          {species.description && <p className="text-gray-700 leading-relaxed">{species.description}</p>}
-          {species.audioDescriptionUrl && (
-            <div className="space-y-2">
-              <audio
-                controls
-                autoPlay
-                src={species.audioDescriptionUrl}
-                className="w-full"
-                onPlay={() => setAudioBlocked(false)}
-                onError={() => setAudioBlocked(true)}
-              />
-              {audioBlocked && (
-                <p className="text-sm text-amber-700">
-                  El navegador bloqueó la reproducción automática. Presiona reproducir para escuchar el audio.
+          <h2 className="font-adventure text-3xl text-[#2b1810] text-adventure-shadow">
+            {isEnglish ? "Species Not Found" : "Especie no encontrada"}
+          </h2>
+          <p className="text-stone-600 text-base">{error || (isEnglish ? "We could not find this animal." : "No pudimos encontrar este ejemplar.")}</p>
+          <Link
+            to="/animales"
+            className="inline-flex items-center gap-2 wood-texture-bg text-amber-200 border-2 border-amber-600 px-6 py-3 rounded-2xl font-adventure text-base shadow-lg hover:scale-105 transition-transform wood-button-shadow"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>{isEnglish ? "Return to Catalog" : "Volver al Catálogo"}</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const displayName = isEnglish ? (species.nameEn || species.name) : species.name;
+  const displayHabitat = isEnglish ? (species.habitatEn || species.habitat) : species.habitat;
+  const displayDiet = isEnglish ? (species.dietEn || species.diet) : species.diet;
+  const displayFunFact = isEnglish ? (species.funFactEn || species.funFact) : species.funFact;
+
+  const isAudioCurrentlyRunning = isPlayingAudio || speechActive;
+
+  return (
+    <div className="min-h-screen bg-[#faf8f2] text-stone-900 pb-20">
+      {/* 1. Header Banner matching the photo 1 style */}
+      <section className="relative bg-[#f7f3e8] border-b-4 border-[#2b1706] py-12 md:py-16 overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-20 pointer-events-none"
+          style={{
+            backgroundImage: "radial-gradient(#854d0e 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
+          }}
+        />
+
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <Link
+              to="/animales"
+              className="inline-flex items-center gap-2 text-stone-700 hover:text-amber-900 font-bold text-base transition-colors bg-white/80 px-4 py-2 rounded-xl border border-amber-800/20 shadow-xs"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>{isEnglish ? "Back to Wildlife Catalog" : "Volver al Catálogo"}</span>
+            </Link>
+
+            {/* Language Switch Button */}
+            <button
+              onClick={toggleLanguage}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-amber-50 text-stone-900 font-bold border-2 border-amber-700/30 shadow-md transition-all hover:scale-105 text-sm"
+              title="Cambiar idioma / Change language"
+            >
+              <Globe className="w-4 h-4 text-emerald-700" />
+              <span>{isEnglish ? "🇲🇽 Ver en Español" : "🇺🇸 Switch to English"}</span>
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100/90 text-amber-950 text-xs sm:text-sm font-black tracking-wide uppercase shadow-xs border border-amber-300">
+              <TreePine className="w-4 h-4 text-emerald-800" />
+              <span>ZOOLÓGICO REGIONAL MIGUEL ÁLVAREZ DEL TORO • QR GUÍA</span>
+            </div>
+
+            <h1 className="font-adventure text-4xl sm:text-6xl text-[#2b1810] tracking-wide text-adventure-shadow leading-tight">
+              {displayName}
+            </h1>
+
+            {species.scientificName && (
+              <p className="text-xl sm:text-2xl font-serif italic text-amber-900 font-medium">
+                {species.scientificName}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Rustic Wood Beam */}
+        <div className="wood-texture-bg h-4 sm:h-5 w-full border-t border-b-2 border-amber-950/80 shadow-md mt-8" />
+      </section>
+
+      {/* 2. Main Content Card */}
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 mt-8 space-y-8">
+        {/* Prominent Audio Guide Bar / Mobile Autoplay Prompt */}
+        <div className="bg-gradient-to-r from-amber-900 via-[#8B5A2B] to-[#5C3A1E] text-white p-5 sm:p-6 rounded-3xl shadow-xl border-2 border-amber-500/60 relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4 text-center sm:text-left">
+              <button
+                onClick={toggleAudio}
+                className="w-14 h-14 rounded-2xl bg-amber-400 hover:bg-amber-300 text-stone-950 flex items-center justify-center shadow-lg transition-transform hover:scale-105 flex-shrink-0"
+              >
+                {isAudioCurrentlyRunning ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-0.5" />}
+              </button>
+              <div>
+                <p className="font-adventure text-xl sm:text-2xl text-amber-200">
+                  {isAudioCurrentlyRunning
+                    ? (isEnglish ? "Playing Audio Guide..." : "Reproduciendo Audioguía...")
+                    : (isEnglish ? "Listen to Official Audio Guide" : "Escuchar Audioguía Oficial")}
                 </p>
-              )}
+                <p className="text-amber-100/90 text-sm font-medium">
+                  {isEnglish
+                    ? "Professional narration about this native Chiapas species"
+                    : "Narración descriptiva sobre esta especie nativa de Chiapas"}
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={toggleAudio}
+              className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-white hover:bg-amber-100 text-stone-950 font-adventure text-base tracking-wide shadow-md transition-all flex items-center justify-center gap-2"
+            >
+              <Volume2 className="w-5 h-5 text-emerald-800" />
+              <span>{isAudioCurrentlyRunning ? (isEnglish ? "Pause Audio" : "Pausar Audio") : (isEnglish ? "Play Now" : "Reproducir")}</span>
+            </button>
+          </div>
+
+          {autoplayBlocked && !isAudioCurrentlyRunning && (
+            <div className="mt-3 bg-amber-500/20 border border-amber-300/40 p-2.5 rounded-xl text-center text-xs sm:text-sm font-semibold text-amber-100 animate-pulse">
+              {isEnglish
+                ? "Tap 'Play Now' to start the audio guide on your device."
+                : "Toca 'Reproducir' para activar la audioguía en tu dispositivo móvil."}
             </div>
           )}
-          <Link to="/animales" className="inline-block text-emerald-700 font-bold hover:underline">Volver al catálogo</Link>
         </div>
-      </article>
-    </main>
+
+        {/* Species Photo with ambient frame */}
+        <div className="bg-white rounded-3xl overflow-hidden shadow-2xl border-2 border-[#e2d5bd]">
+          {species.image && (
+            <div className="relative w-full h-[320px] sm:h-[420px] md:h-[480px] bg-stone-950 flex items-center justify-center overflow-hidden">
+              <img
+                src={species.image}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none"
+              />
+              <img
+                src={species.image}
+                alt={displayName}
+                className="relative z-10 max-h-full max-w-full w-auto h-auto object-contain object-center"
+              />
+              <div className="absolute top-4 left-4 z-20">
+                <span className="bg-black/60 backdrop-blur-md text-amber-300 border border-amber-400/40 text-xs sm:text-sm font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider">
+                  {species.category}
+                </span>
+              </div>
+              <div className="absolute top-4 right-4 z-20">
+                <span className="bg-emerald-900/80 backdrop-blur-md text-emerald-200 border border-emerald-400/40 text-xs sm:text-sm font-extrabold px-4 py-1.5 rounded-full">
+                  {species.status}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Details Body */}
+          <div className="p-6 sm:p-10 space-y-8">
+            {/* About text */}
+            <div className="space-y-3">
+              <h2 className="font-adventure text-2xl sm:text-3xl text-[#2b1810] flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-amber-600" />
+                <span>{isEnglish ? "About this Species" : "Sobre esta Especie"}</span>
+              </h2>
+              <p className="text-stone-700 text-lg sm:text-xl leading-relaxed font-medium">
+                {displayFunFact}
+              </p>
+            </div>
+
+            {/* Grid Attributes */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-amber-900/10">
+              <div className="bg-[#fcfaf5] p-6 rounded-2xl border border-amber-900/10 shadow-xs">
+                <h3 className="font-adventure text-xl text-amber-950 mb-2 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-emerald-700" />
+                  <span>{isEnglish ? "Habitat & Natural Range" : "Hábitat y Distribución"}</span>
+                </h3>
+                <p className="text-stone-700 text-base sm:text-lg leading-relaxed">
+                  {displayHabitat}
+                </p>
+              </div>
+
+              <div className="bg-[#fcfaf5] p-6 rounded-2xl border border-amber-900/10 shadow-xs">
+                <h3 className="font-adventure text-xl text-amber-950 mb-2 flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-amber-700" />
+                  <span>{isEnglish ? "Diet & Feeding Habits" : "Alimentación y Dieta"}</span>
+                </h3>
+                <p className="text-stone-700 text-base sm:text-lg leading-relaxed">
+                  {displayDiet}
+                </p>
+              </div>
+            </div>
+
+            {/* Footer action buttons */}
+            <div className="pt-6 border-t border-amber-900/10 flex flex-wrap items-center justify-between gap-4">
+              <Link
+                to="/animales"
+                className="inline-flex items-center gap-2 wood-texture-bg text-amber-200 hover:text-white border-2 border-amber-600 px-6 py-3.5 rounded-2xl font-adventure text-base shadow-lg hover:scale-105 transition-all wood-button-shadow"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span>{isEnglish ? "Explore Full ZooMAT Catalog" : "Explorar Más Animales"}</span>
+              </Link>
+
+              <Link
+                to="/mapa"
+                className="inline-flex items-center gap-2 bg-white hover:bg-amber-50 text-stone-900 font-bold px-6 py-3.5 rounded-2xl border-2 border-amber-800/30 shadow-md hover:scale-105 transition-all text-base"
+              >
+                <MapPin className="w-5 h-5 text-emerald-700" />
+                <span>{isEnglish ? "Locate on Zoo Map" : "Ver en el Mapa del Zoo"}</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }

@@ -52,37 +52,78 @@ function HeroCarousel() {
           }`}
         >
           {s.type === "image" ? (
-            <div className="w-full h-full relative bg-stone-900 flex items-center justify-center overflow-hidden">
+            <div className="w-full h-full relative bg-stone-950 flex items-center justify-center overflow-hidden">
+              {/* Blurred ambient background so the photo is not harshly cut */}
+              <img
+                src={s.src}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-35 select-none pointer-events-none"
+              />
+              {/* Cleanly fitted foreground photo */}
               <img
                 src={s.src}
                 alt={s.alt || "Zoológico"}
-                className="w-full h-full object-cover object-center select-none transition-transform duration-700 hover:scale-105"
+                className="relative z-10 max-h-full max-w-full w-auto h-auto object-contain object-center select-none transition-transform duration-700"
               />
             </div>
           ) : (
-            <div className="w-full h-full relative bg-black">
-              <video
-                src={s.src}
-                poster={s.poster}
-                className="w-full h-full object-cover object-center"
-                loop
-                playsInline
-                ref={(el) => {
-                  if (!el) return;
-                  if (i === current && playing) el.play();
-                  else el.pause();
-                }}
-              />
-              {!playing && (
-                <button
-                  onClick={() => setPlaying(true)}
-                  className="absolute inset-0 flex items-center justify-center bg-black/35 hover:bg-black/45 transition-colors z-20 cursor-pointer"
-                >
-                  <span className="w-20 h-20 rounded-full wood-texture-bg text-amber-300 border-2 border-amber-400 flex items-center justify-center shadow-2xl hover:scale-110 transition-transform wood-button-shadow">
-                    <Play size={36} className="ml-1 fill-amber-300" />
-                  </span>
-                </button>
-              )}
+            <div className="w-full h-full relative bg-black flex items-center justify-center">
+              {(() => {
+                const url = s.src || "";
+                const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                if (ytMatch) {
+                  return (
+                    <iframe
+                      src={`https://www.youtube.com/embed/${ytMatch[1]}?autoplay=${playing ? 1 : 0}&enablejsapi=1&rel=0`}
+                      title={s.alt || "Video"}
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  );
+                }
+                if (url.includes("facebook.com")) {
+                  return (
+                    <iframe
+                      src={`https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&autoplay=${playing ? 1 : 0}`}
+                      className="w-full h-full border-0"
+                      allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                      allowFullScreen
+                    />
+                  );
+                }
+                return (
+                  <div className="w-full h-full relative flex items-center justify-center">
+                    <video
+                      src={s.src}
+                      poster={s.poster}
+                      className="max-h-full max-w-full w-auto h-auto object-contain"
+                      loop
+                      controls={playing}
+                      playsInline
+                      ref={(el) => {
+                        if (!el) return;
+                        if (i === current && playing) {
+                          el.play().catch(() => {});
+                        } else {
+                          el.pause();
+                        }
+                      }}
+                    />
+                    {!playing && (
+                      <button
+                        onClick={() => setPlaying(true)}
+                        className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/50 transition-colors z-20 cursor-pointer"
+                      >
+                        <span className="w-20 h-20 rounded-full wood-texture-bg text-amber-300 border-2 border-amber-400 flex items-center justify-center shadow-2xl hover:scale-110 transition-transform wood-button-shadow">
+                          <Play size={36} className="ml-1 fill-amber-300" />
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>

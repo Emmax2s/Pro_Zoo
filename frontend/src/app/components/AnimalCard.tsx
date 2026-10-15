@@ -1,6 +1,6 @@
-import { Info, MapPin, AlertCircle, Lightbulb } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { Card } from './ui/card';
+import { Info, MapPin, AlertCircle, Lightbulb } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Card } from "./ui/card";
 
 interface AnimalCardProps {
   name: string;
@@ -32,12 +32,12 @@ export function AnimalCard({
   statusColor,
 }: AnimalCardProps) {
   const { i18n } = useTranslation();
-  const isEs = i18n.language === 'es';
+  const isEs = i18n.language === "es";
 
-  const displayName = isEs ? name : (nameEn || name);
-  const displayHabitat = isEs ? habitat : (habitatEn || habitat);
-  const displayDiet = isEs ? diet : (dietEn || diet);
-  const displayFunFact = isEs ? funFact : (funFactEn || funFact);
+  const displayName = isEs ? name : nameEn || name;
+  const displayHabitat = isEs ? habitat : habitatEn || habitat;
+  const displayDiet = isEs ? diet : dietEn || diet;
+  const displayFunFact = isEs ? funFact : funFactEn || funFact;
   const displayStatus = isEs
     ? status
     : status === "En Peligro de Extinción"
@@ -47,59 +47,80 @@ export function AnimalCard({
     : "Special Protection";
 
   return (
-    <Card className="overflow-hidden bg-white border-2 border-emerald-100/80 shadow-md hover:shadow-2xl hover:border-emerald-300 transition-all duration-300 group rounded-3xl flex flex-col h-full">
+    <Card className="overflow-hidden bg-white border-2 border-[#e2d5bd] shadow-lg hover:shadow-2xl hover:border-amber-600/50 transition-all duration-300 group rounded-3xl flex flex-col h-full">
       {/* Imagen del animal */}
-      <div className="relative h-72 overflow-hidden bg-emerald-50">
+      <div className="relative h-72 sm:h-80 overflow-hidden bg-stone-900">
+        {/* Ambient backdrop */}
+        <img
+          src={image}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover blur-xl opacity-40 scale-110 pointer-events-none"
+        />
         <img
           src={image}
           alt={displayName}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
+          className="relative z-10 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
         />
-        <div className={`absolute top-4 right-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wide shadow-md ${statusColor}`}>
+        <div
+          className={`absolute top-4 right-4 z-20 inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider shadow-lg ${statusColor}`}
+        >
           <AlertCircle className="w-4 h-4" />
           <span>{displayStatus}</span>
         </div>
       </div>
 
-      {/* Contenido informativo */}
-      <div className="p-6 md:p-8 space-y-5 flex-1 flex flex-col justify-between">
+      {/* Contenido informativo con tipografía agrandada */}
+      <div className="p-6 md:p-8 space-y-5 flex-1 flex flex-col justify-between bg-[#faf8f2]/60">
         <div>
-          <h2 className="text-2xl md:text-3xl font-black text-emerald-950 tracking-tight leading-snug">{displayName}</h2>
-          <p className="text-base text-emerald-700 italic font-semibold mt-1">({scientificName})</p>
+          <h2 className="font-adventure text-2xl sm:text-3xl text-[#2b1810] tracking-wide group-hover:text-amber-800 transition-colors leading-tight">
+            {displayName}
+          </h2>
+          <p className="text-base sm:text-lg text-amber-900 font-serif italic font-semibold mt-1">
+            ({scientificName})
+          </p>
         </div>
 
-        <div className="space-y-4 pt-2">
+        <div className="space-y-4 pt-1">
           {/* Hábitat */}
           <div className="flex items-start gap-3.5">
-            <div className="bg-emerald-100 p-2 rounded-xl mt-0.5 text-emerald-800">
-              <MapPin className="w-4 h-4 flex-shrink-0" />
+            <div className="bg-amber-100 p-2.5 rounded-xl mt-0.5 text-amber-900 border border-amber-300">
+              <MapPin className="w-5 h-5 flex-shrink-0" />
             </div>
             <div>
-              <p className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider">{isEs ? "HÁBITAT" : "HABITAT"}</p>
-              <p className="text-base text-emerald-950 font-medium leading-snug">{displayHabitat}</p>
+              <p className="text-xs font-black text-amber-900 uppercase tracking-wider">
+                {isEs ? "HÁBITAT" : "HABITAT"}
+              </p>
+              <p className="text-base sm:text-lg text-stone-800 font-medium leading-snug">
+                {displayHabitat}
+              </p>
             </div>
           </div>
 
           {/* Dieta */}
           <div className="flex items-start gap-3.5">
-            <div className="bg-emerald-100 p-2 rounded-xl mt-0.5 text-emerald-800">
-              <Info className="w-4 h-4 flex-shrink-0" />
+            <div className="bg-amber-100 p-2.5 rounded-xl mt-0.5 text-amber-900 border border-amber-300">
+              <Info className="w-5 h-5 flex-shrink-0" />
             </div>
             <div>
-              <p className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider">{isEs ? "ALIMENTACIÓN" : "DIET"}</p>
-              <p className="text-base text-emerald-950 font-medium leading-snug">{displayDiet}</p>
+              <p className="text-xs font-black text-amber-900 uppercase tracking-wider">
+                {isEs ? "ALIMENTACIÓN" : "DIET"}
+              </p>
+              <p className="text-base sm:text-lg text-stone-800 font-medium leading-snug">
+                {displayDiet}
+              </p>
             </div>
           </div>
         </div>
 
         {/* Dato curioso */}
-        <div className="pt-4 border-t border-emerald-100">
-          <div className="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200">
-            <div className="flex items-center gap-2 mb-1.5 text-emerald-950 font-extrabold text-sm uppercase tracking-wide">
-              <Lightbulb className="w-4 h-4 text-amber-500" />
+        <div className="pt-4 border-t border-amber-900/10">
+          <div className="bg-white p-4 rounded-2xl border border-amber-900/15 shadow-xs">
+            <div className="flex items-center gap-2 mb-1.5 text-stone-900 font-adventure text-sm tracking-wide">
+              <Lightbulb className="w-4 h-4 text-amber-600" />
               <span>{isEs ? "DATO INTERESANTE" : "INTERESTING FACT"}</span>
             </div>
-            <p className="text-base text-emerald-950 font-medium leading-relaxed">
+            <p className="text-sm sm:text-base text-stone-700 font-medium leading-relaxed">
               {displayFunFact}
             </p>
           </div>

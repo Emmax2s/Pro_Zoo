@@ -25,16 +25,23 @@ const emptyForm: Omit<Animal, "id"> = {
 
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || '').replace(/\/$/, '');
 function QrModal({ animal, onClose }: { animal: Animal; onClose: () => void }) {
-  const qrTargetUrl = typeof window !== 'undefined'
-    ?     `${window.location.origin}/especie/${animal.id}?lang=es`
-    : '';
-  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [langMode, setLangMode] = useState<"auto" | "es" | "en">("auto");
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  
+  const qrTargetUrl = origin
+    ? langMode === "auto"
+      ? `${origin}/especie/${animal.id}?scan=qr`
+      : `${origin}/especie/${animal.id}?lang=${langMode}&scan=qr`
+    : "";
 
-  useState(() => {
-    QRCode.toDataURL(qrTargetUrl || `Animal: ${animal.name}`, { width: 300, margin: 2 })
-      .then(url => setQrDataUrl(url))
-      .catch(() => setQrDataUrl(''));
-  });
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
+
+  useEffect(() => {
+    if (!qrTargetUrl) return;
+    QRCode.toDataURL(qrTargetUrl, { width: 320, margin: 2 })
+      .then((url) => setQrDataUrl(url))
+      .catch(() => setQrDataUrl(""));
+  }, [qrTargetUrl]);
 
   const downloadQr = async () => {
     if (!qrTargetUrl) return;
@@ -42,7 +49,7 @@ function QrModal({ animal, onClose }: { animal: Animal; onClose: () => void }) {
       const dataUrl = await QRCode.toDataURL(qrTargetUrl, { width: 1024, margin: 2 });
       const link = document.createElement("a");
       link.href = dataUrl;
-      link.download = `QR-${animal.name.replace(/\s+/g, "_")}.png`;
+      link.download = `QR-ZooMAT-${animal.name.replace(/\s+/g, "_")}-${langMode}.png`;
       link.click();
     } catch (err) {
       console.error("Failed to download QR", err);
@@ -51,41 +58,92 @@ function QrModal({ animal, onClose }: { animal: Animal; onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 text-center" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute right-4 top-4 p-2 text-gray-400 hover:text-gray-600 rounded-lg">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div
+        className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg p-7 text-center border-4 border-amber-900/20"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 p-2 text-stone-400 hover:text-stone-700 rounded-full hover:bg-stone-100 transition-colors"
+        >
           <X size={20} />
         </button>
 
-        <div className="flex items-center justify-center gap-2 text-emerald-800 font-bold text-xl mb-1">
-          <QrCode className="w-6 h-6 text-emerald-600" />
-          <span>Código QR del Exhibidor</span>
+        <div className="flex items-center justify-center gap-2 text-stone-900 font-adventure text-2xl mb-1">
+          <QrCode className="w-7 h-7 text-amber-700" />
+          <span>Código QR del Exhibidor ZooMAT</span>
         </div>
-        <p className="text-xs text-gray-500 mb-4">
-          Código QR oficial para la placa del recinto de <strong className="text-gray-800">{animal.name}</strong>
+        <p className="text-sm text-stone-600 mb-4">
+          Placa interactiva y audioguía para el recinto de <strong className="text-amber-950 font-bold">{animal.name}</strong>
         </p>
 
-        <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-4 inline-block mb-4 shadow-sm">
+        {/* Idioma Selector */}
+        <div className="mb-4">
+          <label className="block text-xs font-bold text-stone-600 uppercase tracking-wider mb-2">
+            Modo de Idioma al Escanear el QR:
+          </label>
+          <div className="grid grid-cols-3 gap-2 bg-[#fcfaf5] p-1.5 rounded-2xl border border-amber-900/15">
+            <button
+              type="button"
+              onClick={() => setLangMode("auto")}
+              className={`py-2 px-2 rounded-xl text-xs font-bold transition-all ${
+                langMode === "auto"
+                  ? "wood-texture-bg text-amber-200 border border-amber-600 shadow-sm"
+                  : "text-stone-700 hover:bg-amber-100/50"
+              }`}
+            >
+              🌐 Automático
+            </button>
+            <button
+              type="button"
+              onClick={() => setLangMode("es")}
+              className={`py-2 px-2 rounded-xl text-xs font-bold transition-all ${
+                langMode === "es"
+                  ? "wood-texture-bg text-amber-200 border border-amber-600 shadow-sm"
+                  : "text-stone-700 hover:bg-amber-100/50"
+              }`}
+            >
+              🇲🇽 Español
+            </button>
+            <button
+              type="button"
+              onClick={() => setLangMode("en")}
+              className={`py-2 px-2 rounded-xl text-xs font-bold transition-all ${
+                langMode === "en"
+                  ? "wood-texture-bg text-amber-200 border border-amber-600 shadow-sm"
+                  : "text-stone-700 hover:bg-amber-100/50"
+              }`}
+            >
+              🇺🇸 English
+            </button>
+          </div>
+          <p className="text-xs text-stone-500 mt-2">
+            {langMode === "auto" && "Detecta automáticamente el idioma del teléfono del visitante (Español o Inglés)."}
+            {langMode === "es" && "Abre siempre la ficha y audioguía en idioma Español."}
+            {langMode === "en" && "Abre siempre la ficha y audioguía en idioma Inglés para turistas extranjeros."}
+          </p>
+        </div>
+
+        <div className="bg-[#fcfaf5] border-2 border-amber-900/20 rounded-3xl p-4 inline-block mb-4 shadow-sm">
           {qrDataUrl ? (
-            <img src={qrDataUrl} alt={`QR ${animal.name}`} className="w-56 h-56 mx-auto rounded-lg" />
+            <img src={qrDataUrl} alt={`QR ${animal.name}`} className="w-56 h-56 mx-auto rounded-xl shadow-xs" />
           ) : (
-            <div className="w-56 h-56 flex items-center justify-center text-gray-400 text-sm">Generando QR...</div>
+            <div className="w-56 h-56 flex items-center justify-center text-stone-400 text-sm">Generando QR...</div>
           )}
         </div>
 
-        <p className="text-xs text-gray-600 font-mono bg-gray-100 p-2 rounded-lg break-all mb-5">
+        <p className="text-xs text-amber-950 font-mono bg-amber-50 border border-amber-200 p-2.5 rounded-xl break-all mb-5">
           {qrTargetUrl}
         </p>
 
-        <div className="flex gap-3 justify-center">
-          <button
-            onClick={downloadQr}
-            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-sm shadow-md transition-colors"
-          >
-            <Download size={18} />
-            Descargar Imagen QR (PNG)
-          </button>
-        </div>
+        <button
+          onClick={downloadQr}
+          className="w-full wood-texture-bg text-amber-200 hover:text-white font-adventure text-base py-3.5 px-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg border-2 border-amber-600 hover:scale-102 transition-all wood-button-shadow cursor-pointer"
+        >
+          <Download size={20} className="text-amber-300" />
+          <span>Descargar Imagen QR de Alta Resolución (PNG)</span>
+        </button>
       </div>
     </div>
   );

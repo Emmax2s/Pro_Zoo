@@ -38,8 +38,8 @@ export function Footer() {
                 className="w-16 h-16 rounded-full object-contain bg-white p-1 shadow-lg border-2 border-amber-500"
               />
               <div>
-                <h3 className="font-adventure text-amber-300 tracking-wide text-2xl leading-none">ZOO GDL</h3>
-                <p className="text-xs text-emerald-400 font-extrabold uppercase tracking-wider mt-1">Dejando Huella</p>
+                <h3 className="font-adventure text-amber-300 tracking-wide text-2xl leading-none">ZooMAT</h3>
+                <p className="text-xs text-emerald-400 font-extrabold uppercase tracking-wider mt-1">Miguel Álvarez del Toro</p>
               </div>
             </div>
             <p className="text-stone-300 text-sm leading-relaxed font-normal">
@@ -71,11 +71,6 @@ export function Footer() {
                   {t("nav.contact")}
                 </Link>
               </li>
-              <li>
-                <Link to="/redes" className="text-stone-300 hover:text-amber-300 hover:translate-x-1 inline-block transition-transform">
-                  Redes Oficiales
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -105,20 +100,38 @@ export function Footer() {
               <Clock className="w-5 h-5 mt-1 flex-shrink-0 text-amber-400" />
               <div>
                 <p className="font-bold text-white">Martes a Domingo</p>
-                <p className="font-adventure text-amber-300 text-xl mt-0.5">9:00 AM - 5:00 PM</p>
+                <p className="font-adventure text-amber-300 text-xl mt-0.5">8:30 AM - 4:30 PM</p>
                 <p className="text-xs text-stone-400 mt-1 font-medium">{t("footer.closed")}</p>
               </div>
             </div>
             <div>
               <div className="flex gap-3">
-                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="bg-stone-900 border border-stone-700 p-3 rounded-xl text-amber-200 hover:text-white hover:bg-stone-800 transition-all hover:scale-110 shadow-sm">
+                <a
+                  href="https://www.tiktok.com/@zoomat.oficial"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="TikTok ZooMAT Oficial"
+                  className="bg-stone-900 border border-stone-700 p-3 rounded-xl text-amber-200 hover:text-white hover:bg-stone-800 transition-all hover:scale-110 shadow-sm"
+                >
+                  <Tiktok className="w-5 h-5" />
+                </a>
+                <a
+                  href="https://www.facebook.com/ZoomatOficial/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Facebook ZooMAT Oficial"
+                  className="bg-stone-900 border border-stone-700 p-3 rounded-xl text-amber-200 hover:text-white hover:bg-stone-800 transition-all hover:scale-110 shadow-sm"
+                >
                   <Facebook className="w-5 h-5" />
                 </a>
-                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="bg-stone-900 border border-stone-700 p-3 rounded-xl text-amber-200 hover:text-white hover:bg-stone-800 transition-all hover:scale-110 shadow-sm">
+                <a
+                  href="https://www.instagram.com/zoomatoficial_/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Instagram ZooMAT Oficial"
+                  className="bg-stone-900 border border-stone-700 p-3 rounded-xl text-amber-200 hover:text-white hover:bg-stone-800 transition-all hover:scale-110 shadow-sm"
+                >
                   <Instagram className="w-5 h-5" />
-                </a>
-                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="bg-stone-900 border border-stone-700 p-3 rounded-xl text-amber-200 hover:text-white hover:bg-stone-800 transition-all hover:scale-110 shadow-sm">
-                  <Twitter className="w-5 h-5" />
                 </a>
               </div>
             </div>

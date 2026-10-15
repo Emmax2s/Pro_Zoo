@@ -17,7 +17,6 @@ export function Navigation() {
 
   const topLinks = [
     { to: "/visita", label: isEs ? "Acerca del zoológico" : "About the Zoo", icon: Compass },
-    { to: "/visita#servicios", label: isEs ? "Servicios" : "Services", icon: Sparkles },
     { to: "/mapa", label: isEs ? "Mapa del zoológico" : "Zoo Map", icon: MapPin },
     { to: "/animales", label: isEs ? "Todo sobre animales" : "All about Animals", icon: BookOpen },
     { to: "/contacto", label: isEs ? "Preguntas frecuentes" : "FAQ & Help", icon: HelpCircle },
@@ -29,7 +28,6 @@ export function Navigation() {
     { to: "/visita", label: isEs ? "VISITA" : "VISIT" },
     { to: "/mapa", label: isEs ? "MAPA" : "MAP" },
     { to: "/contacto", label: isEs ? "CONTACTO" : "CONTACT" },
-    { to: "/redes", label: isEs ? "REDES" : "SOCIAL" },
   ];
 
   const isActive = (path: string) => {
@@ -94,37 +92,33 @@ export function Navigation() {
           <div className="flex items-center justify-between min-h-[96px] md:min-h-[110px] py-2 gap-2">
 
             {/* LEFT: HANGING PARCHMENT PAPER SIGN WITH LOGO */}
-            <div className="relative z-20 flex-shrink-0 pt-1 -mb-6 md:-mb-8">
+            <div className="relative z-20 flex-shrink-0 pt-1 -mb-8 md:-mb-12">
               {/* Hanging string nails */}
-              <div className="flex justify-between w-28 md:w-36 px-4 mb-0.5">
+              <div className="flex justify-between w-32 sm:w-40 md:w-44 px-4 mb-0.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-950 border border-stone-400 shadow-md inline-block" />
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-950 border border-stone-400 shadow-md inline-block" />
               </div>
 
-              {/* Parchment Tag */}
+              {/* White Card Tag */}
               <Link
                 to="/"
-                className="block w-28 md:w-36 bg-[#fcf8ec] text-stone-900 rounded-b-xl rounded-t-sm px-2.5 pt-2 pb-3 shadow-2xl border-2 border-[#d9c49e] relative group hover:-translate-y-0.5 transition-transform duration-200"
-                style={{
-                  backgroundImage: "radial-gradient(#dfd5bc 0.75px, transparent 0.75px)",
-                  backgroundSize: "8px 8px",
-                }}
+                className="block w-32 sm:w-40 md:w-44 bg-white text-stone-900 rounded-b-2xl rounded-t-sm p-2 pb-3 shadow-2xl border-2 border-stone-200 relative group hover:-translate-y-0.5 transition-transform duration-200"
               >
                 {/* Paper dog-ear corner effect */}
-                <div className="absolute bottom-0 right-0 w-4 h-4 bg-gradient-to-tl from-amber-200 to-transparent rounded-tl shadow-inner pointer-events-none" />
+                <div className="absolute bottom-0 right-0 w-4 h-4 bg-gradient-to-tl from-amber-200/60 to-transparent rounded-tl shadow-inner pointer-events-none" />
 
                 <div className="flex flex-col items-center text-center">
-                  <div className="relative">
+                  <div className="w-full flex items-center justify-center">
                     <img
                       src={logoZoomat}
                       alt="Logo Oficial ZooMAT"
-                      className="w-14 h-14 md:w-16 md:h-16 object-contain rounded-full border border-amber-900/30 p-0.5 bg-white shadow-md group-hover:scale-105 transition-transform"
+                      className="w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40 object-contain rounded-full shadow-md group-hover:scale-105 transition-transform bg-white"
                     />
                   </div>
-                  <div className="mt-1 font-adventure text-lg md:text-xl text-amber-900 leading-none tracking-tight">
+                  <div className="mt-1 font-adventure text-lg sm:text-xl md:text-2xl text-stone-900 leading-none tracking-tight">
                     ZooMAT
                   </div>
-                  <span className="text-[8px] md:text-[9px] font-black text-emerald-800 tracking-wider uppercase mt-0.5 leading-tight">
+                  <span className="text-[8px] sm:text-[9px] md:text-[10px] font-black text-emerald-800 tracking-wider uppercase mt-1 leading-tight">
                     Miguel Álvarez del Toro
                   </span>
                 </div>
@@ -134,7 +128,7 @@ export function Navigation() {
             {/* CENTER: OPERATIONAL BADGE & MAIN ADVENTURE NAVIGATION */}
             <div className="flex-1 flex flex-col items-center justify-center px-2">
               {/* Horario y Teléfono pill */}
-              <div className="hidden lg:flex items-center gap-3 bg-black/45 backdrop-blur-md px-4 py-1 rounded-full border border-amber-200/25 text-white text-xs font-semibold shadow-md mb-1.5">
+              <div className="hidden lg:flex items-center gap-3 bg-black/45 backdrop-blur-md px-4 py-1 rounded-full border border-amber-200/25 text-white text-xs font-semibold shadow-md mb-2">
                 <div className="flex items-center gap-1.5 text-amber-300">
                   <Clock className="w-3.5 h-3.5" />
                   <span>{isEs ? "Horario: Mar-Dom: 8:30 - 16:30" : "Hours: Tue-Sun 8:30 - 16:30"}</span>
@@ -149,14 +143,14 @@ export function Navigation() {
               </div>
 
               {/* Main Adventure Nav Tabs (Desktop) */}
-              <nav className="hidden md:flex items-center gap-2 lg:gap-4 xl:gap-6">
+              <nav className="hidden md:flex items-center gap-3 lg:gap-5 xl:gap-7">
                 {mainLinks.map((link) => (
                   <Link
                     key={link.to}
                     to={link.to}
-                    className={`font-adventure text-base lg:text-lg xl:text-xl px-2.5 py-1 rounded-lg transition-all tracking-wide ${
+                    className={`font-adventure text-lg lg:text-xl xl:text-2xl px-3 py-1.5 rounded-xl transition-all tracking-wide ${
                       isActive(link.to)
-                        ? "text-amber-300 text-adventure-shadow scale-105 bg-black/30 border border-amber-400/40"
+                        ? "text-amber-300 text-adventure-shadow scale-105 bg-black/35 border border-amber-400/40 shadow-md"
                         : "text-white text-wood-carved hover:text-amber-300 hover:scale-105"
                     }`}
                   >
@@ -185,35 +179,6 @@ export function Navigation() {
                   <span className="text-white text-adventure-shadow font-adventure">
                     {isEs ? "PRECIOS" : "PRICES"}
                   </span>
-                </Link>
-              </div>
-
-              {/* Hanging Wood Coins for Social Networks */}
-              <div className="hidden xl:flex items-center gap-2 pt-1">
-                <a
-                  href="https://www.facebook.com/ZoomatOficial/"
-                  target="_blank"
-                  rel="noreferrer"
-                  title="Facebook ZooMAT Oficial"
-                  className="w-8 h-8 rounded-full wood-texture-dark border border-amber-600/60 flex items-center justify-center text-amber-200 hover:text-white hover:scale-110 transition-transform shadow-md"
-                >
-                  <Facebook className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://www.instagram.com/zoomatoficial_/"
-                  target="_blank"
-                  rel="noreferrer"
-                  title="Instagram ZooMAT Oficial"
-                  className="w-8 h-8 rounded-full wood-texture-dark border border-amber-600/60 flex items-center justify-center text-amber-200 hover:text-white hover:scale-110 transition-transform shadow-md"
-                >
-                  <Instagram className="w-4 h-4" />
-                </a>
-                <Link
-                  to="/redes"
-                  title="Redes Sociales Oficiales"
-                  className="w-8 h-8 rounded-full wood-texture-dark border border-amber-600/60 flex items-center justify-center text-amber-200 hover:text-white hover:scale-110 transition-transform shadow-md font-adventure text-xs"
-                >
-                  🌐
                 </Link>
               </div>
 

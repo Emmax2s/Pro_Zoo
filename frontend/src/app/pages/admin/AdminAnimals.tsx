@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Search, X, AlertTriangle, MapPin, Volume2, QrCode, Download } from "lucide-react";
 import QRCode from "qrcode";
 import { useZoo } from "../../context/ZooContext";

@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { Volume2, VolumeX, ArrowLeft, Globe, TreePine, MapPin, Sparkles, ShieldCheck, Play, Pause } from "lucide-react";
 import { useZoo } from "../context/ZooContext";
 import { recordSpeciesVisit } from "../services/analytics";
+import { getLocalizedAnimal } from "../services/speciesTranslator";
+import { playChime, speakNarration, stopAllAudio } from "../services/audioPlayer";
 import { INITIAL_ANIMALS, Animal } from "../data/zooStore";
 
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
@@ -19,7 +21,6 @@ export function SpeciesDetail() {
   const [error, setError] = useState("");
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
-  const [speechActive, setSpeechActive] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const visitLoggedRef = useRef(false);
@@ -72,23 +73,32 @@ export function SpeciesDetail() {
         if (!res.ok) throw new Error("API not available");
         const data = await res.json();
         if (active) {
+          const match = findLocal();
+          const cleanAudio =
+            data.audioDescriptionUrl && !data.audioDescriptionUrl.includes("example.com")
+              ? data.audioDescriptionUrl
+              : match?.audioUrl;
+
           setSpecies({
             id: Number(data.id) || 1,
             name: data.name,
-            scientificName: data.species || data.scientificName || "",
-            category: data.category || "Mamífero",
+            nameEn: match?.nameEn,
+            scientificName: data.species || data.scientificName || match?.scientificName || "",
+            category: data.category || match?.category || "Mamífero",
             status: data.conservation || "Preocupación Menor",
-            habitat: data.habitat || "",
-            diet: data.diet || "",
-            funFact: data.description || data.funFact || "",
-            image: data.imageUrl || data.image || "",
-            audioUrl: data.audioDescriptionUrl || data.audioUrl,
+            habitat: data.habitat || match?.habitat || "",
+            habitatEn: match?.habitatEn,
+            diet: data.diet || match?.diet || "",
+            dietEn: match?.dietEn,
+            funFact: data.description || data.funFact || match?.funFact || "",
+            funFactEn: match?.funFactEn,
+            image: data.imageUrl || data.image || match?.image || "",
+            audioUrl: cleanAudio,
             enclosureId: data.enclosureId ?? null,
           });
         }
       })
       .catch(() => {
-        // Fallback to local animals store seamlessly
         if (active) {
           const match = findLocal();
           if (match) {
@@ -116,47 +126,24 @@ export function SpeciesDetail() {
     recordSpeciesVisit(species.id, i18n.language, isQr ? "qr" : "direct");
   }, [species, searchParams, i18n.language]);
 
-  // 4. Text-to-speech fallback if no MP3 audio URL exists
-  const stopSpeech = useCallback(() => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
+  // Localized species properties
+  const loc = species ? getLocalizedAnimal(species, !isEnglish) : null;
+
+  // 4. Robust audio playback toggle
+  const toggleAudio = useCallback(() => {
+    if (isPlayingAudio) {
+      stopAllAudio();
+      setIsPlayingAudio(false);
+      return;
     }
-    setSpeechActive(false);
-  }, []);
 
-  const playSpeechNarration = useCallback(() => {
-    if (!species || typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
+    if (!loc) return;
 
-    const name = isEnglish ? (species.nameEn || species.name) : species.name;
-    const sci = species.scientificName ? `(${species.scientificName}).` : "";
-    const fact = isEnglish ? (species.funFactEn || species.funFact) : species.funFact;
-    const hab = isEnglish ? (species.habitatEn || species.habitat) : species.habitat;
-    const diet = isEnglish ? (species.dietEn || species.diet) : species.diet;
+    playChime();
 
-    const intro = isEnglish ? "Welcome to the ZooMAT audio guide." : "Bienvenido a la audioguía del ZooMAT.";
-    const text = `${intro} ${name}. ${sci} ${fact}. ${hab}. ${diet}.`;
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = isEnglish ? "en-US" : "es-MX";
-    utterance.rate = 0.95;
-
-    utterance.onend = () => setSpeechActive(false);
-    utterance.onerror = () => setSpeechActive(false);
-
-    setSpeechActive(true);
-    window.speechSynthesis.speak(utterance);
-  }, [species, isEnglish]);
-
-  // 5. Auto-play audio when scanned via QR or requested
-  useEffect(() => {
-    if (!species) return;
-
-    const isQr = searchParams.get("scan") === "qr" || window.location.search.includes("qr");
-    if (!isQr) return;
-
-    if (species.audioUrl) {
-      const audio = new Audio(species.audioUrl);
+    // If a clean MP3 is available and not example.com, try playing
+    if (loc.audioUrl && !loc.audioUrl.includes("example.com")) {
+      const audio = new Audio(loc.audioUrl);
       audioRef.current = audio;
 
       audio.onplay = () => {
@@ -165,68 +152,57 @@ export function SpeciesDetail() {
       };
       audio.onpause = () => setIsPlayingAudio(false);
       audio.onended = () => setIsPlayingAudio(false);
+      audio.onerror = () => {
+        // Fallback to speech narration
+        speakNarration(
+          `${loc.name}. ${loc.scientificName ? `(${loc.scientificName}).` : ""} ${loc.funFact}. ${loc.habitat}. ${loc.diet}.`,
+          !isEnglish,
+          () => setIsPlayingAudio(true),
+          () => setIsPlayingAudio(false)
+        );
+      };
 
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((err) => {
-          console.warn("Autoplay blocked by mobile browser policy:", err);
-          setAutoplayBlocked(true);
-          setIsPlayingAudio(false);
-        });
-      }
+      audio.play().catch(() => {
+        // Autoplay policy or error, fallback to speech
+        speakNarration(
+          `${loc.name}. ${loc.scientificName ? `(${loc.scientificName}).` : ""} ${loc.funFact}. ${loc.habitat}. ${loc.diet}.`,
+          !isEnglish,
+          () => setIsPlayingAudio(true),
+          () => setIsPlayingAudio(false)
+        );
+      });
     } else {
-      // Try text-to-speech
-      try {
-        playSpeechNarration();
-      } catch (err) {
-        console.warn("TTS autoplay blocked:", err);
-        setAutoplayBlocked(true);
-      }
+      // Speech narration
+      speakNarration(
+        `${loc.name}. ${loc.scientificName ? `(${loc.scientificName}).` : ""} ${loc.funFact}. ${loc.habitat}. ${loc.diet}.`,
+        !isEnglish,
+        () => setIsPlayingAudio(true),
+        () => setIsPlayingAudio(false)
+      );
     }
+  }, [isPlayingAudio, loc, isEnglish]);
+
+  // 5. Auto-play audio when scanned via QR
+  useEffect(() => {
+    if (!loc) return;
+
+    const isQr = searchParams.get("scan") === "qr" || window.location.search.includes("qr");
+    if (!isQr) return;
+
+    // Small delay to allow page render
+    const timer = setTimeout(() => {
+      toggleAudio();
+    }, 400);
 
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-      stopSpeech();
+      clearTimeout(timer);
+      stopAllAudio();
     };
-  }, [species, searchParams, playSpeechNarration, stopSpeech]);
-
-  // Audio button toggle
-  const toggleAudio = () => {
-    if (species?.audioUrl) {
-      if (!audioRef.current) {
-        audioRef.current = new Audio(species.audioUrl);
-        audioRef.current.onplay = () => setIsPlayingAudio(true);
-        audioRef.current.onpause = () => setIsPlayingAudio(false);
-        audioRef.current.onended = () => setIsPlayingAudio(false);
-      }
-
-      if (isPlayingAudio) {
-        audioRef.current.pause();
-      } else {
-        setAutoplayBlocked(false);
-        audioRef.current.play().catch((e) => {
-          console.warn("Manual audio play error:", e);
-        });
-      }
-    } else {
-      // Toggle Speech
-      if (speechActive) {
-        stopSpeech();
-      } else {
-        setAutoplayBlocked(false);
-        playSpeechNarration();
-      }
-    }
-  };
+  }, [searchParams, loc, toggleAudio]);
 
   const toggleLanguage = () => {
-    stopSpeech();
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
+    stopAllAudio();
+    setIsPlayingAudio(false);
     const nextLang = isEnglish ? "es" : "en";
     void i18n.changeLanguage(nextLang);
     const newParams = new URLSearchParams(searchParams);
@@ -247,7 +223,7 @@ export function SpeciesDetail() {
     );
   }
 
-  if (error || !species) {
+  if (error || !species || !loc) {
     return (
       <div className="min-h-screen bg-[#faf8f2] flex items-center justify-center p-6">
         <div className="max-w-md w-full bg-white rounded-3xl p-8 border-2 border-amber-800/20 shadow-2xl text-center space-y-6">
@@ -269,13 +245,6 @@ export function SpeciesDetail() {
       </div>
     );
   }
-
-  const displayName = isEnglish ? (species.nameEn || species.name) : species.name;
-  const displayHabitat = isEnglish ? (species.habitatEn || species.habitat) : species.habitat;
-  const displayDiet = isEnglish ? (species.dietEn || species.diet) : species.diet;
-  const displayFunFact = isEnglish ? (species.funFactEn || species.funFact) : species.funFact;
-
-  const isAudioCurrentlyRunning = isPlayingAudio || speechActive;
 
   return (
     <div className="min-h-screen bg-[#faf8f2] text-stone-900 pb-20">
@@ -302,7 +271,7 @@ export function SpeciesDetail() {
             {/* Language Switch Button */}
             <button
               onClick={toggleLanguage}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-amber-50 text-stone-900 font-bold border-2 border-amber-700/30 shadow-md transition-all hover:scale-105 text-sm"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-amber-50 text-stone-900 font-bold border-2 border-amber-700/30 shadow-md transition-all hover:scale-105 text-sm cursor-pointer"
               title="Cambiar idioma / Change language"
             >
               <Globe className="w-4 h-4 text-emerald-700" />
@@ -317,12 +286,12 @@ export function SpeciesDetail() {
             </div>
 
             <h1 className="font-adventure text-4xl sm:text-6xl text-[#2b1810] tracking-wide text-adventure-shadow leading-tight">
-              {displayName}
+              {loc.name}
             </h1>
 
-            {species.scientificName && (
+            {loc.scientificName && (
               <p className="text-xl sm:text-2xl font-serif italic text-amber-900 font-medium">
-                {species.scientificName}
+                ({loc.scientificName})
               </p>
             )}
           </div>
@@ -340,13 +309,13 @@ export function SpeciesDetail() {
             <div className="flex items-center gap-4 text-center sm:text-left">
               <button
                 onClick={toggleAudio}
-                className="w-14 h-14 rounded-2xl bg-amber-400 hover:bg-amber-300 text-stone-950 flex items-center justify-center shadow-lg transition-transform hover:scale-105 flex-shrink-0"
+                className="w-14 h-14 rounded-2xl bg-amber-400 hover:bg-amber-300 text-stone-950 flex items-center justify-center shadow-lg transition-transform hover:scale-105 flex-shrink-0 cursor-pointer"
               >
-                {isAudioCurrentlyRunning ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-0.5" />}
+                {isPlayingAudio ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-0.5" />}
               </button>
               <div>
                 <p className="font-adventure text-xl sm:text-2xl text-amber-200">
-                  {isAudioCurrentlyRunning
+                  {isPlayingAudio
                     ? (isEnglish ? "Playing Audio Guide..." : "Reproduciendo Audioguía...")
                     : (isEnglish ? "Listen to Official Audio Guide" : "Escuchar Audioguía Oficial")}
                 </p>
@@ -360,14 +329,14 @@ export function SpeciesDetail() {
 
             <button
               onClick={toggleAudio}
-              className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-white hover:bg-amber-100 text-stone-950 font-adventure text-base tracking-wide shadow-md transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-white hover:bg-amber-100 text-stone-950 font-adventure text-base tracking-wide shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <Volume2 className="w-5 h-5 text-emerald-800" />
-              <span>{isAudioCurrentlyRunning ? (isEnglish ? "Pause Audio" : "Pausar Audio") : (isEnglish ? "Play Now" : "Reproducir")}</span>
+              <span>{isPlayingAudio ? (isEnglish ? "Pause Audio" : "Pausar Audio") : (isEnglish ? "Play Now" : "Reproducir")}</span>
             </button>
           </div>
 
-          {autoplayBlocked && !isAudioCurrentlyRunning && (
+          {autoplayBlocked && !isPlayingAudio && (
             <div className="mt-3 bg-amber-500/20 border border-amber-300/40 p-2.5 rounded-xl text-center text-xs sm:text-sm font-semibold text-amber-100 animate-pulse">
               {isEnglish
                 ? "Tap 'Play Now' to start the audio guide on your device."
@@ -388,23 +357,23 @@ export function SpeciesDetail() {
               />
               <img
                 src={species.image}
-                alt={displayName}
+                alt={loc.name}
                 className="relative z-10 max-h-full max-w-full w-auto h-auto object-contain object-center"
               />
               <div className="absolute top-4 left-4 z-20">
                 <span className="bg-black/60 backdrop-blur-md text-amber-300 border border-amber-400/40 text-xs sm:text-sm font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider">
-                  {species.category}
+                  {loc.category}
                 </span>
               </div>
               <div className="absolute top-4 right-4 z-20">
                 <span className="bg-emerald-900/80 backdrop-blur-md text-emerald-200 border border-emerald-400/40 text-xs sm:text-sm font-extrabold px-4 py-1.5 rounded-full">
-                  {species.status}
+                  {loc.status}
                 </span>
               </div>
             </div>
           )}
 
-          {/* Details Body */}
+          {/* Details Body Localized */}
           <div className="p-6 sm:p-10 space-y-8">
             {/* About text */}
             <div className="space-y-3">
@@ -412,8 +381,8 @@ export function SpeciesDetail() {
                 <Sparkles className="w-6 h-6 text-amber-600" />
                 <span>{isEnglish ? "About this Species" : "Sobre esta Especie"}</span>
               </h2>
-              <p className="text-stone-700 text-lg sm:text-xl leading-relaxed font-medium">
-                {displayFunFact}
+              <p className="text-stone-800 text-lg sm:text-xl leading-relaxed font-medium">
+                {loc.funFact}
               </p>
             </div>
 
@@ -425,7 +394,7 @@ export function SpeciesDetail() {
                   <span>{isEnglish ? "Habitat & Natural Range" : "Hábitat y Distribución"}</span>
                 </h3>
                 <p className="text-stone-700 text-base sm:text-lg leading-relaxed">
-                  {displayHabitat}
+                  {loc.habitat}
                 </p>
               </div>
 
@@ -435,7 +404,7 @@ export function SpeciesDetail() {
                   <span>{isEnglish ? "Diet & Feeding Habits" : "Alimentación y Dieta"}</span>
                 </h3>
                 <p className="text-stone-700 text-base sm:text-lg leading-relaxed">
-                  {displayDiet}
+                  {loc.diet}
                 </p>
               </div>
             </div>

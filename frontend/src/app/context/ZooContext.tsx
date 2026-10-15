@@ -61,19 +61,37 @@ const mapConservationStatus = (value: string | undefined): Animal["status"] => {
   return "Preocupación Menor";
 };
 
-const mapSpecies = (species: ApiSpecies): Animal => ({
-  id: Number(species.id),
-  name: species.name,
-  scientificName: species.species || "",
-  category: species.category || "Mamífero",
-  status: mapConservationStatus(species.conservation),
-  habitat: species.habitat || "",
-  diet: species.diet || "",
-  funFact: species.description || "",
-  image: species.imageUrl || "/assets/images/placeholder.svg",
-  audioUrl: species.audioDescriptionUrl,
-  enclosureId: species.enclosureId ?? null,
-});
+const mapSpecies = (species: ApiSpecies): Animal => {
+  const match = INITIAL_ANIMALS.find(
+    (a) =>
+      a.name.toLowerCase().trim() === (species.name || "").toLowerCase().trim() ||
+      (species.species && a.scientificName.toLowerCase().trim() === species.species.toLowerCase().trim()) ||
+      String(a.id) === String(species.id)
+  );
+
+  const cleanAudio =
+    species.audioDescriptionUrl && !species.audioDescriptionUrl.includes("example.com")
+      ? species.audioDescriptionUrl
+      : match?.audioUrl;
+
+  return {
+    id: Number(species.id),
+    name: species.name,
+    nameEn: match?.nameEn,
+    scientificName: species.species || match?.scientificName || "",
+    category: species.category || match?.category || "Mamífero",
+    status: mapConservationStatus(species.conservation),
+    habitat: species.habitat || match?.habitat || "",
+    habitatEn: match?.habitatEn,
+    diet: species.diet || match?.diet || "",
+    dietEn: match?.dietEn,
+    funFact: species.description || match?.funFact || "",
+    funFactEn: match?.funFactEn,
+    image: species.imageUrl || match?.image || "/assets/images/placeholder.svg",
+    audioUrl: cleanAudio,
+    enclosureId: species.enclosureId ?? null,
+  };
+};
 
 const FALLBACK: ZooContextValue = {
   currentUser: EMPTY_CURRENT_USER,

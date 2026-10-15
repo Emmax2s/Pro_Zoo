@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next";
 import { AnimalCard } from "../components/AnimalCard";
 import { useZoo } from "../context/ZooContext";
 import { recordSpeciesVisit } from "../services/analytics";
+import { getLocalizedAnimal } from "../services/speciesTranslator";
+import { playChime, speakNarration, stopAllAudio } from "../services/audioPlayer";
 
 export function Animals() {
   const { t, i18n } = useTranslation();
@@ -52,11 +54,9 @@ export function Animals() {
     }
   }, [pathId, searchParams, animals, i18n.language]);
 
-  // Stop speech synthesis when modal closes or unmounts
+  // Stop speech when modal closes or unmounts
   const stopSpeech = useCallback(() => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
+    stopAllAudio();
     setIsSpeaking(false);
   }, []);
 
@@ -77,13 +77,8 @@ export function Animals() {
     setSearchParams(newParams);
   };
 
-  // Text-to-Speech narrate species info in selected language
+  // Robust Text-to-Speech narrate species info in selected language
   const handleSpeakInfo = () => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      alert(isEs ? "Tu navegador no soporta lectura de voz." : "Your browser does not support text-to-speech.");
-      return;
-    }
-
     if (isSpeaking) {
       stopSpeech();
       return;
@@ -91,27 +86,26 @@ export function Animals() {
 
     if (!selectedAnimal) return;
 
-    const name = isEs ? selectedAnimal.name : (selectedAnimal.nameEn || selectedAnimal.name);
-    const scientific = selectedAnimal.scientificName ? `(${selectedAnimal.scientificName}).` : "";
+    const loc = getLocalizedAnimal(selectedAnimal, isEs);
+    playChime();
+
+    const name = loc.name;
+    const scientific = loc.scientificName ? `(${loc.scientificName}).` : "";
     const aboutHeader = isEs ? "Sobre esta especie:" : "About this species:";
-    const aboutText = isEs ? selectedAnimal.funFact : (selectedAnimal.funFactEn || selectedAnimal.funFact);
+    const aboutText = loc.funFact;
     const habitatHeader = isEs ? "Hábitat y distribución:" : "Habitat and distribution:";
-    const habitatText = isEs ? selectedAnimal.habitat : (selectedAnimal.habitatEn || selectedAnimal.habitat);
+    const habitatText = loc.habitat;
     const dietHeader = isEs ? "Alimentación:" : "Diet:";
-    const dietText = isEs ? selectedAnimal.diet : (selectedAnimal.dietEn || selectedAnimal.diet);
+    const dietText = loc.diet;
 
     const fullSpeechText = `${name}. ${scientific} ${aboutHeader} ${aboutText}. ${habitatHeader} ${habitatText}. ${dietHeader} ${dietText}.`;
 
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(fullSpeechText);
-    utterance.lang = isEs ? "es-MX" : "en-US";
-    utterance.rate = 0.95;
-
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-
-    setIsSpeaking(true);
-    window.speechSynthesis.speak(utterance);
+    speakNarration(
+      fullSpeechText,
+      isEs,
+      () => setIsSpeaking(true),
+      () => setIsSpeaking(false)
+    );
   };
 
   const categories = isEs
@@ -123,9 +117,11 @@ export function Animals() {
     : ["All", "Endangered", "Threatened", "Special Protection"];
 
   const filteredAnimals = animals.filter((animal) => {
+    const loc = getLocalizedAnimal(animal, isEs);
     const matchesSearch =
+      loc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       animal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      animal.scientificName.toLowerCase().includes(searchTerm.toLowerCase());
+      loc.scientificName.toLowerCase().includes(searchTerm.toLowerCase());
 
     const isAllCat = selectedCategory === "Todos" || selectedCategory === "All";
     const matchesCategory = isAllCat || animal.category === selectedCategory;
@@ -136,11 +132,12 @@ export function Animals() {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
+  const selectedLoc = selectedAnimal ? getLocalizedAnimal(selectedAnimal, isEs) : null;
+
   return (
     <div className="min-h-screen bg-[#faf8f2] text-stone-900 pb-20">
       {/* 1. Header Banner matching photo 1 style */}
       <section className="relative bg-[#f7f3e8] border-b-4 border-[#2b1706] py-14 md:py-20 overflow-hidden">
-        {/* Subtle decorative background pattern */}
         <div
           className="absolute inset-0 opacity-20 pointer-events-none"
           style={{
@@ -258,34 +255,33 @@ export function Animals() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-24">
         {filteredAnimals.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredAnimals.map((animal) => (
-              <div
-                key={animal.id}
-                onClick={() => setSelectedAnimal(animal)}
-                className="cursor-pointer transform transition-transform duration-300 hover:-translate-y-2"
-              >
-                <AnimalCard
-                  name={animal.name}
-                  nameEn={animal.nameEn}
-                  scientificName={animal.scientificName}
-                  image={animal.image}
-                  habitat={animal.habitat}
-                  habitatEn={animal.habitatEn}
-                  diet={animal.diet}
-                  dietEn={animal.dietEn}
-                  status={animal.status}
-                  funFact={animal.funFact}
-                  funFactEn={animal.funFactEn}
-                  statusColor={
-                    animal.status === "En Peligro de Extinción"
-                      ? "bg-rose-700 text-white"
-                      : animal.status === "Amenazada"
-                      ? "bg-amber-600 text-white"
-                      : "bg-emerald-700 text-white"
-                  }
-                />
-              </div>
-            ))}
+            {filteredAnimals.map((animal) => {
+              const loc = getLocalizedAnimal(animal, isEs);
+              return (
+                <div
+                  key={animal.id}
+                  onClick={() => setSelectedAnimal(animal)}
+                  className="cursor-pointer transform transition-transform duration-300 hover:-translate-y-2"
+                >
+                  <AnimalCard
+                    name={loc.name}
+                    scientificName={loc.scientificName}
+                    image={animal.image}
+                    habitat={loc.habitat}
+                    diet={loc.diet}
+                    status={loc.status}
+                    funFact={loc.funFact}
+                    statusColor={
+                      animal.status === "En Peligro de Extinción" || loc.status === "Endangered"
+                        ? "bg-rose-700 text-white"
+                        : animal.status === "Amenazada" || loc.status === "Threatened"
+                        ? "bg-amber-600 text-white"
+                        : "bg-emerald-700 text-white"
+                    }
+                  />
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="border-2 border-dashed border-amber-300 bg-white rounded-3xl p-16 text-center shadow-lg">
@@ -309,7 +305,7 @@ export function Animals() {
       </section>
 
       {/* 4. Modal de Detalle de Especie con Estilo Aventura */}
-      {selectedAnimal && (
+      {selectedAnimal && selectedLoc && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
           onClick={closeModal}
@@ -322,10 +318,10 @@ export function Animals() {
             <div className="wood-texture-bg text-amber-100 p-6 flex flex-wrap justify-between items-center gap-4 border-b-4 border-amber-700 shadow-lg">
               <div>
                 <h2 className="font-adventure text-3xl sm:text-4xl text-amber-200 text-adventure-shadow">
-                  {isEs ? selectedAnimal.name : selectedAnimal.nameEn || selectedAnimal.name}
+                  {selectedLoc.name}
                 </h2>
                 <p className="text-amber-300 italic font-medium text-lg mt-0.5 font-serif">
-                  ({selectedAnimal.scientificName})
+                  ({selectedLoc.scientificName})
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -340,13 +336,7 @@ export function Animals() {
                 </button>
 
                 <span className="bg-amber-950/80 border border-amber-500 text-amber-200 text-xs font-black uppercase px-3.5 py-1.5 rounded-full shadow-xs">
-                  {isEs
-                    ? selectedAnimal.status
-                    : selectedAnimal.status === "En Peligro de Extinción"
-                    ? "Endangered"
-                    : selectedAnimal.status === "Amenazada"
-                    ? "Threatened"
-                    : "Special Protection"}
+                  {selectedLoc.status}
                 </span>
 
                 <button
@@ -366,7 +356,7 @@ export function Animals() {
                   <div className="rounded-3xl overflow-hidden border-4 border-amber-950 shadow-xl bg-stone-900 h-72 sm:h-80">
                     <img
                       src={selectedAnimal.image}
-                      alt={selectedAnimal.name}
+                      alt={selectedLoc.name}
                       className="w-full h-full object-cover object-center"
                     />
                   </div>
@@ -384,8 +374,8 @@ export function Animals() {
                         <p className="text-xs text-amber-100/90 font-medium">
                           {isSpeaking
                             ? isEs
-                              ? "Leyendo información en voz alta..."
-                              : "Reading information out loud..."
+                              ? "Reproduciendo narración de voz..."
+                              : "Playing voice narration..."
                             : isEs
                             ? "Escucha la narración oficial"
                             : "Listen to official narration"}
@@ -394,35 +384,55 @@ export function Animals() {
                     </div>
                     <button
                       onClick={handleSpeakInfo}
-                      className={`px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer shadow-md ${
+                      className={`px-5 py-3 rounded-xl font-black text-sm flex items-center gap-2 transition-all cursor-pointer shadow-md ${
                         isSpeaking
                           ? "bg-rose-600 hover:bg-rose-700 text-white animate-pulse"
                           : "bg-amber-400 hover:bg-amber-300 text-stone-950 hover:scale-105"
                       }`}
                     >
-                      {isSpeaking ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                      {isSpeaking ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                       <span>{isSpeaking ? (isEs ? "Detener" : "Stop") : isEs ? "Escuchar" : "Listen"}</span>
                     </button>
                   </div>
 
                   {/* Native Audio */}
-                  {selectedAnimal.audioUrl && (
-                    <div className="bg-white rounded-2xl p-5 border-2 border-[#e2d5bd] shadow-sm space-y-3">
-                      <div className="flex items-center gap-2 text-stone-900 font-black text-sm uppercase tracking-wider">
-                        <Volume2 className="w-5 h-5 text-amber-700" />
-                        <span>{isEs ? "SONIDO OFICIAL DE LA ESPECIE" : "OFFICIAL SPECIES AUDIO"}</span>
-                      </div>
-                      <audio controls className="w-full rounded-xl bg-stone-900 p-2 text-white">
-                        <source src={selectedAnimal.audioUrl} />
-                        {isEs
-                          ? "Tu navegador no soporta el elemento de audio."
-                          : "Your browser does not support the audio element."}
-                      </audio>
+                  <div className="bg-white rounded-2xl p-5 border-2 border-[#e2d5bd] shadow-sm space-y-3">
+                    <div className="flex items-center gap-2 text-stone-900 font-black text-sm uppercase tracking-wider">
+                      <Volume2 className="w-5 h-5 text-amber-700" />
+                      <span>{isEs ? "AUDIO DE LA ESPECIE" : "SPECIES AUDIO"}</span>
                     </div>
-                  )}
+
+                    {selectedLoc.audioUrl ? (
+                      <audio
+                        controls
+                        className="w-full rounded-xl bg-stone-900 p-2 text-white"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          const errBox = document.getElementById("audio-fallback-msg");
+                          if (errBox) errBox.style.display = "block";
+                        }}
+                      >
+                        <source src={selectedLoc.audioUrl} />
+                        {isEs
+                          ? "Tu navegador no soporta el reproductor."
+                          : "Your browser does not support audio."}
+                      </audio>
+                    ) : null}
+
+                    <div
+                      id="audio-fallback-msg"
+                      className={`${
+                        selectedLoc.audioUrl ? "hidden" : "block"
+                      } bg-[#fcfaf5] text-stone-700 text-xs font-semibold p-3.5 rounded-xl border border-amber-900/15`}
+                    >
+                      {isEs
+                        ? "Audio interactivo disponible a través del botón 'Escuchar' del Modo Voz Narradora arriba."
+                        : "Interactive audio available via the 'Listen' button in Voice Reader Mode above."}
+                    </div>
+                  </div>
                 </div>
 
-                {/* Right Column: Information & Facts */}
+                {/* Right Column: Information & Facts Localized */}
                 <div className="space-y-5">
                   <div className="bg-white p-6 rounded-2xl border-2 border-[#e2d5bd] shadow-sm">
                     <div className="flex items-center gap-2 text-stone-900 font-adventure text-lg tracking-wide mb-3 border-b border-amber-900/10 pb-2">
@@ -430,7 +440,7 @@ export function Animals() {
                       <span>{isEs ? "SOBRE ESTA ESPECIE" : "ABOUT THIS SPECIES"}</span>
                     </div>
                     <p className="text-stone-800 text-base sm:text-lg font-medium leading-relaxed">
-                      {isEs ? selectedAnimal.funFact : selectedAnimal.funFactEn || selectedAnimal.funFact}
+                      {selectedLoc.funFact}
                     </p>
                   </div>
 
@@ -440,7 +450,7 @@ export function Animals() {
                       <span>{isEs ? "HÁBITAT & DISTRIBUCIÓN" : "HABITAT & DISTRIBUTION"}</span>
                     </div>
                     <p className="text-stone-800 text-base sm:text-lg font-medium leading-relaxed">
-                      {isEs ? selectedAnimal.habitat : selectedAnimal.habitatEn || selectedAnimal.habitat}
+                      {selectedLoc.habitat}
                     </p>
                   </div>
 
@@ -450,7 +460,7 @@ export function Animals() {
                       <span>{isEs ? "ALIMENTACIÓN & DIETA" : "DIET & NUTRITION"}</span>
                     </div>
                     <p className="text-stone-800 text-base sm:text-lg font-medium leading-relaxed">
-                      {isEs ? selectedAnimal.diet : selectedAnimal.dietEn || selectedAnimal.diet}
+                      {selectedLoc.diet}
                     </p>
                   </div>
                 </div>

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
 
 type Species = {
+  id: number;
   name: string;
   species?: string;
   category?: string;

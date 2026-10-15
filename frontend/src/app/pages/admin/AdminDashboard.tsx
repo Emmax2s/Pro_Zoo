@@ -54,15 +54,15 @@ export function AdminDashboard() {
     () => new Map(visitSummary.map((summary) => [summary.speciesId, summary])),
     [visitSummary]
   );
-  const totalQrVisits = useMemo(
-    () => scopedAnimals.reduce((sum, animal) => sum + (visitsBySpecies.get(animal.id)?.totalVisits ?? 0), 0),
-    [scopedAnimals, visitsBySpecies]
-  );
-
   const scopedAnimals = useMemo(() => {
     if (currentUser.role === "superadmin") return animals;
     return animals.filter((a) => a.enclosureId === currentUser.enclosureId);
   }, [animals, currentUser.enclosureId, currentUser.role]);
+
+  const totalQrVisits = useMemo(
+    () => scopedAnimals.reduce((sum, animal) => sum + (visitsBySpecies.get(animal.id)?.totalVisits ?? 0), 0),
+    [scopedAnimals, visitsBySpecies]
+  );
 
   const periodMeta = PERIODS.find((p) => p.key === selectedPeriod) ?? PERIODS[2];
 

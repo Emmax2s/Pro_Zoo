@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useParams, useSearchParams } from "react-router";
-import { Volume2, VolumeX, Globe, TreePine, MapPin, Sparkles, ShieldCheck, Play, Pause } from "lucide-react";
+import { Link, useParams, useSearchParams } from "react-router";
+import { Volume2, VolumeX, Globe, TreePine, MapPin, Sparkles, ShieldCheck, Play, Pause, ArrowLeft } from "lucide-react";
 import { useZoo } from "../context/ZooContext";
 import { recordSpeciesVisit } from "../services/analytics";
 import { getLocalizedAnimal } from "../services/speciesTranslator";

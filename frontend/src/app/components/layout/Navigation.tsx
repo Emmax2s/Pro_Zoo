@@ -25,17 +25,15 @@ export function Navigation() {
 
   const mainLinks = [
     { to: "/", label: isEs ? "INICIO" : "HOME" },
-    { to: "/#atracciones", label: isEs ? "ATRACCIONES" : "ATTRACTIONS" },
-    { to: "/#paquetes", label: isEs ? "PAQUETES" : "PACKAGES" },
     { to: "/animales", label: isEs ? "ANIMALES" : "ANIMALS" },
-    { to: "/#ninos", label: isEs ? "NIÑOS" : "KIDS" },
+    { to: "/visita", label: isEs ? "VISITA" : "VISIT" },
     { to: "/mapa", label: isEs ? "MAPA" : "MAP" },
     { to: "/contacto", label: isEs ? "CONTACTO" : "CONTACT" },
+    { to: "/redes", label: isEs ? "REDES" : "SOCIAL" },
   ];
 
   const isActive = (path: string) => {
-    if (path === "/") return location.pathname === "/" && !location.hash;
-    if (path.startsWith("/#")) return location.pathname === "/" && location.hash === path.replace("/", "");
+    if (path === "/") return location.pathname === "/";
     return location.pathname.startsWith(path);
   };
 
@@ -119,15 +117,15 @@ export function Navigation() {
                   <div className="relative">
                     <img
                       src={logoZoomat}
-                      alt="Logo Zoológico"
+                      alt="Logo Oficial ZooMAT"
                       className="w-14 h-14 md:w-16 md:h-16 object-contain rounded-full border border-amber-900/30 p-0.5 bg-white shadow-md group-hover:scale-105 transition-transform"
                     />
                   </div>
                   <div className="mt-1 font-adventure text-lg md:text-xl text-amber-900 leading-none tracking-tight">
-                    ZOO GDL
+                    ZooMAT
                   </div>
-                  <span className="text-[9px] md:text-[10px] font-black text-emerald-800 tracking-wider uppercase mt-0.5">
-                    Dejando Huella
+                  <span className="text-[8px] md:text-[9px] font-black text-emerald-800 tracking-wider uppercase mt-0.5 leading-tight">
+                    Miguel Álvarez del Toro
                   </span>
                 </div>
               </Link>
@@ -139,7 +137,7 @@ export function Navigation() {
               <div className="hidden lg:flex items-center gap-3 bg-black/45 backdrop-blur-md px-4 py-1 rounded-full border border-amber-200/25 text-white text-xs font-semibold shadow-md mb-1.5">
                 <div className="flex items-center gap-1.5 text-amber-300">
                   <Clock className="w-3.5 h-3.5" />
-                  <span>{isEs ? "Horario: Lun. a dom. de 9:00 a 17:00" : "Hours: Mon to Sun 9:00 - 17:00"}</span>
+                  <span>{isEs ? "Horario: Mar-Dom: 8:30 - 16:30" : "Hours: Tue-Sun 8:30 - 16:30"}</span>
                 </div>
                 <span className="text-amber-200/50">|</span>
                 <div className="flex items-center gap-1.5 text-stone-100">
@@ -179,8 +177,9 @@ export function Navigation() {
                 </div>
 
                 <Link
-                  to="/#paquetes"
+                  to="/visita"
                   className="wood-texture-dark px-3 md:px-4 py-1.5 md:py-2 rounded-xl border-2 border-amber-600/70 shadow-2xl flex items-center gap-1.5 text-amber-300 font-adventure text-sm md:text-base tracking-wide hover:scale-105 hover:border-amber-400 transition-all wood-button-shadow cursor-pointer group"
+                  title="Ver Precios y Boletos"
                 >
                   <DollarSign className="w-4 h-4 text-amber-400 group-hover:rotate-12 transition-transform" />
                   <span className="text-white text-adventure-shadow font-adventure">
@@ -192,41 +191,30 @@ export function Navigation() {
               {/* Hanging Wood Coins for Social Networks */}
               <div className="hidden xl:flex items-center gap-2 pt-1">
                 <a
-                  href="https://facebook.com"
+                  href="https://www.facebook.com/ZoomatOficial/"
                   target="_blank"
                   rel="noreferrer"
-                  title="Facebook"
+                  title="Facebook ZooMAT Oficial"
                   className="w-8 h-8 rounded-full wood-texture-dark border border-amber-600/60 flex items-center justify-center text-amber-200 hover:text-white hover:scale-110 transition-transform shadow-md"
                 >
                   <Facebook className="w-4 h-4" />
                 </a>
                 <a
-                  href="https://twitter.com"
+                  href="https://www.instagram.com/zoomatoficial_/"
                   target="_blank"
                   rel="noreferrer"
-                  title="Twitter / X"
-                  className="w-8 h-8 rounded-full wood-texture-dark border border-amber-600/60 flex items-center justify-center text-amber-200 hover:text-white hover:scale-110 transition-transform shadow-md"
-                >
-                  <Twitter className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://youtube.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  title="YouTube"
-                  className="w-8 h-8 rounded-full wood-texture-dark border border-amber-600/60 flex items-center justify-center text-amber-200 hover:text-white hover:scale-110 transition-transform shadow-md"
-                >
-                  <Youtube className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://instagram.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  title="Instagram"
+                  title="Instagram ZooMAT Oficial"
                   className="w-8 h-8 rounded-full wood-texture-dark border border-amber-600/60 flex items-center justify-center text-amber-200 hover:text-white hover:scale-110 transition-transform shadow-md"
                 >
                   <Instagram className="w-4 h-4" />
                 </a>
+                <Link
+                  to="/redes"
+                  title="Redes Sociales Oficiales"
+                  className="w-8 h-8 rounded-full wood-texture-dark border border-amber-600/60 flex items-center justify-center text-amber-200 hover:text-white hover:scale-110 transition-transform shadow-md font-adventure text-xs"
+                >
+                  🌐
+                </Link>
               </div>
 
               {/* Mobile menu toggle button */}

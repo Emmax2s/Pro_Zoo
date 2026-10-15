@@ -1,8 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Download, Eye, PawPrint, Users, PieChart as PieIcon, BarChart2 } from "lucide-react";
 import { Link } from "react-router";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useZoo } from "../../context/ZooContext";
+import { useAuth } from "../../context/AuthContext";
+
+const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
 
 type PeriodKey = "dia" | "semana" | "mes" | "anio";
 
@@ -18,14 +21,43 @@ const COLORS_STATUS = ["#dc2626", "#f59e0b", "#10b981", "#6366f1"];
 const COLORS_ENCLOSURE = ["#047857", "#0369a1", "#b45309", "#6d28d9", "#be123c", "#334155"];
 const COLORS_VISITORS = ["#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ec4899"];
 
-function estimatedDailyVisits(_animalId: number, _category: string) {
-  // Sin escaneos QR registrados actualmente (0 visitas reales)
-  return 0;
-}
+type VisitSummary = {
+  speciesId: number;
+  totalVisits: number;
+  uniqueVisitors: number;
+  averageDuration: number;
+};
 
 export function AdminDashboard() {
   const { animals, users, currentUser, enclosures } = useZoo();
+  const { token } = useAuth();
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodKey>("mes");
+  const [visitSummary, setVisitSummary] = useState<VisitSummary[]>([]);
+
+  useEffect(() => {
+    if (!API_BASE_URL || !token) return;
+    const periodDays = selectedPeriod === "dia" ? 1 : selectedPeriod === "semana" ? 7 : selectedPeriod === "mes" ? 30 : 365;
+    fetch(`${API_BASE_URL}/api/analytics/all/summary?period=${periodDays}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    })
+      .then(async (response) => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || "No se pudieron cargar las visitas.");
+        return data;
+      })
+      .then((data) => setVisitSummary(Array.isArray(data.summary) ? data.summary : []))
+      .catch((error) => console.error("Unable to load visit analytics:", error));
+  }, [selectedPeriod, token]);
+
+  const visitsBySpecies = useMemo(
+    () => new Map(visitSummary.map((summary) => [summary.speciesId, summary])),
+    [visitSummary]
+  );
+  const totalQrVisits = useMemo(
+    () => scopedAnimals.reduce((sum, animal) => sum + (visitsBySpecies.get(animal.id)?.totalVisits ?? 0), 0),
+    [scopedAnimals, visitsBySpecies]
+  );
 
   const scopedAnimals = useMemo(() => {
     if (currentUser.role === "superadmin") return animals;
@@ -38,22 +70,22 @@ export function AdminDashboard() {
     return scopedAnimals
       .map((a) => ({
         ...a,
-        visitors: estimatedDailyVisits(a.id, a.category) * periodMeta.multiplier,
+        visitors: visitsBySpecies.get(a.id)?.totalVisits ?? 0,
       }))
       .sort((a, b) => b.visitors - a.visitors);
-  }, [periodMeta.multiplier, scopedAnimals]);
+  }, [scopedAnimals, visitsBySpecies]);
 
   const mostVisited = ranking.slice(0, 3);
   const leastVisited = [...ranking].reverse().slice(0, 3).reverse();
 
   const totalsByPeriod = useMemo(() => {
-    const dailyTotal = scopedAnimals.reduce((sum, a) => sum + estimatedDailyVisits(a.id, a.category), 0);
+    const total = scopedAnimals.reduce((sum, a) => sum + (visitsBySpecies.get(a.id)?.totalVisits ?? 0), 0);
     return PERIODS.map((p) => ({
       key: p.key,
       label: p.label,
-      total: dailyTotal * p.multiplier,
+      total: p.key === selectedPeriod ? total : 0,
     }));
-  }, [scopedAnimals]);
+  }, [scopedAnimals, selectedPeriod, visitsBySpecies]);
 
   // Data for Pie Charts (Gráficas de Pastel)
   const categoryData = useMemo(() => {
@@ -84,30 +116,24 @@ export function AdminDashboard() {
   const visitorCategoryData = useMemo(() => {
     const counts: Record<string, number> = {};
     scopedAnimals.forEach((a) => {
-      const visits = estimatedDailyVisits(a.id, a.category) * periodMeta.multiplier;
+      const visits = visitsBySpecies.get(a.id)?.totalVisits ?? 0;
       counts[a.category] = (counts[a.category] || 0) + visits;
     });
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
-  }, [periodMeta.multiplier, scopedAnimals]);
+  }, [scopedAnimals, visitsBySpecies]);
 
   function downloadExcelReport() {
     if (currentUser.role !== "superadmin") return;
     const rows = animals.map((a) => {
       const enclosure = enclosures.find((e) => e.id === a.enclosureId);
-      const daily = estimatedDailyVisits(a.id, a.category);
-      const weekly = daily * 7;
-      const monthly = daily * 30;
-      const yearly = daily * 365;
+      const visits = visitsBySpecies.get(a.id)?.totalVisits ?? 0;
       return [
         a.id,
         a.name,
         a.scientificName,
         a.category,
         enclosure?.name ?? "Sin recinto",
-        daily,
-        weekly,
-        monthly,
-        yearly,
+        visits,
       ];
     });
 
@@ -117,10 +143,7 @@ export function AdminDashboard() {
       "Nombre Cientifico",
       "Categoria",
       "Recinto",
-      "Visitantes por Dia",
-      "Visitantes por Semana",
-      "Visitantes por Mes",
-      "Visitantes por Anio",
+      "Escaneos QR / visitas",
     ];
 
     const csv = [header, ...rows]
@@ -206,8 +229,10 @@ export function AdminDashboard() {
           </div>
           <div>
             <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Escaneos QR / Visitas ({periodMeta.label})</p>
-            <p className="text-3xl font-black text-purple-950 mt-0.5">0</p>
-            <p className="text-[11px] text-purple-700 font-semibold mt-0.5">Sin escaneos QR registrados aún</p>
+            <p className="text-3xl font-black text-purple-950 mt-0.5">{totalQrVisits}</p>
+            <p className="text-[11px] text-purple-700 font-semibold mt-0.5">
+              {totalQrVisits ? "Registros reales de visitas" : "Sin escaneos QR registrados aún"}
+            </p>
           </div>
         </div>
       </div>

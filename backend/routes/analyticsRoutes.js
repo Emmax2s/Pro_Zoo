@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { query } from '../config/db.js';
 import { env } from '../config/env.js';
+import { verifyToken } from './adminRoutes.js';
 import crypto from 'crypto';
 
 const router = Router();
@@ -50,7 +51,7 @@ router.post('/:speciesId/visit', async (req, res, next) => {
 });
 
 // GET analytics for a species
-router.get('/:speciesId/analytics', assertAdminKey, async (req, res, next) => {
+router.get('/:speciesId/analytics', verifyToken, async (req, res, next) => {
   try {
     const { speciesId } = req.params;
 
@@ -163,8 +164,10 @@ router.get('/:speciesId/analytics', assertAdminKey, async (req, res, next) => {
 });
 
 // GET analytics for all species (admin only)
-router.get('/all/summary', assertAdminKey, async (req, res, next) => {
+router.get('/all/summary', verifyToken, async (req, res, next) => {
   try {
+    const period = Number(req.query.period || 365);
+    const days = Number.isFinite(period) && period > 0 ? Math.min(period, 3650) : 365;
     const result = await query(
       `SELECT
         s.id,
@@ -174,8 +177,10 @@ router.get('/all/summary', assertAdminKey, async (req, res, next) => {
         AVG(sv.duration_seconds)::INTEGER as avg_duration
        FROM species s
        LEFT JOIN species_visits sv ON s.id = sv.species_id
+         AND sv.timestamp >= NOW() - ($1::INTEGER * INTERVAL '1 day')
        GROUP BY s.id, s.name
        ORDER BY total_visits DESC`
+      , [days]
     );
 
     const summary = result.rows.map(row => ({

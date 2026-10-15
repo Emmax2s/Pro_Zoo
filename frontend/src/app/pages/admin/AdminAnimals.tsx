@@ -26,7 +26,7 @@ const emptyForm: Omit<Animal, "id"> = {
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || '').replace(/\/$/, '');
 function QrModal({ animal, onClose }: { animal: Animal; onClose: () => void }) {
   const qrTargetUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/especie/${animal.id}`
+    ?     `${window.location.origin}/especie/${animal.id}?lang=es`
     : '';
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
 

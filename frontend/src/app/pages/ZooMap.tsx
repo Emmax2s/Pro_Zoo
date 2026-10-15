@@ -20,10 +20,12 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useZoo } from "../context/ZooContext";
 
 export function ZooMap() {
-  const { t, i18n } = useTranslation();
-  const isEs = i18n.language === "es";
+  const { t } = useTranslation();
+  const { currentLang } = useZoo();
+  const isEs = currentLang === "es";
   const [activeTab, setActiveTab] = useState<string>("all");
 
   const zones = [

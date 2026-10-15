@@ -47,11 +47,11 @@ export function Animals() {
         const isQr = searchParams.get("scan") === "qr" || window.location.search.includes("qr");
         if (isQr && !qrLoggedRef.current[String(found.id)]) {
           qrLoggedRef.current[String(found.id)] = true;
-          recordSpeciesVisit(found.id, i18n.language, "qr");
+          recordSpeciesVisit(found.id, currentLang, "qr");
         }
       }
     }
-  }, [pathId, searchParams, animals, i18n.language]);
+  }, [pathId, searchParams, animals, currentLang]);
 
   // Stop speech when modal closes or unmounts
   const stopSpeech = useCallback(() => {

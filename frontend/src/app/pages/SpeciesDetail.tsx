@@ -117,8 +117,8 @@ export function SpeciesDetail() {
     visitLoggedRef.current = true;
 
     const isQr = searchParams.get("scan") === "qr" || window.location.search.includes("qr");
-    recordSpeciesVisit(species.id, i18n.language, isQr ? "qr" : "direct");
-  }, [species, searchParams, i18n.language]);
+    recordSpeciesVisit(species.id, currentLang, isQr ? "qr" : "direct");
+  }, [species, searchParams, currentLang]);
 
   // Localized species properties
   const loc = species ? getLocalizedAnimal(species, !isEnglish) : null;

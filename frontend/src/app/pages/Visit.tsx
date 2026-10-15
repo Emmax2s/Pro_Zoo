@@ -1,9 +1,9 @@
 import { Clock, MapPin, Ticket, CreditCard, Users, Info, Car, Bus, AlertCircle, TreePine, Sparkles, Navigation } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useZoo } from "../context/ZooContext";
 
 export function Visit() {
-  const { i18n } = useTranslation();
-  const isEs = i18n.language === "es";
+  const { currentLang } = useZoo();
+  const isEs = currentLang === "es";
 
   const prices = [
     { type: isEs ? "Adultos" : "Adults", price: "$30 MXN", description: isEs ? "Mayores de 12 años" : "Older than 12 years" },

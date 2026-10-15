@@ -1,6 +1,7 @@
 import { Mail, Phone, MapPin, Clock, Send, Facebook, Instagram, TreePine, Navigation } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useZoo } from "../context/ZooContext";
 
 function Tiktok({ className }: { className?: string }) {
   return (
@@ -20,8 +21,9 @@ function Tiktok({ className }: { className?: string }) {
 }
 
 export function Contact() {
-  const { t, i18n } = useTranslation();
-  const isEs = i18n.language === "es";
+  const { t } = useTranslation();
+  const { currentLang } = useZoo();
+  const isEs = currentLang === "es";
 
   const [formData, setFormData] = useState({
     name: "",

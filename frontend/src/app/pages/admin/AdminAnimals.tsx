@@ -25,20 +25,13 @@ const emptyForm: Omit<Animal, "id"> = {
 
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || '').replace(/\/$/, '');
 function QrModal({ animal, onClose }: { animal: Animal; onClose: () => void }) {
-  const [langMode, setLangMode] = useState<"auto" | "es" | "en">("auto");
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  
-  const qrTargetUrl = origin
-    ? langMode === "auto"
-      ? `${origin}/especie/${animal.id}?scan=qr`
-      : `${origin}/especie/${animal.id}?lang=${langMode}&scan=qr`
-    : "";
-
+  const qrTargetUrl = origin ? `${origin}/especie/${animal.id}?scan=qr` : "";
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
 
   useEffect(() => {
     if (!qrTargetUrl) return;
-    QRCode.toDataURL(qrTargetUrl, { width: 320, margin: 2 })
+    QRCode.toDataURL(qrTargetUrl, { width: 340, margin: 2 })
       .then((url) => setQrDataUrl(url))
       .catch(() => setQrDataUrl(""));
   }, [qrTargetUrl]);
@@ -49,7 +42,7 @@ function QrModal({ animal, onClose }: { animal: Animal; onClose: () => void }) {
       const dataUrl = await QRCode.toDataURL(qrTargetUrl, { width: 1024, margin: 2 });
       const link = document.createElement("a");
       link.href = dataUrl;
-      link.download = `QR-ZooMAT-${animal.name.replace(/\s+/g, "_")}-${langMode}.png`;
+      link.download = `QR-ZooMAT-${animal.name.replace(/\s+/g, "_")}.png`;
       link.click();
     } catch (err) {
       console.error("Failed to download QR", err);
@@ -74,62 +67,18 @@ function QrModal({ animal, onClose }: { animal: Animal; onClose: () => void }) {
           <QrCode className="w-7 h-7 text-amber-700" />
           <span>Código QR del Exhibidor ZooMAT</span>
         </div>
-        <p className="text-sm text-stone-600 mb-4">
+        <p className="text-sm text-stone-600 mb-2">
           Placa interactiva y audioguía para el recinto de <strong className="text-amber-950 font-bold">{animal.name}</strong>
         </p>
+        <p className="text-xs text-emerald-800 font-semibold mb-4 bg-emerald-50 py-1.5 px-3 rounded-xl border border-emerald-200 inline-block">
+          ✨ Modo Automático: Detecta el idioma del teléfono del visitante (Español o Inglés) y reproduce el audio
+        </p>
 
-        {/* Idioma Selector */}
-        <div className="mb-4">
-          <label className="block text-xs font-bold text-stone-600 uppercase tracking-wider mb-2">
-            Modo de Idioma al Escanear el QR:
-          </label>
-          <div className="grid grid-cols-3 gap-2 bg-[#fcfaf5] p-1.5 rounded-2xl border border-amber-900/15">
-            <button
-              type="button"
-              onClick={() => setLangMode("auto")}
-              className={`py-2 px-2 rounded-xl text-xs font-bold transition-all ${
-                langMode === "auto"
-                  ? "wood-texture-bg text-amber-200 border border-amber-600 shadow-sm"
-                  : "text-stone-700 hover:bg-amber-100/50"
-              }`}
-            >
-              🌐 Automático
-            </button>
-            <button
-              type="button"
-              onClick={() => setLangMode("es")}
-              className={`py-2 px-2 rounded-xl text-xs font-bold transition-all ${
-                langMode === "es"
-                  ? "wood-texture-bg text-amber-200 border border-amber-600 shadow-sm"
-                  : "text-stone-700 hover:bg-amber-100/50"
-              }`}
-            >
-              🇲🇽 Español
-            </button>
-            <button
-              type="button"
-              onClick={() => setLangMode("en")}
-              className={`py-2 px-2 rounded-xl text-xs font-bold transition-all ${
-                langMode === "en"
-                  ? "wood-texture-bg text-amber-200 border border-amber-600 shadow-sm"
-                  : "text-stone-700 hover:bg-amber-100/50"
-              }`}
-            >
-              🇺🇸 English
-            </button>
-          </div>
-          <p className="text-xs text-stone-500 mt-2">
-            {langMode === "auto" && "Detecta automáticamente el idioma del teléfono del visitante (Español o Inglés)."}
-            {langMode === "es" && "Abre siempre la ficha y audioguía en idioma Español."}
-            {langMode === "en" && "Abre siempre la ficha y audioguía en idioma Inglés para turistas extranjeros."}
-          </p>
-        </div>
-
-        <div className="bg-[#fcfaf5] border-2 border-amber-900/20 rounded-3xl p-4 inline-block mb-4 shadow-sm">
+        <div className="bg-[#fcfaf5] border-2 border-amber-900/20 rounded-3xl p-5 inline-block mb-4 shadow-sm">
           {qrDataUrl ? (
-            <img src={qrDataUrl} alt={`QR ${animal.name}`} className="w-56 h-56 mx-auto rounded-xl shadow-xs" />
+            <img src={qrDataUrl} alt={`QR ${animal.name}`} className="w-60 h-60 mx-auto rounded-xl shadow-xs" />
           ) : (
-            <div className="w-56 h-56 flex items-center justify-center text-stone-400 text-sm">Generando QR...</div>
+            <div className="w-60 h-60 flex items-center justify-center text-stone-400 text-sm">Generando QR...</div>
           )}
         </div>
 

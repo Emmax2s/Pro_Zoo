@@ -1,8 +1,11 @@
 import { Info, MapPin, AlertCircle, Lightbulb } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Card } from "./ui/card";
+import { getLocalizedAnimal } from "../services/speciesTranslator";
+import { Animal } from "../data/zooStore";
 
 interface AnimalCardProps {
+  id?: string;
   name: string;
   nameEn?: string;
   scientificName: string;
@@ -15,36 +18,34 @@ interface AnimalCardProps {
   funFact: string;
   funFactEn?: string;
   statusColor: string;
+  category?: string;
 }
 
-export function AnimalCard({
-  name,
-  nameEn,
-  scientificName,
-  image,
-  habitat,
-  habitatEn,
-  diet,
-  dietEn,
-  status,
-  funFact,
-  funFactEn,
-  statusColor,
-}: AnimalCardProps) {
+export function AnimalCard(props: AnimalCardProps) {
+  const {
+    name,
+    nameEn,
+    scientificName,
+    image,
+    habitat,
+    habitatEn,
+    diet,
+    dietEn,
+    status,
+    funFact,
+    funFactEn,
+    statusColor,
+  } = props;
   const { i18n } = useTranslation();
   const isEs = i18n.language === "es";
 
-  const displayName = isEs ? name : nameEn || name;
-  const displayHabitat = isEs ? habitat : habitatEn || habitat;
-  const displayDiet = isEs ? diet : dietEn || diet;
-  const displayFunFact = isEs ? funFact : funFactEn || funFact;
-  const displayStatus = isEs
-    ? status
-    : status === "En Peligro de Extinción"
-    ? "Endangered"
-    : status === "Amenazada"
-    ? "Threatened"
-    : "Special Protection";
+  const loc = getLocalizedAnimal(props as unknown as Animal, isEs);
+  const displayName = isEs ? name : (nameEn || loc.name);
+  const displayScientificName = isEs ? scientificName : (loc.scientificName || scientificName);
+  const displayHabitat = isEs ? habitat : (habitatEn || loc.habitat);
+  const displayDiet = isEs ? diet : (dietEn || loc.diet);
+  const displayFunFact = isEs ? funFact : (funFactEn || loc.funFact);
+  const displayStatus = isEs ? status : loc.status;
 
   return (
     <Card className="overflow-hidden bg-white border-2 border-[#e2d5bd] shadow-lg hover:shadow-2xl hover:border-amber-600/50 transition-all duration-300 group rounded-3xl flex flex-col h-full">
@@ -77,7 +78,7 @@ export function AnimalCard({
             {displayName}
           </h2>
           <p className="text-base sm:text-lg text-amber-900 font-serif italic font-semibold mt-1">
-            ({scientificName})
+            ({displayScientificName})
           </p>
         </div>
 

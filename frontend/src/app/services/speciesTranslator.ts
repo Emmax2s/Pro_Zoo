@@ -1,4 +1,4 @@
-// speciesTranslator.ts — Comprehensive bilingual dictionary and audio helper for ZooMAT species
+// speciesTranslator.ts — Comprehensive bilingual dictionary and auto-translator for ZooMAT species
 
 import { Animal, INITIAL_ANIMALS } from "../data/zooStore";
 
@@ -14,6 +14,20 @@ const SPECIES_TRANSLATIONS: Record<
     audioUrl?: string;
   }
 > = {
+  "escarabajo": {
+    nameEn: "Beetle",
+    scientificName: "Order Coleoptera",
+    habitatEn: "Soil, tree trunks, and low vegetation.",
+    dietEn: "Variable; may include leaves, fruits, and decaying organic matter.",
+    funFactEn: "Its hardened front wings (elytra) protect the delicate flight wings underneath.",
+  },
+  "escarabajo rinoceronte": {
+    nameEn: "Rhinoceros Beetle",
+    scientificName: "Dynastinae",
+    habitatEn: "Tropical forest floors, under decaying logs and leaf litter.",
+    dietEn: "Decaying wood, rotting fruits, and plant sap.",
+    funFactEn: "Renowned for their remarkable horn structures used by males in territorial battles.",
+  },
   "guacamaya roja": {
     nameEn: "Scarlet Macaw",
     scientificName: "Ara macao",
@@ -122,20 +136,52 @@ const SPECIES_TRANSLATIONS: Record<
   },
 };
 
-// Common phrases dictionary for database records
+// Comprehensive phrase and sentence dictionary for translating database fields to English
 const PHRASE_DICTIONARY: [RegExp, string][] = [
+  // Full Sentences / Clauses
+  [/sus alas delanteras endurecidas protegen las alas que utiliza para volar\./gi, "Its hardened front wings protect the delicate flight wings underneath."],
+  [/sus alas delanteras endurecidas protegen las alas que utiliza para volar/gi, "Its hardened front wings protect the delicate flight wings underneath."],
+  [/su pico es grande y ligero en relación con su tamaño\./gi, "Its beak is large and lightweight relative to its body size."],
+  [/su pico es grande y ligero en relación con su tamaño/gi, "Its beak is large and lightweight relative to its body size."],
+  [/se aparean de por vida/gi, "they mate for life"],
+  [/el felino más grande de américa/gi, "the largest feline in the Americas"],
+  [/orden coleoptera/gi, "Order Coleoptera"],
+  [/orden /gi, "Order "],
+
+  // Habitat phrases
+  [/suelo, troncos y vegetación\./gi, "Soil, tree trunks, and low vegetation."],
+  [/suelo, troncos y vegetación/gi, "Soil, tree trunks, and low vegetation"],
+  [/selvas tropicales húmedas y bosques altos de chiapas/gi, "tropical rainforests and tall canopy forests of Chiapas"],
   [/selvas tropicales húmedas y bosques altos/gi, "tropical rainforests and tall canopy forests"],
   [/selvas tropicales\./gi, "Tropical rainforests."],
   [/selvas tropicales/gi, "tropical rainforests"],
   [/selva tropical/gi, "tropical rainforest"],
   [/selva lacandona/gi, "Lacandon Jungle"],
+  [/bosques de coníferas y robledales/gi, "coniferous forests and oak groves"],
+  [/bosque mesófilo de montaña/gi, "cloud forest"],
+  [/bosque tropical caducifolio/gi, "tropical deciduous forest"],
   [/bosques tropicales/gi, "tropical forests"],
   [/bosques de niebla/gi, "cloud forests"],
+  [/bosques nubosos/gi, "cloud forests"],
   [/sabana africana/gi, "African savannah"],
+  [/pastizales/gi, "grasslands"],
+  [/arroyos rocosos/gi, "rocky streams"],
+  [/ríos, estuarios y manglares/gi, "rivers, estuaries, and mangroves"],
+
+  // Diet phrases
+  [/variable; puede incluir hojas, frutos o materia orgánica\./gi, "Variable; may include leaves, fruits, and organic matter."],
+  [/variable; puede incluir hojas, frutos o materia orgánica/gi, "Variable; may include leaves, fruits, and organic matter"],
+  [/variable; puede incluir/gi, "Variable; may include"],
   [/frutos, semillas y nueces\./gi, "Fruits, seeds, and nuts."],
   [/frutos, semillas y nueces/gi, "fruits, seeds, and nuts"],
-  [/su pico es grande y ligero en relación con su tamaño\./gi, "Its beak is large and lightweight relative to its body size."],
-  [/su pico es grande y ligero en relación con su tamaño/gi, "its beak is large and lightweight relative to its body size"],
+  [/semillas duras, frutos, brotes y néctar/gi, "hard seeds, fruits, sprouts, and nectar"],
+  [/hojas, frutos o materia orgánica/gi, "leaves, fruits, or organic matter"],
+  [/materia orgánica/gi, "organic matter"],
+  [/pecaríes, venados, tapires y peces/gi, "peccaries, deer, tapirs, and fish"],
+  [/peces, aves acuáticas y pequeños mamíferos/gi, "fish, waterfowl, and small mammals"],
+
+  // Vocabulary
+  [/escarabajo/gi, "Beetle"],
   [/carnívoro/gi, "Carnivore"],
   [/herbívoro/gi, "Herbivore"],
   [/frugívoro/gi, "Frugivore"],
@@ -146,9 +192,18 @@ const PHRASE_DICTIONARY: [RegExp, string][] = [
   [/amenazada/gi, "Threatened"],
   [/protegida especial/gi, "Special Protection"],
   [/preocupación menor/gi, "Least Concern"],
+  [/suelo/gi, "soil"],
+  [/troncos/gi, "tree trunks"],
+  [/vegetación/gi, "vegetation"],
+  [/hojas/gi, "leaves"],
+  [/frutos/gi, "fruits"],
+  [/semillas/gi, "seeds"],
+  [/nueces/gi, "nuts"],
+  [/insectos/gi, "insects"],
+  [/peces/gi, "fish"],
 ];
 
-function translateText(text: string): string {
+export function translateText(text: string): string {
   if (!text) return "";
   let result = text;
   for (const [pattern, replacement] of PHRASE_DICTIONARY) {
@@ -239,6 +294,9 @@ export function getLocalizedAnimal(animal: any, isEs: boolean): LocalizedAnimalD
   dietEn = dietEn || translateText(animal.diet || "");
   funFactEn = funFactEn || translateText(animal.funFact || animal.description || "");
 
+  const rawSci = animal.scientificName || animal.species || "";
+  const scientificNameEn = translateText(rawSci);
+
   // Clean audio URL if it's example.com dummy
   if (audioUrl && audioUrl.includes("example.com")) {
     audioUrl = undefined;
@@ -270,7 +328,7 @@ export function getLocalizedAnimal(animal: any, isEs: boolean): LocalizedAnimalD
 
   return {
     name: nameEn || animal.name,
-    scientificName: animal.scientificName || animal.species || "",
+    scientificName: scientificNameEn || rawSci,
     category: categoryEn,
     status: statusEn,
     habitat: habitatEn || animal.habitat || "",

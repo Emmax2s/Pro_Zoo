@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useZoo } from "../context/ZooContext";
+import { getLocalizedAnimal } from "../services/speciesTranslator";
 
 // ── Hero Carousel (Clean & Beautiful with Wooden Controls) ───────────────────
 function HeroCarousel() {
@@ -328,40 +329,37 @@ export function Home() {
                 </p>
               </div>
             ) : (
-              animals.slice(0, 3).map((animal) => (
-                <div
-                  key={animal.id}
-                  className="bg-white rounded-3xl overflow-hidden border-2 border-[#e6dbc7] shadow-md hover:shadow-2xl transition-all duration-300 group flex flex-col"
-                >
-                  <div className="relative h-72 overflow-hidden bg-stone-900">
-                    <img
-                      src={animal.image}
-                      alt={isEs ? animal.name : animal.nameEn || animal.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
-                    />
-                    <div className="absolute top-4 left-4 bg-stone-950/80 backdrop-blur-md text-amber-300 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider shadow-md border border-amber-400/30">
-                      {isEs
-                        ? animal.status
-                        : animal.status === "En Peligro de Extinción"
-                        ? "Endangered"
-                        : animal.status === "Amenazada"
-                        ? "Threatened"
-                        : "Special Protection"}
+              animals.slice(0, 3).map((animal) => {
+                const loc = getLocalizedAnimal(animal, isEs);
+                return (
+                  <div
+                    key={animal.id}
+                    className="bg-white rounded-3xl overflow-hidden border-2 border-[#e6dbc7] shadow-md hover:shadow-2xl transition-all duration-300 group flex flex-col"
+                  >
+                    <div className="relative h-72 overflow-hidden bg-stone-900">
+                      <img
+                        src={animal.image}
+                        alt={loc.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
+                      />
+                      <div className="absolute top-4 left-4 bg-stone-950/80 backdrop-blur-md text-amber-300 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider shadow-md border border-amber-400/30">
+                        {loc.status}
+                      </div>
+                    </div>
+                    <div className="p-7 flex items-center justify-between gap-3 flex-1 bg-white">
+                      <h3 className="font-adventure text-2xl text-stone-900">
+                        {loc.name}
+                      </h3>
+                      <Link
+                        to={`/animales?id=${animal.id}`}
+                        className="text-emerald-900 hover:text-emerald-950 font-adventure text-sm bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-xl border border-emerald-300 shadow-xs transition-colors"
+                      >
+                        {isEs ? "Ver más →" : "View more →"}
+                      </Link>
                     </div>
                   </div>
-                  <div className="p-7 flex items-center justify-between gap-3 flex-1 bg-white">
-                    <h3 className="font-adventure text-2xl text-stone-900">
-                      {isEs ? animal.name : animal.nameEn || animal.name}
-                    </h3>
-                    <Link
-                      to={`/animales?id=${animal.id}`}
-                      className="text-emerald-900 hover:text-emerald-950 font-adventure text-sm bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-xl border border-emerald-300 shadow-xs transition-colors"
-                    >
-                      {isEs ? "Ver más →" : "View more →"}
-                    </Link>
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

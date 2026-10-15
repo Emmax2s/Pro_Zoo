@@ -129,21 +129,14 @@ export function SpeciesDetail() {
   // Localized species properties
   const loc = species ? getLocalizedAnimal(species, !isEnglish) : null;
 
-  // 4. Robust audio playback toggle
-  const toggleAudio = useCallback(() => {
-    if (isPlayingAudio) {
-      stopAllAudio();
-      setIsPlayingAudio(false);
-      return;
-    }
-
-    if (!loc) return;
-
+  // 4. Robust audio playback
+  const startAudio = useCallback((targetLoc = loc) => {
+    if (!targetLoc) return;
     playChime();
 
     // If a clean MP3 is available and not example.com, try playing
-    if (loc.audioUrl && !loc.audioUrl.includes("example.com")) {
-      const audio = new Audio(loc.audioUrl);
+    if (targetLoc.audioUrl && !targetLoc.audioUrl.includes("example.com")) {
+      const audio = new Audio(targetLoc.audioUrl);
       audioRef.current = audio;
 
       audio.onplay = () => {
@@ -153,9 +146,8 @@ export function SpeciesDetail() {
       audio.onpause = () => setIsPlayingAudio(false);
       audio.onended = () => setIsPlayingAudio(false);
       audio.onerror = () => {
-        // Fallback to speech narration
         speakNarration(
-          `${loc.name}. ${loc.scientificName ? `(${loc.scientificName}).` : ""} ${loc.funFact}. ${loc.habitat}. ${loc.diet}.`,
+          `${targetLoc.name}. ${targetLoc.scientificName ? `(${targetLoc.scientificName}).` : ""} ${targetLoc.funFact}. ${targetLoc.habitat}. ${targetLoc.diet}.`,
           !isEnglish,
           () => setIsPlayingAudio(true),
           () => setIsPlayingAudio(false)
@@ -163,42 +155,56 @@ export function SpeciesDetail() {
       };
 
       audio.play().catch(() => {
-        // Autoplay policy or error, fallback to speech
         speakNarration(
-          `${loc.name}. ${loc.scientificName ? `(${loc.scientificName}).` : ""} ${loc.funFact}. ${loc.habitat}. ${loc.diet}.`,
+          `${targetLoc.name}. ${targetLoc.scientificName ? `(${targetLoc.scientificName}).` : ""} ${targetLoc.funFact}. ${targetLoc.habitat}. ${targetLoc.diet}.`,
           !isEnglish,
           () => setIsPlayingAudio(true),
           () => setIsPlayingAudio(false)
         );
       });
     } else {
-      // Speech narration
       speakNarration(
-        `${loc.name}. ${loc.scientificName ? `(${loc.scientificName}).` : ""} ${loc.funFact}. ${loc.habitat}. ${loc.diet}.`,
+        `${targetLoc.name}. ${targetLoc.scientificName ? `(${targetLoc.scientificName}).` : ""} ${targetLoc.funFact}. ${targetLoc.habitat}. ${targetLoc.diet}.`,
         !isEnglish,
         () => setIsPlayingAudio(true),
         () => setIsPlayingAudio(false)
       );
     }
-  }, [isPlayingAudio, loc, isEnglish]);
+  }, [loc, isEnglish]);
 
-  // 5. Auto-play audio when scanned via QR
+  const toggleAudio = useCallback(() => {
+    if (isPlayingAudio) {
+      stopAllAudio();
+      setIsPlayingAudio(false);
+    } else {
+      startAudio();
+    }
+  }, [isPlayingAudio, startAudio]);
+
+  // 5. Auto-play audio once when scanned via QR
+  const hasAutoPlayedRef = useRef(false);
   useEffect(() => {
-    if (!loc) return;
+    if (!loc || hasAutoPlayedRef.current) return;
 
     const isQr = searchParams.get("scan") === "qr" || window.location.search.includes("qr");
     if (!isQr) return;
+    hasAutoPlayedRef.current = true;
 
-    // Small delay to allow page render
     const timer = setTimeout(() => {
-      toggleAudio();
-    }, 400);
+      startAudio(loc);
+    }, 600);
 
     return () => {
       clearTimeout(timer);
+    };
+  }, [loc, searchParams, startAudio]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
       stopAllAudio();
     };
-  }, [searchParams, loc, toggleAudio]);
+  }, []);
 
   const toggleLanguage = () => {
     stopAllAudio();

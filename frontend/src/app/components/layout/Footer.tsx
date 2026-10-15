@@ -143,6 +143,7 @@ export function Footer() {
           <div className="flex gap-6 text-sm font-semibold">
             <Link to="/privacidad" className="hover:text-white transition-colors">{t("footer.privacy")}</Link>
             <Link to="/terminos" className="hover:text-white transition-colors">{t("footer.terms")}</Link>
+            <Link to="/admin" className="hover:text-amber-300 text-stone-400 transition-colors">Admin</Link>
           </div>
         </div>
       </div>

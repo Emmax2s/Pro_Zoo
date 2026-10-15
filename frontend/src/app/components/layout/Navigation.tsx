@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router";
-import { Menu, X, Clock, Globe, Compass, BookOpen, HelpCircle, MapPin, DollarSign, Facebook, Twitter, Youtube, Instagram, ShieldCheck, Sparkles } from "lucide-react";
+import { Menu, X, Clock, Globe, DollarSign } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import logoZoomat from "../../../assets/logo-zoomat.png";
@@ -7,20 +7,13 @@ import logoZoomat from "../../../assets/logo-zoomat.png";
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
 
   const toggleLanguage = () => {
     i18n.changeLanguage(i18n.language === "es" ? "en" : "es");
   };
 
   const isEs = i18n.language === "es";
-
-  const topLinks = [
-    { to: "/visita", label: isEs ? "Acerca del zoológico" : "About the Zoo", icon: Compass },
-    { to: "/mapa", label: isEs ? "Mapa del zoológico" : "Zoo Map", icon: MapPin },
-    { to: "/animales", label: isEs ? "Todo sobre animales" : "All about Animals", icon: BookOpen },
-    { to: "/contacto", label: isEs ? "Preguntas frecuentes" : "FAQ & Help", icon: HelpCircle },
-  ];
 
   const mainLinks = [
     { to: "/", label: isEs ? "INICIO" : "HOME" },
@@ -37,50 +30,6 @@ export function Navigation() {
 
   return (
     <header className="sticky top-0 z-50 shadow-2xl select-none">
-      {/* 1. TOP DARK BARK / UTILITY STRIP (Photo 1 Style) */}
-      <div className="bg-stone-950 text-stone-200 border-b border-stone-800 text-xs sm:text-sm py-1.5 px-4">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          {/* Top category navigation */}
-          <div className="hidden md:flex items-center gap-6 overflow-x-auto py-0.5">
-            {topLinks.map((item, idx) => (
-              <Link
-                key={idx}
-                to={item.to}
-                className="flex items-center gap-1.5 text-stone-300 hover:text-amber-400 font-medium transition-colors whitespace-nowrap"
-              >
-                <item.icon className="w-3.5 h-3.5 text-amber-500/90" />
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </div>
-
-          {/* Right utility items: Admin link & Language Switcher */}
-          <div className="flex items-center justify-between w-full md:w-auto gap-4 ml-auto">
-            <span className="hidden sm:inline-block text-stone-400 text-xs">
-              🍃 {isEs ? "Parque Natural & Reserva Ecológica" : "Natural Park & Ecological Reserve"}
-            </span>
-
-            <div className="flex items-center gap-3">
-              <Link
-                to="/admin"
-                className="flex items-center gap-1 text-xs font-bold text-amber-300/80 hover:text-amber-300 bg-stone-900 px-2.5 py-1 rounded-md border border-stone-700 hover:border-amber-500/50 transition-colors"
-                title="Panel de Administración (Subir fotos y editar contenido)"
-              >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Admin</span>
-              </Link>
-
-              <button
-                onClick={toggleLanguage}
-                className="flex items-center gap-1 text-xs font-bold text-stone-200 hover:text-white bg-stone-800 hover:bg-stone-700 px-2.5 py-1 rounded-md border border-stone-700 transition cursor-pointer"
-              >
-                <Globe className="w-3.5 h-3.5 text-amber-400" />
-                <span>{isEs ? "ES" : "EN"}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* 2. MAIN RUSTIC WOOD PLANK HEADER BAR (Photo 1 Signature Style) */}
       <div className="wood-texture-bg border-b-4 border-[#2b1706] shadow-xl relative overflow-visible">
@@ -160,8 +109,8 @@ export function Navigation() {
               </nav>
             </div>
 
-            {/* RIGHT: HANGING "$ PRECIOS" WOOD SIGN & WOODEN SOCIAL COINS */}
-            <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
+            {/* RIGHT: HANGING "$ PRECIOS" WOOD SIGN, LANGUAGE SWITCHER & MOBILE MENU */}
+            <div className="flex items-center gap-2.5 sm:gap-3.5 flex-shrink-0">
               {/* Hanging Wooden Sign for $ PRECIOS */}
               <div className="relative pt-1 flex flex-col items-center">
                 {/* 2 Ropes */}
@@ -180,6 +129,27 @@ export function Navigation() {
                     {isEs ? "PRECIOS" : "PRICES"}
                   </span>
                 </Link>
+              </div>
+
+              {/* Botón de Idioma colgante de madera (donde apuntó la flecha) */}
+              <div className="relative pt-1 flex flex-col items-center">
+                {/* 2 Ropes */}
+                <div className="flex justify-between w-12 sm:w-16 px-1.5 -mb-0.5">
+                  <span className="w-1 h-3 bg-gradient-to-b from-amber-900 to-amber-700 shadow-sm" />
+                  <span className="w-1 h-3 bg-gradient-to-b from-amber-900 to-amber-700 shadow-sm" />
+                </div>
+
+                <button
+                  onClick={toggleLanguage}
+                  className="wood-texture-dark px-2.5 sm:px-3.5 py-1.5 md:py-2 rounded-xl border-2 border-amber-600/70 shadow-2xl flex items-center gap-1.5 text-amber-300 font-adventure text-sm md:text-base tracking-wide hover:scale-105 hover:border-amber-400 transition-all wood-button-shadow cursor-pointer group"
+                  title={isEs ? "Switch language to English" : "Cambiar idioma a Español"}
+                  aria-label="Cambiar idioma / Switch language"
+                >
+                  <Globe className="w-4 h-4 text-amber-400 group-hover:rotate-45 transition-transform" />
+                  <span className="text-white text-adventure-shadow font-adventure font-bold">
+                    {isEs ? "ES" : "EN"}
+                  </span>
+                </button>
               </div>
 
               {/* Mobile menu toggle button */}

@@ -1,19 +1,15 @@
 import { Link, useLocation } from "react-router";
-import { Menu, X, Clock, Globe, DollarSign } from "lucide-react";
+import { Menu, X, Clock, Globe } from "lucide-react";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useZoo } from "../../context/ZooContext";
 import logoZoomat from "../../../assets/logo-zoomat.png";
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { i18n } = useTranslation();
+  const { currentLang, toggleLanguage } = useZoo();
 
-  const toggleLanguage = () => {
-    i18n.changeLanguage(i18n.language === "es" ? "en" : "es");
-  };
-
-  const isEs = i18n.language === "es";
+  const isEs = currentLang === "es";
 
   const mainLinks = [
     { to: "/", label: isEs ? "INICIO" : "HOME" },
@@ -109,28 +105,8 @@ export function Navigation() {
               </nav>
             </div>
 
-            {/* RIGHT: HANGING "$ PRECIOS" WOOD SIGN, LANGUAGE SWITCHER & MOBILE MENU */}
+            {/* RIGHT: LANGUAGE SWITCHER & MOBILE MENU */}
             <div className="flex items-center gap-2.5 sm:gap-3.5 flex-shrink-0">
-              {/* Hanging Wooden Sign for $ PRECIOS */}
-              <div className="relative pt-1 flex flex-col items-center">
-                {/* 2 Ropes */}
-                <div className="flex justify-between w-16 md:w-24 px-2 -mb-0.5">
-                  <span className="w-1 h-3 bg-gradient-to-b from-amber-900 to-amber-700 shadow-sm" />
-                  <span className="w-1 h-3 bg-gradient-to-b from-amber-900 to-amber-700 shadow-sm" />
-                </div>
-
-                <Link
-                  to="/visita"
-                  className="wood-texture-dark px-3 md:px-4 py-1.5 md:py-2 rounded-xl border-2 border-amber-600/70 shadow-2xl flex items-center gap-1.5 text-amber-300 font-adventure text-sm md:text-base tracking-wide hover:scale-105 hover:border-amber-400 transition-all wood-button-shadow cursor-pointer group"
-                  title="Ver Precios y Boletos"
-                >
-                  <DollarSign className="w-4 h-4 text-amber-400 group-hover:rotate-12 transition-transform" />
-                  <span className="text-white text-adventure-shadow font-adventure">
-                    {isEs ? "PRECIOS" : "PRICES"}
-                  </span>
-                </Link>
-              </div>
-
               {/* Botón de Idioma colgante de madera (donde apuntó la flecha) */}
               <div className="relative pt-1 flex flex-col items-center">
                 {/* 2 Ropes */}

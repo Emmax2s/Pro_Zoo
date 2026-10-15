@@ -182,9 +182,8 @@ function HeroCarousel() {
 
 // ── Main Home Page ────────────────────────────────────────────────────────────
 export function Home() {
-  const { t, i18n } = useTranslation();
-  const isEs = i18n.language === "es";
-  const { animals } = useZoo();
+  const { animals, currentLang } = useZoo();
+  const isEs = currentLang === "es";
 
   const highlights = [
     {

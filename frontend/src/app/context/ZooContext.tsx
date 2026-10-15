@@ -9,6 +9,7 @@ import {
   INITIAL_USERS,
   INITIAL_SLIDES,
 } from "../data/zooStore";
+import i18n from "../i18n";
 
 interface ZooContextValue {
   // Auth
@@ -26,6 +27,10 @@ interface ZooContextValue {
   // Home carousel
   slides: SlideItem[];
   setSlides: (slides: SlideItem[]) => void;
+  // Language
+  currentLang: "es" | "en";
+  toggleLanguage: () => void;
+  setLanguage: (lang: "es" | "en") => void;
 }
 
 const ZooContext = createContext<ZooContextValue | null>(null);
@@ -104,6 +109,9 @@ const FALLBACK: ZooContextValue = {
   setUsers: () => {},
   slides: INITIAL_SLIDES,
   setSlides: () => {},
+  currentLang: "es",
+  toggleLanguage: () => {},
+  setLanguage: () => {},
 };
 
 export function ZooProvider({ children }: { children: ReactNode }) {
@@ -112,6 +120,37 @@ export function ZooProvider({ children }: { children: ReactNode }) {
   const [enclosures, setEnclosures] = useState<Enclosure[]>(DEFAULT_ENCLOSURES);
   const [users, setUsers] = useState<ZooUser[]>(INITIAL_USERS);
   const [slides, setSlides] = useState<SlideItem[]>(INITIAL_SLIDES);
+  const [currentLang, setCurrentLangState] = useState<"es" | "en">(() => {
+    try {
+      const saved = localStorage.getItem("zoomat_lang");
+      if (saved === "en" || saved === "es") return saved;
+      if (typeof navigator !== "undefined" && navigator.language?.toLowerCase().startsWith("en")) {
+        return "en";
+      }
+    } catch {}
+    return "es";
+  });
+
+  const setLanguage = (lang: "es" | "en") => {
+    setCurrentLangState(lang);
+    try {
+      localStorage.setItem("zoomat_lang", lang);
+      document.documentElement.lang = lang;
+    } catch {}
+    void i18n.changeLanguage(lang);
+  };
+
+  const toggleLanguage = () => {
+    const next = currentLang === "es" ? "en" : "es";
+    setLanguage(next);
+  };
+
+  useEffect(() => {
+    try {
+      document.documentElement.lang = currentLang;
+      void i18n.changeLanguage(currentLang);
+    } catch {}
+  }, [currentLang]);
 
   useEffect(() => {
     if (!API_BASE_URL) return;
@@ -175,7 +214,23 @@ export function ZooProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <ZooContext.Provider value={{ currentUser, setCurrentUser, animals, setAnimals, enclosures, setEnclosures, users, setUsers, slides, setSlides }}>
+    <ZooContext.Provider
+      value={{
+        currentUser,
+        setCurrentUser,
+        animals,
+        setAnimals,
+        enclosures,
+        setEnclosures,
+        users,
+        setUsers,
+        slides,
+        setSlides,
+        currentLang,
+        toggleLanguage,
+        setLanguage,
+      }}
+    >
       {children}
     </ZooContext.Provider>
   );

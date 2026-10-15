@@ -34,7 +34,7 @@ export function AdminDashboard() {
   const { token } = useAuth();
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodKey>("mes");
   const [visitSummary, setVisitSummary] = useState<VisitSummary[]>([]);
-  const [totalVisitors, setTotalVisitors] = useState<number>(145);
+  const [totalVisitors, setTotalVisitors] = useState<number>(() => getVisitSummary(30).totalVisitors);
 
   useEffect(() => {
     const periodDays = selectedPeriod === "dia" ? 1 : selectedPeriod === "semana" ? 7 : selectedPeriod === "mes" ? 30 : 365;
@@ -58,6 +58,14 @@ export function AdminDashboard() {
         .then((data) => {
           if (Array.isArray(data.summary) && data.summary.length > 0) {
             setVisitSummary(data.summary);
+          }
+          if (typeof data.totalVisits === "number") {
+            setTotalVisitors(data.totalVisits);
+          } else if (Array.isArray(data.summary) && data.summary.length > 0) {
+            const sum = data.summary.reduce((acc: number, item: any) => acc + (Number(item.totalVisits) || 0), 0);
+            if (sum > 0) {
+              setTotalVisitors(sum);
+            }
           }
         })
         .catch((error) => console.warn("Using local analytics stats:", error));

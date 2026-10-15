@@ -1,8 +1,8 @@
 import { Info, MapPin, AlertCircle, Lightbulb } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { Card } from "./ui/card";
 import { getLocalizedAnimal } from "../services/speciesTranslator";
 import { Animal } from "../data/zooStore";
+import { useZoo } from "../context/ZooContext";
 
 interface AnimalCardProps {
   id?: string;
@@ -36,8 +36,8 @@ export function AnimalCard(props: AnimalCardProps) {
     funFactEn,
     statusColor,
   } = props;
-  const { i18n } = useTranslation();
-  const isEs = i18n.language === "es";
+  const { currentLang } = useZoo();
+  const isEs = currentLang === "es";
 
   const loc = getLocalizedAnimal(props as unknown as Animal, isEs);
   const displayName = isEs ? name : (nameEn || loc.name);

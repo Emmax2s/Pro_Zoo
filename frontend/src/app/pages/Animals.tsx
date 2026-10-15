@@ -9,9 +9,8 @@ import { getLocalizedAnimal } from "../services/speciesTranslator";
 import { playChime, speakNarration, stopAllAudio } from "../services/audioPlayer";
 
 export function Animals() {
-  const { t, i18n } = useTranslation();
-  const isEs = i18n.language === "es";
-  const { animals } = useZoo();
+  const { animals, currentLang, toggleLanguage, setLanguage } = useZoo();
+  const isEs = currentLang === "es";
   const { id: pathId } = useParams<{ id?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -27,9 +26,9 @@ export function Animals() {
   useEffect(() => {
     const lang = searchParams.get("lang");
     if (lang === "es" || lang === "en") {
-      void i18n.changeLanguage(lang);
+      setLanguage(lang);
     }
-  }, [searchParams, i18n]);
+  }, [searchParams, setLanguage]);
 
   // Auto-open modal if scanned via QR or linked via URL parameter (/especie/:id or ?id=...)
   useEffect(() => {
@@ -68,10 +67,10 @@ export function Animals() {
     }
   };
 
-  const toggleLanguage = () => {
+  const handleToggleModalLanguage = () => {
     stopSpeech();
     const nextLang = isEs ? "en" : "es";
-    void i18n.changeLanguage(nextLang);
+    setLanguage(nextLang);
     const newParams = new URLSearchParams(searchParams);
     newParams.set("lang", nextLang);
     setSearchParams(newParams);
@@ -116,6 +115,38 @@ export function Animals() {
     ? ["Todos", "En Peligro de Extinción", "Amenazada", "Protegida Especial"]
     : ["All", "Endangered", "Threatened", "Special Protection"];
 
+  const isCategorySelected = (cat: string) => {
+    if (cat === "Todos" || cat === "All") {
+      return selectedCategory === "Todos" || selectedCategory === "All";
+    }
+    return (
+      selectedCategory.toLowerCase() === cat.toLowerCase() ||
+      (cat === "Mammal" && selectedCategory === "Mamífero") ||
+      (cat === "Mamífero" && selectedCategory === "Mammal") ||
+      (cat === "Bird" && selectedCategory === "Ave") ||
+      (cat === "Ave" && selectedCategory === "Bird") ||
+      (cat === "Reptile" && selectedCategory === "Reptil") ||
+      (cat === "Reptil" && selectedCategory === "Reptile") ||
+      (cat === "Amphibian" && selectedCategory === "Anfibio") ||
+      (cat === "Anfibio" && selectedCategory === "Amphibian")
+    );
+  };
+
+  const isStatusSelected = (st: string) => {
+    if (st === "Todos" || st === "All") {
+      return selectedStatus === "Todos" || selectedStatus === "All";
+    }
+    return (
+      selectedStatus.toLowerCase() === st.toLowerCase() ||
+      (st === "Endangered" && selectedStatus === "En Peligro de Extinción") ||
+      (st === "En Peligro de Extinción" && selectedStatus === "Endangered") ||
+      (st === "Threatened" && selectedStatus === "Amenazada") ||
+      (st === "Amenazada" && selectedStatus === "Threatened") ||
+      (st === "Special Protection" && selectedStatus === "Protegida Especial") ||
+      (st === "Protegida Especial" && selectedStatus === "Special Protection")
+    );
+  };
+
   const filteredAnimals = animals.filter((animal) => {
     const loc = getLocalizedAnimal(animal, isEs);
     const matchesSearch =
@@ -124,10 +155,18 @@ export function Animals() {
       loc.scientificName.toLowerCase().includes(searchTerm.toLowerCase());
 
     const isAllCat = selectedCategory === "Todos" || selectedCategory === "All";
-    const matchesCategory = isAllCat || animal.category === selectedCategory;
+    const matchesCategory =
+      isAllCat ||
+      animal.category === selectedCategory ||
+      loc.category === selectedCategory ||
+      isCategorySelected(animal.category || "");
 
     const isAllStat = selectedStatus === "Todos" || selectedStatus === "All";
-    const matchesStatus = isAllStat || animal.status === selectedStatus;
+    const matchesStatus =
+      isAllStat ||
+      animal.status === selectedStatus ||
+      loc.status === selectedStatus ||
+      isStatusSelected(animal.status || "");
 
     return matchesSearch && matchesCategory && matchesStatus;
   });
@@ -204,7 +243,7 @@ export function Animals() {
                     key={category}
                     onClick={() => setSelectedCategory(category)}
                     className={`px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all cursor-pointer ${
-                      selectedCategory === category
+                      isCategorySelected(category)
                         ? "wood-texture-bg text-amber-200 border-2 border-amber-600 shadow-md wood-button-shadow scale-105"
                         : "bg-[#fcfaf5] text-stone-800 hover:bg-amber-100/60 border border-amber-900/20"
                     }`}
@@ -227,7 +266,7 @@ export function Animals() {
                     key={status}
                     onClick={() => setSelectedStatus(status)}
                     className={`px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all cursor-pointer ${
-                      selectedStatus === status
+                      isStatusSelected(status)
                         ? "wood-texture-bg text-amber-200 border-2 border-amber-600 shadow-md wood-button-shadow scale-105"
                         : "bg-[#fcfaf5] text-stone-800 hover:bg-amber-100/60 border border-amber-900/20"
                     }`}
@@ -327,7 +366,7 @@ export function Animals() {
               <div className="flex items-center gap-3">
                 {/* Botón de Cambio de Idioma */}
                 <button
-                  onClick={toggleLanguage}
+                  onClick={handleToggleModalLanguage}
                   className="bg-white/90 hover:bg-white text-stone-950 font-black px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-md border-2 border-amber-400 transition-transform hover:scale-105 cursor-pointer"
                   title="Cambiar idioma del modal / Switch modal language"
                 >

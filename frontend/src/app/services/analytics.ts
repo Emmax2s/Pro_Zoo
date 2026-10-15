@@ -25,8 +25,8 @@ function getStoredData(): AnalyticsStorage {
     if (raw) {
       const parsed = JSON.parse(raw);
       return {
-        totalVisitors: Number(parsed.totalVisitors) || 128,
-        totalQrScans: Number(parsed.totalQrScans) || 84,
+        totalVisitors: Math.max(0, Number(parsed.totalVisitors) || 0),
+        totalQrScans: Math.max(0, Number(parsed.totalQrScans) || 0),
         scansBySpecies: parsed.scansBySpecies || {},
         history: Array.isArray(parsed.history) ? parsed.history : [],
       };
@@ -35,16 +35,11 @@ function getStoredData(): AnalyticsStorage {
     console.warn("Error reading analytics from localStorage:", e);
   }
 
-  // Initial realistic default baseline if fresh browser
+  // Realistic starter baseline
   return {
-    totalVisitors: 145,
-    totalQrScans: 62,
-    scansBySpecies: {
-      1: 18, // Guacamaya Roja
-      2: 24, // Jaguar
-      3: 12, // Tucán Pico Iris
-      4: 8,  // Pavón Cornudo
-    },
+    totalVisitors: 1,
+    totalQrScans: 0,
+    scansBySpecies: {},
     history: [],
   };
 }
@@ -63,12 +58,27 @@ function saveStoredData(data: AnalyticsStorage) {
 export function recordGeneralVisit() {
   if (typeof window === "undefined") return;
   try {
-    const alreadyCounted = sessionStorage.getItem(SESSION_VISITOR_KEY);
+    const sessionKey = "zoomat_visit_" + new Date().toISOString().slice(0, 10);
+    const alreadyCounted = sessionStorage.getItem(sessionKey);
+    const data = getStoredData();
+
     if (!alreadyCounted) {
-      sessionStorage.setItem(SESSION_VISITOR_KEY, "true");
-      const data = getStoredData();
+      sessionStorage.setItem(sessionKey, "true");
       data.totalVisitors += 1;
       saveStoredData(data);
+    }
+
+    // Always report to backend so production PostgreSQL table logs the visitor traffic
+    if (API_BASE_URL) {
+      fetch(`${API_BASE_URL}/api/analytics/1/visit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          language: localStorage.getItem("zoomat_lang") || "es",
+          accessedVia: "direct",
+          durationSeconds: 15,
+        }),
+      }).catch(() => {});
     }
   } catch (e) {
     console.warn("Unable to record general visit:", e);
@@ -119,26 +129,21 @@ export function recordSpeciesVisit(
  */
 export function getVisitSummary(periodDays: number = 30) {
   const data = getStoredData();
-  const now = Date.now();
-  const cutoff = now - periodDays * 24 * 60 * 60 * 1000;
-
-  // Filter history if any, else scale by period
-  const multiplier = periodDays === 1 ? 0.08 : periodDays === 7 ? 0.35 : periodDays === 30 ? 1 : 4.5;
 
   const result = Object.entries(data.scansBySpecies).map(([idStr, rawCount]) => {
     const speciesId = Number(idStr);
-    const count = Math.max(1, Math.round(rawCount * multiplier));
+    const count = Number(rawCount) || 0;
     return {
       speciesId,
       totalVisits: count,
-      uniqueVisitors: Math.max(1, Math.round(count * 0.85)),
+      uniqueVisitors: count,
       averageDuration: 45,
     };
   });
 
   return {
-    totalVisitors: Math.round(data.totalVisitors * multiplier),
-    totalQrVisits: Math.round(data.totalQrScans * multiplier),
+    totalVisitors: Math.max(1, Number(data.totalVisitors) || 1),
+    totalQrVisits: Number(data.totalQrScans) || 0,
     summary: result,
   };
 }

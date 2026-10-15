@@ -191,8 +191,22 @@ router.get('/all/summary', verifyToken, async (req, res, next) => {
       averageDuration: row.avg_duration || 0,
     }));
 
+    // Get overall visits across all species/site in period
+    const overallResult = await query(
+      `SELECT
+        COUNT(*) as total_visits,
+        COUNT(DISTINCT ip_hash) as unique_visitors
+       FROM species_visits
+       WHERE timestamp >= NOW() - ($1::INTEGER * INTERVAL '1 day')`,
+      [days]
+    );
+    const totalSiteVisits = parseInt(overallResult.rows[0]?.total_visits || 0);
+    const totalUniqueVisitors = parseInt(overallResult.rows[0]?.unique_visitors || 0);
+
     res.json({
       summary,
+      totalVisits: totalSiteVisits,
+      totalUniqueVisitors,
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {

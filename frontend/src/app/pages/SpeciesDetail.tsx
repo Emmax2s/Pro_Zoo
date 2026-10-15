@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Link, useParams, useSearchParams } from "react-router";
-import { useTranslation } from "react-i18next";
-import { Volume2, VolumeX, ArrowLeft, Globe, TreePine, MapPin, Sparkles, ShieldCheck, Play, Pause } from "lucide-react";
+import { useParams, useSearchParams } from "react-router";
+import { Volume2, VolumeX, Globe, TreePine, MapPin, Sparkles, ShieldCheck, Play, Pause } from "lucide-react";
 import { useZoo } from "../context/ZooContext";
 import { recordSpeciesVisit } from "../services/analytics";
 import { getLocalizedAnimal } from "../services/speciesTranslator";
@@ -13,8 +12,7 @@ const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) 
 export function SpeciesDetail() {
   const { idOrSlug } = useParams<{ idOrSlug: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { i18n } = useTranslation();
-  const { animals } = useZoo();
+  const { animals, currentLang, setLanguage } = useZoo();
 
   const [species, setSpecies] = useState<Animal | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,19 +23,15 @@ export function SpeciesDetail() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const visitLoggedRef = useRef(false);
 
-  // 1. Language detection: if ?lang is present, use it; otherwise detect phone language
+  // 1. Language detection: if ?lang is present, use it
   useEffect(() => {
     const urlLang = searchParams.get("lang");
     if (urlLang === "en" || urlLang === "es") {
-      void i18n.changeLanguage(urlLang);
-    } else {
-      // Auto-detect visitor's mobile/browser language
-      const phoneLang = typeof navigator !== "undefined" && navigator.language?.toLowerCase().startsWith("en") ? "en" : "es";
-      void i18n.changeLanguage(phoneLang);
+      setLanguage(urlLang);
     }
-  }, [searchParams, i18n]);
+  }, [searchParams, setLanguage]);
 
-  const isEnglish = i18n.language === "en";
+  const isEnglish = currentLang === "en";
 
   // 2. Load species from API or fallback to local zooStore
   useEffect(() => {
@@ -210,7 +204,7 @@ export function SpeciesDetail() {
     stopAllAudio();
     setIsPlayingAudio(false);
     const nextLang = isEnglish ? "es" : "en";
-    void i18n.changeLanguage(nextLang);
+    setLanguage(nextLang);
     const newParams = new URLSearchParams(searchParams);
     newParams.set("lang", nextLang);
     setSearchParams(newParams);
@@ -413,25 +407,6 @@ export function SpeciesDetail() {
                   {loc.diet}
                 </p>
               </div>
-            </div>
-
-            {/* Footer action buttons */}
-            <div className="pt-6 border-t border-amber-900/10 flex flex-wrap items-center justify-between gap-4">
-              <Link
-                to="/animales"
-                className="inline-flex items-center gap-2 wood-texture-bg text-amber-200 hover:text-white border-2 border-amber-600 px-6 py-3.5 rounded-2xl font-adventure text-base shadow-lg hover:scale-105 transition-all wood-button-shadow"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                <span>{isEnglish ? "Explore Full ZooMAT Catalog" : "Explorar Más Animales"}</span>
-              </Link>
-
-              <Link
-                to="/mapa"
-                className="inline-flex items-center gap-2 bg-white hover:bg-amber-50 text-stone-900 font-bold px-6 py-3.5 rounded-2xl border-2 border-amber-800/30 shadow-md hover:scale-105 transition-all text-base"
-              >
-                <MapPin className="w-5 h-5 text-emerald-700" />
-                <span>{isEnglish ? "Locate on Zoo Map" : "Ver en el Mapa del Zoo"}</span>
-              </Link>
             </div>
           </div>
         </div>

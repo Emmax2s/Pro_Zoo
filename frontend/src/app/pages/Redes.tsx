@@ -1,6 +1,7 @@
 import { Phone, Mail, Instagram, Facebook, Globe, Share2, Award, Heart, Check } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
+import { PublicChatButton } from "../components/PublicChatButton";
 
 function TiktokIcon({ className }: { className?: string }) {
   return (
@@ -196,6 +197,7 @@ export function Redes() {
           Hecho con <Heart className="w-3.5 h-3.5 text-emerald-500 fill-emerald-500" /> para la biodiversidad
         </p>
       </div>
+      <PublicChatButton />
     </div>
   );
 }

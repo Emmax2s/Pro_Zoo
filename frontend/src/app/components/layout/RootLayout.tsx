@@ -3,6 +3,7 @@ import { Outlet, useLocation } from "react-router";
 import { Navigation } from "./Navigation";
 import { Footer } from "./Footer";
 import { recordGeneralVisit } from "../../services/analytics";
+import { PublicChatButton } from "../PublicChatButton";
 
 export function RootLayout() {
   const location = useLocation();
@@ -16,6 +17,7 @@ export function RootLayout() {
     return (
       <main className="min-h-screen">
         <Outlet />
+        <PublicChatButton />
       </main>
     );
   }
@@ -27,6 +29,7 @@ export function RootLayout() {
         <Outlet />
       </main>
       <Footer />
+      <PublicChatButton />
     </div>
   );
 }

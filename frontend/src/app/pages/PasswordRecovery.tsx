@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Link, useSearchParams } from "react-router";
+import { PublicChatButton } from "../components/PublicChatButton";
 
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
 
@@ -52,6 +53,7 @@ export function PasswordRecovery() {
         <button className="w-full rounded-xl bg-emerald-700 text-white py-3 font-bold">{requested ? "Cambiar contraseña" : "Enviar código"}</button>
         <Link to="/login" className="block text-center text-sm text-emerald-700 hover:underline">Volver al acceso</Link>
       </form>
+      <PublicChatButton />
     </main>
   );
 }

@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
+import { PublicChatButton } from "../components/PublicChatButton";
 
 export function Login() {
   const { login } = useAuth();
@@ -36,6 +37,7 @@ export function Login() {
         <button disabled={busy} className="w-full rounded-xl bg-emerald-700 text-white py-3 font-bold disabled:opacity-60">{busy ? "Entrando..." : "Entrar"}</button>
         <Link to="/recuperar-cuenta" className="block text-center text-sm text-emerald-700 hover:underline">¿Olvidaste tu contraseña?</Link>
       </form>
+      <PublicChatButton />
     </main>
   );
 }

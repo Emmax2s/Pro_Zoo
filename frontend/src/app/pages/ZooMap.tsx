@@ -1,8 +1,9 @@
-import { TreePine } from "lucide-react";
+import { Compass, MapPin, Plus, Minus, TreePine } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 export function ZooMap() {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
+  const isEs = i18n.language !== "en";
 
   return (
     <div className="min-h-screen bg-[#faf8f2] text-stone-900">
@@ -33,6 +34,59 @@ export function ZooMap() {
         </div>
 
         <div className="wood-texture-bg mt-10 h-5 w-full border-b-2 border-t border-amber-950/80 shadow-md sm:h-6" />
+      </section>
+
+      <section className="bg-[#ead9b8] px-3 py-8 sm:px-6 md:py-12">
+        <div className="mx-auto max-w-7xl">
+          <div className="wood-texture-bg rounded-[2rem] border-4 border-[#4a2e12] p-2 shadow-2xl sm:p-4">
+            <div className="relative min-h-[520px] overflow-hidden rounded-[1.25rem] border-2 border-amber-950/70 bg-[#79b842] sm:min-h-[650px]">
+              <div
+                className="absolute inset-0 opacity-70"
+                style={{
+                  backgroundImage:
+                    "radial-gradient(circle at 10% 20%, #3d8d2d 0 5px, transparent 6px), radial-gradient(circle at 26% 62%, #a2ce4b 0 7px, transparent 8px), radial-gradient(circle at 78% 30%, #4d982e 0 6px, transparent 7px), radial-gradient(circle at 62% 78%, #b2d957 0 5px, transparent 6px)",
+                  backgroundSize: "92px 86px, 130px 120px, 110px 105px, 150px 140px",
+                }}
+              />
+              <div className="absolute -left-10 top-1/2 h-20 w-[120%] -rotate-12 border-y-8 border-[#d9bd83] bg-[#e7ce9b] shadow-inner sm:h-28" />
+              <div className="absolute left-1/3 top-[-10%] h-[130%] w-14 rotate-[32deg] border-x-8 border-[#d9bd83] bg-[#e7ce9b] shadow-inner sm:w-20" />
+              <div className="absolute bottom-[15%] right-[-8%] h-16 w-3/5 -rotate-[22deg] border-y-8 border-[#d9bd83] bg-[#e7ce9b] shadow-inner sm:h-24" />
+
+              <div className="absolute left-[8%] top-[18%] rounded-full bg-orange-400 px-4 py-2 text-center text-sm font-black text-stone-950 shadow-lg sm:text-base">
+                {isEs ? "Casa Nocturna" : "Nocturnal House"}
+              </div>
+              <div className="absolute right-[22%] top-[22%] rounded-full bg-fuchsia-600 px-4 py-2 text-center text-sm font-black text-white shadow-lg sm:text-base">
+                Aviario
+              </div>
+              <div className="absolute bottom-[23%] left-[24%] rounded-full bg-purple-600 px-4 py-2 text-center text-sm font-black text-white shadow-lg sm:text-base">
+                {isEs ? "Felinos" : "Felines"}
+              </div>
+              <div className="absolute bottom-[16%] right-[13%] rounded-full bg-sky-500 px-4 py-2 text-center text-sm font-black text-white shadow-lg sm:text-base">
+                {isEs ? "Museo" : "Museum"}
+              </div>
+
+              <div className="absolute left-4 top-4 flex flex-col overflow-hidden rounded-xl border-2 border-stone-800 bg-stone-950/90 text-white shadow-xl">
+                <button type="button" aria-label={isEs ? "Acercar mapa" : "Zoom in"} className="p-2 hover:bg-stone-700">
+                  <Plus className="h-5 w-5" />
+                </button>
+                <button type="button" aria-label={isEs ? "Alejar mapa" : "Zoom out"} className="border-t border-stone-600 p-2 hover:bg-stone-700">
+                  <Minus className="h-5 w-5" />
+                </button>
+              </div>
+              <button
+                type="button"
+                aria-label={isEs ? "Centrar mapa" : "Center map"}
+                className="absolute right-4 top-4 rounded-full border-4 border-white bg-stone-950/90 p-3 text-cyan-300 shadow-xl"
+              >
+                <Compass className="h-7 w-7" />
+              </button>
+              <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full border border-amber-950/40 bg-[#f7e8c5]/95 px-3 py-2 text-xs font-black text-stone-800 shadow-lg sm:text-sm">
+                <MapPin className="h-4 w-4 text-red-700" />
+                {isEs ? "Mapa ilustrativo del ZooMAT" : "Illustrated ZooMAT map"}
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
     </div>
   );

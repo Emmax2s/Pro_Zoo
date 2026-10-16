@@ -1,9 +1,12 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import esLocale from '../locales/es.json';
+import enLocale from '../locales/en.json';
 
 const resources = {
   es: {
     translation: {
+      ...esLocale,
       nav: {
         home: "Inicio",
         animals: "Animales",
@@ -119,6 +122,7 @@ const resources = {
   },
   en: {
     translation: {
+      ...enLocale,
       nav: {
         home: "Home",
         animals: "Animals",

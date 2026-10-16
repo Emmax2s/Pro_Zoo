@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useParams, useSearchParams } from "react-router";
 import { Volume2, VolumeX, Globe, TreePine, MapPin, Sparkles, ShieldCheck, Play, Pause, ArrowLeft } from "lucide-react";
 import { useZoo } from "../context/ZooContext";
@@ -13,6 +14,7 @@ export function SpeciesDetail() {
   const { idOrSlug } = useParams<{ idOrSlug: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { animals, currentLang, setLanguage } = useZoo();
+  const { t } = useTranslation();
 
   const [species, setSpecies] = useState<Animal | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,7 +38,7 @@ export function SpeciesDetail() {
   // 2. Load only species registered in the API
   useEffect(() => {
     if (!idOrSlug) {
-      setError("No se especificó la especie.");
+      setError(t("speciesDetail.notFound"));
       setLoading(false);
       return;
     }
@@ -55,16 +57,16 @@ export function SpeciesDetail() {
       if (match) {
         setSpecies(match);
       } else {
-        setError(isEnglish ? "Species not found in catalog." : "Especie no encontrada en el catálogo.");
+        setError(t("speciesDetail.catalogNotFound"));
       }
       setLoading(false);
       return;
     }
 
     let active = true;
-    fetch(`${API_BASE_URL}/api/species/${encodeURIComponent(idOrSlug)}`, { cache: "no-store" })
+    fetch(`${API_BASE_URL}/api/species/${encodeURIComponent(idOrSlug)}?lang=${currentLang}`, { cache: "no-store" })
       .then(async (res) => {
-        if (!res.ok) throw new Error("API not available");
+        if (!res.ok) throw new Error(t("speciesDetail.apiUnavailable"));
         const data = await res.json();
         if (active) {
           const match = findLocal();
@@ -78,8 +80,8 @@ export function SpeciesDetail() {
             name: data.name,
             nameEn: match?.nameEn,
             scientificName: data.species || data.scientificName || match?.scientificName || "",
-            category: data.category || match?.category || "Mamífero",
-            status: data.conservation || "Preocupación Menor",
+            category: data.category || match?.category || "",
+            status: data.conservation || "",
             habitat: data.habitat || match?.habitat || "",
             habitatEn: match?.habitatEn,
             diet: data.diet || match?.diet || "",
@@ -98,7 +100,7 @@ export function SpeciesDetail() {
           if (match) {
             setSpecies(match);
           } else {
-            setError(isEnglish ? "Species not found." : "Especie no encontrada.");
+            setError(t("speciesDetail.notFound"));
           }
         }
       })
@@ -109,7 +111,7 @@ export function SpeciesDetail() {
     return () => {
       active = false;
     };
-  }, [idOrSlug, animals, isEnglish]);
+  }, [idOrSlug, animals, currentLang, isEnglish, t]);
 
   // 3. Record visit (QR or Direct)
   useEffect(() => {
@@ -216,7 +218,7 @@ export function SpeciesDetail() {
         <div className="text-center space-y-4">
           <div className="w-16 h-16 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="font-adventure text-2xl text-[#2b1810]">
-            {isEnglish ? "Loading ZooMAT Species..." : "Cargando Especie de ZooMAT..."}
+            {t("speciesDetail.loading")}
           </p>
         </div>
       </div>
@@ -231,15 +233,15 @@ export function SpeciesDetail() {
             <TreePine className="w-8 h-8" />
           </div>
           <h2 className="font-adventure text-3xl text-[#2b1810] text-adventure-shadow">
-            {isEnglish ? "Species Not Found" : "Especie no encontrada"}
+            {t("speciesDetail.notFound")}
           </h2>
-          <p className="text-stone-600 text-base">{error || (isEnglish ? "We could not find this animal." : "No pudimos encontrar este ejemplar.")}</p>
+          <p className="text-stone-600 text-base">{error || t("speciesDetail.notFoundDescription")}</p>
           <Link
             to="/animales"
             className="inline-flex items-center gap-2 wood-texture-bg text-amber-200 border-2 border-amber-600 px-6 py-3 rounded-2xl font-adventure text-base shadow-lg hover:scale-105 transition-transform wood-button-shadow"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span>{isEnglish ? "Return to Catalog" : "Volver al Catálogo"}</span>
+            <span>{t("speciesDetail.backToCatalog")}</span>
           </Link>
         </div>
       </div>
@@ -265,24 +267,24 @@ export function SpeciesDetail() {
               className="inline-flex items-center gap-2 text-stone-700 hover:text-amber-900 font-bold text-base transition-colors bg-white/80 px-4 py-2 rounded-xl border border-amber-800/20 shadow-xs"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span>{isEnglish ? "Back to Wildlife Catalog" : "Volver al Catálogo"}</span>
+              <span>{t("speciesDetail.backToWildlifeCatalog")}</span>
             </Link>
 
             {/* Language Switch Button */}
             <button
               onClick={toggleLanguage}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-amber-50 text-stone-900 font-bold border-2 border-amber-700/30 shadow-md transition-all hover:scale-105 text-sm cursor-pointer"
-              title="Cambiar idioma / Change language"
+              title={t("speciesDetail.switchToEnglish")}
             >
               <Globe className="w-4 h-4 text-emerald-700" />
-              <span>{isEnglish ? "🇲🇽 Ver en Español" : "🇺🇸 Switch to English"}</span>
+              <span>{t("speciesDetail.switchToEnglish")}</span>
             </button>
           </div>
 
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100/90 text-amber-950 text-xs sm:text-sm font-black tracking-wide uppercase shadow-xs border border-amber-300">
               <TreePine className="w-4 h-4 text-emerald-800" />
-              <span>ZOOLÓGICO REGIONAL MIGUEL ÁLVAREZ DEL TORO • QR GUÍA</span>
+              <span>{t("speciesDetail.qrGuide")}</span>
             </div>
 
             <h1 className="font-adventure text-4xl sm:text-6xl text-[#2b1810] tracking-wide text-adventure-shadow leading-tight">
@@ -316,13 +318,11 @@ export function SpeciesDetail() {
               <div>
                 <p className="font-adventure text-xl sm:text-2xl text-amber-200">
                   {isPlayingAudio
-                    ? (isEnglish ? "Playing Audio Guide..." : "Reproduciendo Audioguía...")
-                    : (isEnglish ? "Listen to Official Audio Guide" : "Escuchar Audioguía Oficial")}
+                    ? t("speciesDetail.playingAudio")
+                    : t("speciesDetail.listenAudio")}
                 </p>
                 <p className="text-amber-100/90 text-sm font-medium">
-                  {isEnglish
-                    ? "Professional narration about this native Chiapas species"
-                    : "Narración descriptiva sobre esta especie nativa de Chiapas"}
+                  {t("speciesDetail.audioDescription")}
                 </p>
               </div>
             </div>
@@ -332,15 +332,13 @@ export function SpeciesDetail() {
               className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-white hover:bg-amber-100 text-stone-950 font-adventure text-base tracking-wide shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <Volume2 className="w-5 h-5 text-emerald-800" />
-              <span>{isPlayingAudio ? (isEnglish ? "Pause Audio" : "Pausar Audio") : (isEnglish ? "Play Now" : "Reproducir")}</span>
+              <span>{isPlayingAudio ? t("speciesDetail.pauseAudio") : t("speciesDetail.playAudio")}</span>
             </button>
           </div>
 
           {autoplayBlocked && !isPlayingAudio && (
             <div className="mt-3 bg-amber-500/20 border border-amber-300/40 p-2.5 rounded-xl text-center text-xs sm:text-sm font-semibold text-amber-100 animate-pulse">
-              {isEnglish
-                ? "Tap 'Play Now' to start the audio guide on your device."
-                : "Toca 'Reproducir' para activar la audioguía en tu dispositivo móvil."}
+              {t("speciesDetail.autoplayHint")}
             </div>
           )}
         </div>
@@ -379,7 +377,7 @@ export function SpeciesDetail() {
             <div className="space-y-3">
               <h2 className="font-adventure text-2xl sm:text-3xl text-[#2b1810] flex items-center gap-2">
                 <Sparkles className="w-6 h-6 text-amber-600" />
-                <span>{isEnglish ? "About this Species" : "Sobre esta Especie"}</span>
+                <span>{t("speciesDetail.aboutSpecies")}</span>
               </h2>
               <p className="text-stone-800 text-lg sm:text-xl leading-relaxed font-medium">
                 {loc.funFact}
@@ -391,7 +389,7 @@ export function SpeciesDetail() {
               <div className="bg-[#fcfaf5] p-6 rounded-2xl border border-amber-900/10 shadow-xs">
                 <h3 className="font-adventure text-xl text-amber-950 mb-2 flex items-center gap-2">
                   <MapPin className="w-5 h-5 text-emerald-700" />
-                  <span>{isEnglish ? "Habitat & Natural Range" : "Hábitat y Distribución"}</span>
+                  <span>{t("speciesDetail.habitatRange")}</span>
                 </h3>
                 <p className="text-stone-700 text-base sm:text-lg leading-relaxed">
                   {loc.habitat}
@@ -401,7 +399,7 @@ export function SpeciesDetail() {
               <div className="bg-[#fcfaf5] p-6 rounded-2xl border border-amber-900/10 shadow-xs">
                 <h3 className="font-adventure text-xl text-amber-950 mb-2 flex items-center gap-2">
                   <ShieldCheck className="w-5 h-5 text-amber-700" />
-                  <span>{isEnglish ? "Diet & Feeding Habits" : "Alimentación y Dieta"}</span>
+                  <span>{t("speciesDetail.dietHabits")}</span>
                 </h3>
                 <p className="text-stone-700 text-base sm:text-lg leading-relaxed">
                   {loc.diet}

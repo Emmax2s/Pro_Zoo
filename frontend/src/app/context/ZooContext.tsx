@@ -149,7 +149,7 @@ export function ZooProvider({ children }: { children: ReactNode }) {
     if (!API_BASE_URL) return;
 
     let active = true;
-    fetch(`${API_BASE_URL}/api/species?lang=es`, { cache: "no-store" })
+    fetch(`${API_BASE_URL}/api/species?lang=${currentLang}`, { cache: "no-store" })
       .then(async (response) => {
         if (!response.ok) {
           throw new Error(`Species request failed with status ${response.status}`);
@@ -168,7 +168,7 @@ export function ZooProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [currentLang]);
 
   useEffect(() => {
     if (!API_BASE_URL) return;

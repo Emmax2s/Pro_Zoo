@@ -1,0 +1,27 @@
+{
+  "speciesDetail": {
+    "loading": "Cargando especie de ZooMAT...",
+    "notFound": "Especie no encontrada",
+    "notFoundDescription": "No pudimos encontrar este ejemplar.",
+    "catalogNotFound": "Especie no encontrada en el catálogo.",
+    "apiUnavailable": "La API no está disponible.",
+    "backToCatalog": "Volver al catálogo",
+    "backToWildlifeCatalog": "Volver al catálogo de fauna",
+    "qrGuide": "Zoológico Regional Miguel Álvarez del Toro • Guía QR",
+    "switchToEnglish": "🇺🇸 Cambiar a inglés",
+    "listenAudio": "Escuchar audioguía oficial",
+    "playingAudio": "Reproduciendo audioguía...",
+    "audioDescription": "Narración descriptiva sobre esta especie nativa de Chiapas",
+    "pauseAudio": "Pausar audio",
+    "playAudio": "Reproducir",
+    "autoplayHint": "Toca “Reproducir” para activar la audioguía en tu dispositivo móvil.",
+    "about": "Sobre esta especie",
+    "habitat": "Hábitat y distribución",
+    "diet": "Alimentación",
+    "conservation": "Conservación",
+    "aboutSpecies": "Sobre esta especie",
+    "habitatRange": "Hábitat y distribución",
+    "dietHabits": "Alimentación y dieta",
+    "scientificName": "Nombre científico"
+  }
+}

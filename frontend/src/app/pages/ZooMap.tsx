@@ -40,17 +40,11 @@ export function ZooMap() {
         <div className="mx-auto max-w-7xl">
           <div className="wood-texture-bg rounded-[2rem] border-4 border-[#4a2e12] p-2 shadow-2xl sm:p-4">
             <div className="relative min-h-[520px] overflow-hidden rounded-[1.25rem] border-2 border-amber-950/70 bg-[#79b842] sm:min-h-[650px]">
-              <div
-                className="absolute inset-0 opacity-70"
-                style={{
-                  backgroundImage:
-                    "radial-gradient(circle at 10% 20%, #3d8d2d 0 5px, transparent 6px), radial-gradient(circle at 26% 62%, #a2ce4b 0 7px, transparent 8px), radial-gradient(circle at 78% 30%, #4d982e 0 6px, transparent 7px), radial-gradient(circle at 62% 78%, #b2d957 0 5px, transparent 6px)",
-                  backgroundSize: "92px 86px, 130px 120px, 110px 105px, 150px 140px",
-                }}
+              <img
+                src="/assets/images/zoomat-map.jpeg"
+                alt={isEs ? "Mapa del ZooMAT" : "ZooMAT map"}
+                className="absolute inset-0 h-full w-full object-cover"
               />
-              <div className="absolute -left-10 top-1/2 h-20 w-[120%] -rotate-12 border-y-8 border-[#d9bd83] bg-[#e7ce9b] shadow-inner sm:h-28" />
-              <div className="absolute left-1/3 top-[-10%] h-[130%] w-14 rotate-[32deg] border-x-8 border-[#d9bd83] bg-[#e7ce9b] shadow-inner sm:w-20" />
-              <div className="absolute bottom-[15%] right-[-8%] h-16 w-3/5 -rotate-[22deg] border-y-8 border-[#d9bd83] bg-[#e7ce9b] shadow-inner sm:h-24" />
 
               <div className="absolute left-4 top-4 flex flex-col overflow-hidden rounded-xl border-2 border-stone-800 bg-stone-950/90 text-white shadow-xl">
                 <button type="button" aria-label={isEs ? "Acercar mapa" : "Zoom in"} className="p-2 hover:bg-stone-700">

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Navigate } from "react-router";
 import { Plus, Trash2, GripVertical, X, Image, Video, Eye, EyeOff, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useZoo } from "../../context/ZooContext";
 import { SlideItem } from "../../data/zooStore";
@@ -197,8 +198,14 @@ function PreviewModal({ slides, onClose }: { slides: SlideItem[]; onClose: () =>
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export function AdminHome() {
-  const { slides, setSlides } = useZoo();
+  const { slides, setSlides, currentUser } = useZoo();
   const { token } = useAuth();
+
+  // Guard: Only superadmin can manage the homepage carousel
+  if (currentUser.role !== "superadmin") {
+    return <Navigate to="/admin/animales" replace />;
+  }
+
   const [showAdd, setShowAdd] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);

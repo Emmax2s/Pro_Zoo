@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { Navigate } from "react-router";
 import {
   Plus,
   Trash2,
@@ -347,6 +348,12 @@ function DeleteUserDialog({
 export function AdminUsers() {
   const { users, setUsers, enclosures, currentUser } = useZoo();
   const { token } = useAuth();
+
+  // Guard: Only Super Admin can access the administrators and audit management
+  if (currentUser.role !== "superadmin") {
+    return <Navigate to="/admin/animales" replace />;
+  }
+
   const [activeTab, setActiveTab] = useState<"users" | "audit">("users");
   const [modalState, setModalState] = useState<{ open: boolean; user: ZooUser | null }>({ open: false, user: null });
   const [deleteTarget, setDeleteTarget] = useState<ZooUser | null>(null);

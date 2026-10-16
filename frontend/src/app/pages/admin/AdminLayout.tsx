@@ -37,6 +37,11 @@ export function AdminLayout() {
 
   const isSuperAdmin = currentUser.role === "superadmin";
 
+  // Strict route protection: An enclosure admin can ONLY view and manage /admin/animales ("Mis Especies")
+  if (!isSuperAdmin && location.pathname !== "/admin/animales") {
+    return <Navigate to="/admin/animales" replace />;
+  }
+
   const userEnclosureIds = currentUser.enclosureIds && currentUser.enclosureIds.length > 0
     ? currentUser.enclosureIds
     : currentUser.enclosureId
@@ -125,8 +130,14 @@ export function AdminLayout() {
         <div className="p-4 border-t border-emerald-900 space-y-3">
           <div className="relative">
             <button
-              onClick={() => setShowUserPicker((v) => !v)}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl bg-emerald-900/60 hover:bg-emerald-900 transition-all border border-emerald-800 text-left"
+              onClick={() => {
+                if (authUser?.role === "superadmin") {
+                  setShowUserPicker((v) => !v);
+                }
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl bg-emerald-900/60 transition-all border border-emerald-800 text-left ${
+                authUser?.role === "superadmin" ? "hover:bg-emerald-900 cursor-pointer" : "cursor-default"
+              }`}
             >
               <div className="w-10 h-10 rounded-full bg-amber-400 text-emerald-950 flex items-center justify-center font-black text-base flex-shrink-0 shadow-sm">
                 {currentUser.name.charAt(0)}
@@ -141,7 +152,9 @@ export function AdminLayout() {
                     : `Admin — ${myEnclosure?.name ?? "Sin recinto"}`}
                 </p>
               </div>
-              <ChevronDown size={18} className={`text-amber-300 transition-transform flex-shrink-0 ${showUserPicker ? "rotate-180" : ""}`} />
+              {authUser?.role === "superadmin" && (
+                <ChevronDown size={18} className={`text-amber-300 transition-transform flex-shrink-0 ${showUserPicker ? "rotate-180" : ""}`} />
+              )}
             </button>
 
             {showUserPicker && (

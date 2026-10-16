@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Download, Eye, PawPrint, Users, PieChart as PieIcon, BarChart2, QrCode, Globe } from "lucide-react";
-import { Link } from "react-router";
+import { Link, Navigate } from "react-router";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useZoo } from "../../context/ZooContext";
 import { useAuth } from "../../context/AuthContext";
@@ -31,6 +31,11 @@ type VisitSummary = {
 export function AdminDashboard() {
   const { animals, users, currentUser, enclosures } = useZoo();
   const { token } = useAuth();
+
+  // Guard: Only superadmin can access global dashboard
+  if (currentUser.role !== "superadmin") {
+    return <Navigate to="/admin/animales" replace />;
+  }
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodKey>("mes");
   const [visitSummary, setVisitSummary] = useState<VisitSummary[]>([]);
   const [totalVisitors, setTotalVisitors] = useState<number>(0);

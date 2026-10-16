@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Navigate } from "react-router";
 import { Plus, Edit2, Trash2, X, AlertTriangle, PawPrint, Users } from "lucide-react";
 import { useZoo } from "../../context/ZooContext";
 import { Enclosure } from "../../data/zooStore";
@@ -164,8 +165,14 @@ function DeleteEnclosureDialog({ enclosure, animalCount, adminCount, onConfirm, 
 }
 
 export function AdminEnclosures() {
-  const { enclosures, setEnclosures, animals, setAnimals, users, setUsers } = useZoo();
+  const { enclosures, setEnclosures, animals, setAnimals, users, setUsers, currentUser } = useZoo();
   const { token } = useAuth();
+
+  // Guard: Only superadmin can manage enclosures
+  if (currentUser.role !== "superadmin") {
+    return <Navigate to="/admin/animales" replace />;
+  }
+
   const [modalState, setModalState] = useState<{ open: boolean; enclosure: Enclosure | null }>({ open: false, enclosure: null });
   const [deleteTarget, setDeleteTarget] = useState<Enclosure | null>(null);
   const [nextId, setNextId] = useState(10);

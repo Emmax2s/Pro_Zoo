@@ -4,7 +4,6 @@ import { Link } from "react-router";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useZoo } from "../../context/ZooContext";
 import { useAuth } from "../../context/AuthContext";
-import { getVisitSummary } from "../../services/analytics";
 
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
 
@@ -34,17 +33,11 @@ export function AdminDashboard() {
   const { token } = useAuth();
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodKey>("mes");
   const [visitSummary, setVisitSummary] = useState<VisitSummary[]>([]);
-  const [totalVisitors, setTotalVisitors] = useState<number>(() => getVisitSummary(30).totalVisitors);
+  const [totalVisitors, setTotalVisitors] = useState<number>(0);
 
   useEffect(() => {
     const periodDays = selectedPeriod === "dia" ? 1 : selectedPeriod === "semana" ? 7 : selectedPeriod === "mes" ? 30 : 365;
     
-    // Load local stats immediately
-    const local = getVisitSummary(periodDays);
-    setVisitSummary(local.summary);
-    setTotalVisitors(local.totalVisitors);
-
-    // Sync with backend API if configured
     if (API_BASE_URL && token) {
       fetch(`${API_BASE_URL}/api/analytics/all/summary?period=${periodDays}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -56,19 +49,22 @@ export function AdminDashboard() {
           return data;
         })
         .then((data) => {
-          if (Array.isArray(data.summary) && data.summary.length > 0) {
-            setVisitSummary(data.summary);
-          }
+          setVisitSummary(Array.isArray(data.summary) ? data.summary : []);
           if (typeof data.totalVisits === "number") {
             setTotalVisitors(data.totalVisits);
-          } else if (Array.isArray(data.summary) && data.summary.length > 0) {
+          } else if (Array.isArray(data.summary)) {
             const sum = data.summary.reduce((acc: number, item: any) => acc + (Number(item.totalVisits) || 0), 0);
-            if (sum > 0) {
-              setTotalVisitors(sum);
-            }
+            setTotalVisitors(sum);
           }
         })
-        .catch((error) => console.warn("Using local analytics stats:", error));
+        .catch((error) => {
+          console.error("Unable to load analytics from API:", error);
+          setVisitSummary([]);
+          setTotalVisitors(0);
+        });
+    } else {
+      setVisitSummary([]);
+      setTotalVisitors(0);
     }
   }, [selectedPeriod, token]);
 

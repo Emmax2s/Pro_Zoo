@@ -5,7 +5,7 @@ import { useZoo } from "../context/ZooContext";
 import { recordSpeciesVisit } from "../services/analytics";
 import { getLocalizedAnimal } from "../services/speciesTranslator";
 import { playChime, speakNarration, stopAllAudio } from "../services/audioPlayer";
-import { INITIAL_ANIMALS, Animal } from "../data/zooStore";
+import { Animal } from "../data/zooStore";
 
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
 
@@ -33,7 +33,7 @@ export function SpeciesDetail() {
 
   const isEnglish = currentLang === "en";
 
-  // 2. Load species from API or fallback to local zooStore
+  // 2. Load only species registered in the API
   useEffect(() => {
     if (!idOrSlug) {
       setError("No se especificó la especie.");
@@ -41,7 +41,7 @@ export function SpeciesDetail() {
       return;
     }
 
-    const availableAnimals = animals && animals.length > 0 ? animals : INITIAL_ANIMALS;
+    const availableAnimals = animals;
     const findLocal = () =>
       availableAnimals.find(
         (a) =>

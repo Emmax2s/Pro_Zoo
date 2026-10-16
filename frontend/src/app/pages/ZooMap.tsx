@@ -52,19 +52,6 @@ export function ZooMap() {
               <div className="absolute left-1/3 top-[-10%] h-[130%] w-14 rotate-[32deg] border-x-8 border-[#d9bd83] bg-[#e7ce9b] shadow-inner sm:w-20" />
               <div className="absolute bottom-[15%] right-[-8%] h-16 w-3/5 -rotate-[22deg] border-y-8 border-[#d9bd83] bg-[#e7ce9b] shadow-inner sm:h-24" />
 
-              <div className="absolute left-[8%] top-[18%] rounded-full bg-orange-400 px-4 py-2 text-center text-sm font-black text-stone-950 shadow-lg sm:text-base">
-                {isEs ? "Casa Nocturna" : "Nocturnal House"}
-              </div>
-              <div className="absolute right-[22%] top-[22%] rounded-full bg-fuchsia-600 px-4 py-2 text-center text-sm font-black text-white shadow-lg sm:text-base">
-                Aviario
-              </div>
-              <div className="absolute bottom-[23%] left-[24%] rounded-full bg-purple-600 px-4 py-2 text-center text-sm font-black text-white shadow-lg sm:text-base">
-                {isEs ? "Felinos" : "Felines"}
-              </div>
-              <div className="absolute bottom-[16%] right-[13%] rounded-full bg-sky-500 px-4 py-2 text-center text-sm font-black text-white shadow-lg sm:text-base">
-                {isEs ? "Museo" : "Museum"}
-              </div>
-
               <div className="absolute left-4 top-4 flex flex-col overflow-hidden rounded-xl border-2 border-stone-800 bg-stone-950/90 text-white shadow-xl">
                 <button type="button" aria-label={isEs ? "Acercar mapa" : "Zoom in"} className="p-2 hover:bg-stone-700">
                   <Plus className="h-5 w-5" />

@@ -35,9 +35,8 @@ function getStoredData(): AnalyticsStorage {
     console.warn("Error reading analytics from localStorage:", e);
   }
 
-  // Realistic starter baseline
   return {
-    totalVisitors: 1,
+    totalVisitors: 0,
     totalQrScans: 0,
     scansBySpecies: {},
     history: [],
@@ -68,18 +67,6 @@ export function recordGeneralVisit() {
       saveStoredData(data);
     }
 
-    // Always report to backend so production PostgreSQL table logs the visitor traffic
-    if (API_BASE_URL) {
-      fetch(`${API_BASE_URL}/api/analytics/1/visit`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          language: localStorage.getItem("zoomat_lang") || "es",
-          accessedVia: "direct",
-          durationSeconds: 15,
-        }),
-      }).catch(() => {});
-    }
   } catch (e) {
     console.warn("Unable to record general visit:", e);
   }
@@ -127,7 +114,7 @@ export function recordSpeciesVisit(
 /**
  * Get visit summary for dashboard
  */
-export function getVisitSummary(periodDays: number = 30) {
+export function getVisitSummary(_periodDays: number = 30) {
   const data = getStoredData();
 
   const result = Object.entries(data.scansBySpecies).map(([idStr, rawCount]) => {
@@ -142,7 +129,7 @@ export function getVisitSummary(periodDays: number = 30) {
   });
 
   return {
-    totalVisitors: Math.max(1, Number(data.totalVisitors) || 1),
+    totalVisitors: Math.max(0, Number(data.totalVisitors) || 0),
     totalQrVisits: Number(data.totalQrScans) || 0,
     summary: result,
   };

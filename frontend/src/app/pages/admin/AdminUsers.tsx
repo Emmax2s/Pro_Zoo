@@ -192,35 +192,6 @@ export function AdminUsers() {
       .catch((error) => window.alert(error instanceof Error ? error.message : "No se pudieron cargar los usuarios."));
   }, [setUsers, token]);
 
-  function estimatedDailyVisits(animalId: number, category: string) {
-    const categoryBoost: Record<string, number> = {
-      "Mamífero": 70,
-      "Ave": 55,
-      "Reptil": 45,
-      "Anfibio": 35,
-      "Pez": 30,
-      "Invertebrado": 25,
-    };
-    const base = 40 + (animalId % 5) * 9;
-    return base + (categoryBoost[category] ?? 20);
-  }
-
-  function getEnclosureVisitStats(enclosureId: string | null) {
-    const enclosureAnimals = animals.filter((a) => a.enclosureId === enclosureId);
-    if (enclosureAnimals.length === 0) return null;
-
-    const monthly = enclosureAnimals
-      .map((a) => ({
-        ...a,
-        visitors: estimatedDailyVisits(a.id, a.category) * 30,
-      }))
-      .sort((a, b) => b.visitors - a.visitors);
-
-    const top = monthly[0];
-    const bottom = monthly[monthly.length - 1];
-    return { top, bottom };
-  }
-
   const superAdmins = users.filter((u) => u.role === "superadmin");
   const enclosureAdmins = users.filter((u) => u.role === "enclosure_admin");
 
@@ -380,7 +351,6 @@ export function AdminUsers() {
               <tbody>
                 {enclosureAdmins.map((user) => {
                   const enc = getEnclosure(user.enclosureId);
-                  const stats = getEnclosureVisitStats(user.enclosureId);
                   return (
                     <tr key={user.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
                       <td className="p-4">
@@ -404,24 +374,10 @@ export function AdminUsers() {
                         )}
                       </td>
                       <td className="p-4">
-                        {stats ? (
-                          <div className="text-xs">
-                            <p className="font-semibold text-emerald-700">{stats.top.name}</p>
-                            <p className="text-gray-500">{stats.top.visitors.toLocaleString("es-MX")} visitantes</p>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-gray-400 italic">Sin datos</span>
-                        )}
+                        <span className="text-xs text-gray-400 italic">Sin datos</span>
                       </td>
                       <td className="p-4">
-                        {stats ? (
-                          <div className="text-xs">
-                            <p className="font-semibold text-rose-700">{stats.bottom.name}</p>
-                            <p className="text-gray-500">{stats.bottom.visitors.toLocaleString("es-MX")} visitantes</p>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-gray-400 italic">Sin datos</span>
-                        )}
+                        <span className="text-xs text-gray-400 italic">Sin datos</span>
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex justify-end gap-1">

@@ -67,32 +67,25 @@ const mapConservationStatus = (value: string | undefined): Animal["status"] => {
 };
 
 const mapSpecies = (species: ApiSpecies): Animal => {
-  const match = INITIAL_ANIMALS.find(
-    (a) =>
-      a.name.toLowerCase().trim() === (species.name || "").toLowerCase().trim() ||
-      (species.species && a.scientificName.toLowerCase().trim() === species.species.toLowerCase().trim()) ||
-      String(a.id) === String(species.id)
-  );
-
   const cleanAudio =
     species.audioDescriptionUrl && !species.audioDescriptionUrl.includes("example.com")
       ? species.audioDescriptionUrl
-      : match?.audioUrl;
+      : undefined;
 
   return {
     id: Number(species.id),
     name: species.name,
-    nameEn: match?.nameEn,
-    scientificName: species.species || match?.scientificName || "",
-    category: species.category || match?.category || "Mamífero",
+    nameEn: undefined,
+    scientificName: species.species || "",
+    category: species.category || "Mamífero",
     status: mapConservationStatus(species.conservation),
-    habitat: species.habitat || match?.habitat || "",
-    habitatEn: match?.habitatEn,
-    diet: species.diet || match?.diet || "",
-    dietEn: match?.dietEn,
-    funFact: species.description || match?.funFact || "",
-    funFactEn: match?.funFactEn,
-    image: species.imageUrl || match?.image || "/assets/images/placeholder.svg",
+    habitat: species.habitat || "",
+    habitatEn: undefined,
+    diet: species.diet || "",
+    dietEn: undefined,
+    funFact: species.description || "",
+    funFactEn: undefined,
+    image: species.imageUrl || "",
     audioUrl: cleanAudio,
     enclosureId: species.enclosureId ?? null,
   };

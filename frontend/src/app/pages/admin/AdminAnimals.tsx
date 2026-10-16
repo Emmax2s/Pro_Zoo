@@ -193,7 +193,7 @@ function AnimalModal({
               </label>
               <input
                 name="name" value={form.name} onChange={handle} required
-                placeholder="ej. Jaguar"
+                placeholder="Nombre común de la especie"
                 className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>

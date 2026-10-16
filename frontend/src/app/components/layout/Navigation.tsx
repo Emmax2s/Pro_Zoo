@@ -34,12 +34,12 @@ export function Navigation() {
         <div className="absolute inset-x-0 bottom-0 h-1 bg-black/40 pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-3 sm:px-6 relative">
-          <div className="flex items-center justify-between min-h-[96px] md:min-h-[110px] py-2 gap-2">
+          <div className="flex items-center justify-between min-h-[78px] md:min-h-[88px] py-1.5 gap-2">
 
             {/* LEFT: HANGING PARCHMENT PAPER SIGN WITH LOGO */}
-            <div className="relative z-20 flex-shrink-0 pt-1 -mb-8 md:-mb-12">
+            <div className="relative z-20 flex-shrink-0 pt-0.5 -mb-6 md:-mb-8">
               {/* Hanging string nails */}
-              <div className="flex justify-between w-32 sm:w-40 md:w-44 px-4 mb-0.5">
+              <div className="flex justify-between w-28 sm:w-32 md:w-36 px-4 mb-0.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-950 border border-stone-400 shadow-md inline-block" />
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-950 border border-stone-400 shadow-md inline-block" />
               </div>
@@ -47,7 +47,7 @@ export function Navigation() {
               {/* White Card Tag */}
               <Link
                 to="/"
-                className="block w-32 sm:w-40 md:w-44 bg-white text-stone-900 rounded-b-2xl rounded-t-sm p-2 pb-3 shadow-2xl border-2 border-stone-200 relative group hover:-translate-y-0.5 transition-transform duration-200"
+                className="block w-28 sm:w-32 md:w-36 bg-white text-stone-900 rounded-b-2xl rounded-t-sm p-1.5 pb-2 shadow-2xl border-2 border-stone-200 relative group hover:-translate-y-0.5 transition-transform duration-200"
               >
                 {/* Paper dog-ear corner effect */}
                 <div className="absolute bottom-0 right-0 w-4 h-4 bg-gradient-to-tl from-amber-200/60 to-transparent rounded-tl shadow-inner pointer-events-none" />
@@ -57,13 +57,13 @@ export function Navigation() {
                     <img
                       src={logoZoomat}
                       alt="Logo Oficial ZooMAT"
-                      className="w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40 object-contain rounded-full shadow-md group-hover:scale-105 transition-transform bg-white"
+                      className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 object-contain rounded-full shadow-md group-hover:scale-105 transition-transform bg-white"
                     />
                   </div>
-                  <div className="mt-1 font-adventure text-lg sm:text-xl md:text-2xl text-stone-900 leading-none tracking-tight">
+                  <div className="mt-1 font-adventure text-base sm:text-lg md:text-xl text-stone-900 leading-none tracking-tight">
                     ZooMAT
                   </div>
-                  <span className="text-[8px] sm:text-[9px] md:text-[10px] font-black text-emerald-800 tracking-wider uppercase mt-1 leading-tight">
+                  <span className="text-[7px] sm:text-[8px] md:text-[9px] font-black text-emerald-800 tracking-wider uppercase mt-1 leading-tight">
                     Miguel Álvarez del Toro
                   </span>
                 </div>
@@ -73,7 +73,7 @@ export function Navigation() {
             {/* CENTER: OPERATIONAL BADGE & MAIN ADVENTURE NAVIGATION */}
             <div className="flex-1 flex flex-col items-center justify-center px-2">
               {/* Horario y Teléfono pill */}
-              <div className="hidden lg:flex items-center gap-3 bg-black/45 backdrop-blur-md px-4 py-1 rounded-full border border-amber-200/25 text-white text-xs font-semibold shadow-md mb-2">
+              <div className="hidden lg:flex items-center gap-2 bg-black/45 backdrop-blur-md px-3 py-0.5 rounded-full border border-amber-200/25 text-white text-[11px] font-semibold shadow-md mb-1.5">
                 <div className="flex items-center gap-1.5 text-amber-300">
                   <Clock className="w-3.5 h-3.5" />
                   <span>{isEs ? "Horario: Mar-Dom: 8:30 - 16:30" : "Hours: Tue-Sun 8:30 - 16:30"}</span>
@@ -88,12 +88,12 @@ export function Navigation() {
               </div>
 
               {/* Main Adventure Nav Tabs (Desktop) */}
-              <nav className="hidden md:flex items-center gap-3 lg:gap-5 xl:gap-7">
+              <nav className="hidden md:flex items-center gap-2 lg:gap-4 xl:gap-5">
                 {mainLinks.map((link) => (
                   <Link
                     key={link.to}
                     to={link.to}
-                    className={`font-adventure text-lg lg:text-xl xl:text-2xl px-3 py-1.5 rounded-xl transition-all tracking-wide ${
+                    className={`font-adventure text-base lg:text-lg xl:text-xl px-2.5 py-1 rounded-xl transition-all tracking-wide ${
                       isActive(link.to)
                         ? "text-amber-300 text-adventure-shadow scale-105 bg-black/35 border border-amber-400/40 shadow-md"
                         : "text-white text-wood-carved hover:text-amber-300 hover:scale-105"
@@ -117,7 +117,7 @@ export function Navigation() {
 
                 <button
                   onClick={toggleLanguage}
-                  className="wood-texture-dark px-2.5 sm:px-3.5 py-1.5 md:py-2 rounded-xl border-2 border-amber-600/70 shadow-2xl flex items-center gap-1.5 text-amber-300 font-adventure text-sm md:text-base tracking-wide hover:scale-105 hover:border-amber-400 transition-all wood-button-shadow cursor-pointer group"
+                  className="wood-texture-dark px-2 sm:px-3 py-1 md:py-1.5 rounded-xl border-2 border-amber-600/70 shadow-2xl flex items-center gap-1.5 text-amber-300 font-adventure text-xs md:text-sm tracking-wide hover:scale-105 hover:border-amber-400 transition-all wood-button-shadow cursor-pointer group"
                   title={isEs ? "Switch language to English" : "Cambiar idioma a Español"}
                   aria-label="Cambiar idioma / Switch language"
                 >
@@ -172,4 +172,3 @@ export function Navigation() {
     </header>
   );
 }
-

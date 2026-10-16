@@ -514,7 +514,8 @@ export function AdminAnimals() {
   const getEnclosure = (id: string | null) => enclosures.find((e) => e.id === id);
 
   const isSuperAdmin = currentUser.role === "superadmin";
-  const myEnclosure = isSuperAdmin ? null : enclosures.find((e) => e.id === currentUser.enclosureId);
+  const userEnclosures = enclosures.filter((e) => userEnclosureIds.includes(e.id));
+  const myEnclosure = userEnclosures[0] || (currentUser.enclosureId ? enclosures.find((e) => e.id === currentUser.enclosureId) : null);
 
   return (
     <div className="space-y-6">
@@ -522,7 +523,11 @@ export function AdminAnimals() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            {isSuperAdmin ? "Gestión de Especies" : `Especies — ${myEnclosure?.icon} ${myEnclosure?.name}`}
+            {isSuperAdmin
+              ? "Gestión de Especies"
+              : userEnclosures.length > 0
+              ? `Especies — ${userEnclosures.map((e) => `${e.icon || ""} ${e.name}`).join(", ")}`
+              : `Especies — ${myEnclosure?.name ?? "Sin recinto"}`}
           </h1>
           <p className="text-sm text-gray-500 mt-1">{filteredAnimals.length} especie{filteredAnimals.length !== 1 ? "s" : ""}</p>
         </div>

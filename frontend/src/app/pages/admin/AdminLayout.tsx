@@ -43,6 +43,7 @@ export function AdminLayout() {
     ? currentUser.enclosureId.split(",").map((s) => s.trim()).filter(Boolean)
     : [];
   const myEnclosures = enclosures.filter((e) => userEnclosureIds.includes(e.id));
+  const myEnclosure = myEnclosures[0] || null;
 
   const superAdminMenu = [
     { path: "/admin", icon: LayoutDashboard, label: "Dashboard" },
@@ -133,7 +134,11 @@ export function AdminLayout() {
               <div className="flex-1 min-w-0">
                 <p className="text-white text-base font-bold truncate">{currentUser.name}</p>
                 <p className="text-amber-300 text-xs font-semibold truncate">
-                  {isSuperAdmin ? "Super Administrador" : `Admin — ${myEnclosure?.name ?? "Sin recinto"}`}
+                  {isSuperAdmin
+                    ? "Super Administrador"
+                    : myEnclosures.length > 0
+                    ? `Admin — ${myEnclosures.map((e) => e.name).join(", ")}`
+                    : `Admin — ${myEnclosure?.name ?? "Sin recinto"}`}
                 </p>
               </div>
               <ChevronDown size={18} className={`text-amber-300 transition-transform flex-shrink-0 ${showUserPicker ? "rotate-180" : ""}`} />
@@ -145,7 +150,12 @@ export function AdminLayout() {
                   Seleccionar usuario
                 </p>
                 {users.map((u) => {
-                  const enc = enclosures.find((e) => e.id === u.enclosureId);
+                  const uEncIds = u.enclosureIds && u.enclosureIds.length > 0
+                    ? u.enclosureIds
+                    : u.enclosureId
+                    ? u.enclosureId.split(",").map((s) => s.trim()).filter(Boolean)
+                    : [];
+                  const uEncs = enclosures.filter((e) => uEncIds.includes(e.id));
                   return (
                     <button
                       key={u.id}
@@ -160,7 +170,11 @@ export function AdminLayout() {
                       <div className="min-w-0">
                         <p className="text-sm font-extrabold text-stone-900 truncate">{u.name}</p>
                         <p className="text-xs text-emerald-700 font-semibold truncate">
-                          {u.role === "superadmin" ? "Super Admin" : `${enc?.icon ?? ""} ${enc?.name ?? "Sin recinto"}`}
+                          {u.role === "superadmin"
+                            ? "Super Admin"
+                            : uEncs.length > 0
+                            ? uEncs.map((e) => `${e.icon || ""} ${e.name}`).join(", ")
+                            : "Sin recinto"}
                         </p>
                       </div>
                       {currentUser.id === u.id && (

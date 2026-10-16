@@ -103,7 +103,7 @@ router.get('/me', verifyToken, async (req, res, next) => {
 // Create Admin Route
 router.post('/create', verifyToken, async (req, res, next) => {
   try {
-    const { username: providedUsername, email, password, name, role, enclosureId } = req.body;
+    const { username: providedUsername, email, password, name, role, enclosureId, enclosureIds } = req.body;
     const username = providedUsername || email?.split('@')[0];
 
     if (!username || !email || !password) {
@@ -111,12 +111,15 @@ router.post('/create', verifyToken, async (req, res, next) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const encVal = Array.isArray(enclosureIds) && enclosureIds.length > 0
+      ? enclosureIds.join(',')
+      : enclosureId || null;
 
     const result = await query(
       `INSERT INTO admin_users (username, email, password, name, role, enclosure_id, is_active)
        VALUES ($1, $2, $3, $4, $5, $6, true)
        RETURNING id, username, email, name, role, enclosure_id, is_active, created_at`,
-      [username, email, hashedPassword, name || username, role || 'superadmin', enclosureId || null]
+      [username, email, hashedPassword, name || username, role || 'superadmin', encVal]
     );
 
     const user = result.rows[0];
@@ -127,6 +130,7 @@ router.post('/create', verifyToken, async (req, res, next) => {
       name: user.name,
       role: user.role,
       enclosureId: user.enclosure_id,
+      enclosureIds: user.enclosure_id ? user.enclosure_id.split(',').map((s) => s.trim()).filter(Boolean) : [],
       isActive: user.is_active,
       createdAt: user.created_at,
     });
@@ -152,6 +156,7 @@ router.get('/list', verifyToken, async (req, res, next) => {
       name: row.name || row.username,
       role: row.role || 'superadmin',
       enclosureId: row.enclosure_id,
+      enclosureIds: row.enclosure_id ? row.enclosure_id.split(',').map(s => s.trim()).filter(Boolean) : [],
       isActive: row.is_active,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
@@ -167,8 +172,11 @@ router.get('/list', verifyToken, async (req, res, next) => {
 router.put('/:id', verifyToken, async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { username, email, password, name, role, enclosureId, is_active } = req.body;
+    const { username, email, password, name, role, enclosureId, enclosureIds, is_active } = req.body;
     const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
+    const encVal = Array.isArray(enclosureIds) && enclosureIds.length > 0
+      ? enclosureIds.join(',')
+      : enclosureId !== undefined ? enclosureId : null;
 
     const result = await query(
       `UPDATE admin_users
@@ -182,7 +190,7 @@ router.put('/:id', verifyToken, async (req, res, next) => {
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $8
        RETURNING id, username, email, name, role, enclosure_id, is_active, created_at, updated_at`,
-      [username, email, hashedPassword, name, role, enclosureId, is_active, id]
+      [username, email, hashedPassword, name, role, encVal, is_active, id]
     );
 
     if (result.rows.length === 0) {
@@ -197,6 +205,7 @@ router.put('/:id', verifyToken, async (req, res, next) => {
       name: user.name,
       role: user.role,
       enclosureId: user.enclosure_id,
+      enclosureIds: user.enclosure_id ? user.enclosure_id.split(',').map((s) => s.trim()).filter(Boolean) : [],
       isActive: user.is_active,
       createdAt: user.created_at,
       updatedAt: user.updated_at,
@@ -223,6 +232,32 @@ router.delete('/:id', verifyToken, async (req, res, next) => {
     res.json({ message: 'Admin user deleted successfully', id: result.rows[0].id });
   } catch (error) {
     next(error);
+  }
+});
+
+// Audit Logs Routes
+router.get('/audit-logs', verifyToken, async (_req, res) => {
+  try {
+    const result = await query(
+      'SELECT * FROM admin_audit_logs ORDER BY created_at DESC LIMIT 200'
+    );
+    res.json(result.rows);
+  } catch (error) {
+    res.json([]);
+  }
+});
+
+router.post('/audit-logs', verifyToken, async (req, res) => {
+  try {
+    const { userId, userName, userEmail, userRole, assignedEnclosures, actionType, entityType, entityName, enclosureName, details } = req.body;
+    const result = await query(
+      `INSERT INTO admin_audit_logs (user_id, user_name, user_email, user_role, assigned_enclosures, action_type, entity_type, entity_name, enclosure_name, details)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [userId || null, userName || '', userEmail || '', userRole || '', JSON.stringify(assignedEnclosures || []), actionType || '', entityType || '', entityName || '', enclosureName || '', details || '']
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(200).json({ status: 'ok' });
   }
 });
 

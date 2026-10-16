@@ -86,14 +86,25 @@ CREATE TABLE IF NOT EXISTS species_visits (
   user_agent_hash VARCHAR(64)
 );
 
--- Crear índices para mejor performance
-CREATE INDEX IF NOT EXISTS idx_species_slug ON species(slug);
-CREATE INDEX IF NOT EXISTS idx_species_created ON species(created_at);
-CREATE INDEX IF NOT EXISTS idx_admin_username ON admin_users(username);
-CREATE INDEX IF NOT EXISTS idx_admin_email ON admin_users(email);
-CREATE INDEX IF NOT EXISTS idx_visits_species_id ON species_visits(species_id);
-CREATE INDEX IF NOT EXISTS idx_visits_timestamp ON species_visits(timestamp);
-CREATE INDEX IF NOT EXISTS idx_visits_species_language ON species_visits(species_id, visitor_language);
+-- Crear tabla de auditoría e historial de cambios administrativos
+CREATE TABLE IF NOT EXISTS admin_audit_logs (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER,
+  user_name VARCHAR(150),
+  user_email VARCHAR(100),
+  user_role VARCHAR(30),
+  assigned_enclosures JSONB DEFAULT '[]',
+  action_type VARCHAR(50),
+  entity_type VARCHAR(50),
+  entity_id VARCHAR(100),
+  entity_name VARCHAR(150),
+  enclosure_name VARCHAR(150),
+  details TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_created ON admin_audit_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_user ON admin_audit_logs(user_id);
 
 -- Mostrar estado
 \dt

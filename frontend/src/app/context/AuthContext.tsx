@@ -10,6 +10,7 @@ export type AuthUser = {
   name: string;
   role: string;
   enclosureId: string | null;
+  enclosureIds?: string[];
   isActive: boolean;
 };
 
@@ -23,14 +24,22 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function normalizeUser(data: Partial<AuthUser> & { is_active?: boolean }): AuthUser {
+function normalizeUser(data: Partial<AuthUser> & { is_active?: boolean; enclosure_id?: string }): AuthUser {
+  const encId = data.enclosureId ?? data.enclosure_id ?? null;
+  const encIds = Array.isArray(data.enclosureIds) && data.enclosureIds.length > 0
+    ? data.enclosureIds
+    : encId
+      ? encId.split(",").map((s) => s.trim()).filter(Boolean)
+      : [];
+
   return {
     id: Number(data.id),
     username: data.username || "",
     email: data.email || "",
     name: data.name || data.username || "",
     role: data.role || "superadmin",
-    enclosureId: data.enclosureId ?? null,
+    enclosureId: encId,
+    enclosureIds: encIds,
     isActive: data.isActive ?? data.is_active ?? true,
   };
 }

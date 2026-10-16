@@ -14,12 +14,19 @@ export function AdminLayout() {
 
   useEffect(() => {
     if (authUser) {
+      const encIds = authUser.enclosureIds && authUser.enclosureIds.length > 0
+        ? authUser.enclosureIds
+        : authUser.enclosureId
+        ? authUser.enclosureId.split(",").map((s) => s.trim()).filter(Boolean)
+        : [];
+
       setCurrentUser({
         id: authUser.id,
         name: authUser.name,
         email: authUser.email,
         role: authUser.role === "enclosure_admin" ? "enclosure_admin" : "superadmin",
         enclosureId: authUser.enclosureId,
+        enclosureIds: encIds,
         status: authUser.isActive ? "Activo" : "Inactivo",
       });
     }
@@ -29,7 +36,13 @@ export function AdminLayout() {
   if (!authUser) return <Navigate to="/login" state={{ from: location.pathname }} replace />;
 
   const isSuperAdmin = currentUser.role === "superadmin";
-  const myEnclosure = enclosures.find((e) => e.id === currentUser.enclosureId);
+
+  const userEnclosureIds = currentUser.enclosureIds && currentUser.enclosureIds.length > 0
+    ? currentUser.enclosureIds
+    : currentUser.enclosureId
+    ? currentUser.enclosureId.split(",").map((s) => s.trim()).filter(Boolean)
+    : [];
+  const myEnclosures = enclosures.filter((e) => userEnclosureIds.includes(e.id));
 
   const superAdminMenu = [
     { path: "/admin", icon: LayoutDashboard, label: "Dashboard" },
@@ -62,14 +75,24 @@ export function AdminLayout() {
           </div>
         </div>
 
-        {/* Enclosure badge (for enclosure admins) */}
-        {!isSuperAdmin && myEnclosure && (
-          <div className={`mx-4 mt-4 ${myEnclosure.color} rounded-2xl p-4 flex items-center gap-3 shadow-md border border-white/20`}>
-            <span className="text-3xl">{myEnclosure.icon}</span>
-            <div>
-              <p className="text-white font-black text-base leading-tight">{myEnclosure.name}</p>
-              <p className="text-white/80 text-xs font-bold uppercase tracking-wider mt-0.5">Tu Recinto Asignado</p>
-            </div>
+        {/* Enclosure badges (for enclosure admins: 1 to 3 recintos) */}
+        {!isSuperAdmin && myEnclosures.length > 0 && (
+          <div className="mx-4 mt-4 space-y-2">
+            <p className="text-[10px] text-amber-300 font-bold uppercase tracking-wider px-1">
+              Recintos Asignados ({myEnclosures.length} de 3):
+            </p>
+            {myEnclosures.map((enc) => (
+              <div
+                key={enc.id}
+                className={`${enc.color} rounded-2xl p-3 flex items-center gap-3 shadow-md border border-white/20`}
+              >
+                <span className="text-2xl">{enc.icon}</span>
+                <div className="min-w-0">
+                  <p className="text-white font-black text-sm leading-tight truncate">{enc.name}</p>
+                  <p className="text-white/80 text-[10px] font-bold uppercase tracking-wider">Recinto asignado</p>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

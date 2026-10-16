@@ -9,6 +9,7 @@ import {
   CONSERVATION_STATUSES,
   STATUS_COLORS,
 } from "../../data/zooStore";
+import { saveAuditLog } from "../../services/auditService";
 
 const emptyForm: Omit<Animal, "id"> = {
   name: "",
@@ -159,14 +160,27 @@ function AnimalModal({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim()) return;
+
+    const userEnclosureIds = currentUser.enclosureIds && currentUser.enclosureIds.length > 0
+      ? currentUser.enclosureIds
+      : currentUser.enclosureId
+      ? currentUser.enclosureId.split(",").map((s) => s.trim()).filter(Boolean)
+      : [];
+
     const saved = currentUser.role === "enclosure_admin"
-      ? { ...form, enclosureId: currentUser.enclosureId }
+      ? { ...form, enclosureId: form.enclosureId || userEnclosureIds[0] || null }
       : form;
     onSave(saved);
   }
 
+  const userEnclosureIds = currentUser.enclosureIds && currentUser.enclosureIds.length > 0
+    ? currentUser.enclosureIds
+    : currentUser.enclosureId
+    ? currentUser.enclosureId.split(",").map((s) => s.trim()).filter(Boolean)
+    : [];
+
   const availableEnclosures = currentUser.role === "enclosure_admin"
-    ? enclosures.filter((e) => e.id === currentUser.enclosureId)
+    ? enclosures.filter((e) => userEnclosureIds.includes(e.id))
     : enclosures;
 
   return (
@@ -357,8 +371,14 @@ export function AdminAnimals() {
   const [deleteTarget, setDeleteTarget] = useState<Animal | null>(null);
   const [nextId, setNextId] = useState(100);
 
+  const userEnclosureIds = currentUser.enclosureIds && currentUser.enclosureIds.length > 0
+    ? currentUser.enclosureIds
+    : currentUser.enclosureId
+    ? currentUser.enclosureId.split(",").map((s) => s.trim()).filter(Boolean)
+    : [];
+
   const scopedAnimals = currentUser.role === "enclosure_admin"
-    ? animals.filter((a) => a.enclosureId === currentUser.enclosureId)
+    ? animals.filter((a) => a.enclosureId && userEnclosureIds.includes(a.enclosureId))
     : animals;
 
   const filteredAnimals = scopedAnimals.filter((a) => {
@@ -370,76 +390,125 @@ export function AdminAnimals() {
   });
 
   async function handleSave(data: Omit<Animal, "id">) {
-    if (!API_BASE_URL || !token) {
-      window.alert("Tu sesión administrativa no está disponible.");
-      return;
+    const isEditing = Boolean(modalState.animal);
+    const encName = enclosures.find((e) => e.id === data.enclosureId)?.name || data.enclosureId || "General";
+
+    if (API_BASE_URL && token) {
+      const payload = {
+        slug: (data.name.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")),
+        name: data.name,
+        species: data.scientificName,
+        category: data.category,
+        enclosureId: data.enclosureId,
+        habitat: data.habitat,
+        imageUrl: data.image,
+        conservation: data.status,
+        description: data.funFact,
+        diet: data.diet,
+        audioDescriptionUrl: data.audioUrl,
+      };
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/species${isEditing ? `/${modalState.animal!.id}` : ""}`,
+          {
+            method: isEditing ? "PUT" : "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+          }
+        );
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          window.alert(result.message || `No se pudo ${isEditing ? "actualizar" : "guardar"} la especie.`);
+          return;
+        }
+        const savedAnimal: Animal = { ...data, id: Number(result.id) };
+        setAnimals(isEditing
+          ? animals.map((animal) => (animal.id === savedAnimal.id ? savedAnimal : animal))
+          : [...animals, savedAnimal]);
+        if (!isEditing) setNextId((n) => Math.max(n, savedAnimal.id + 1));
+      } catch (error) {
+        console.warn("API offline or error, applying local save:", error);
+        applyLocalAnimalSave(data, isEditing);
+      }
+    } else {
+      applyLocalAnimalSave(data, isEditing);
     }
 
-    const payload = {
-      slug: (data.name.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")),
-      name: data.name,
-      species: data.scientificName,
-      category: data.category,
-      enclosureId: data.enclosureId,
-      habitat: data.habitat,
-      imageUrl: data.image,
-      conservation: data.status,
-      description: data.funFact,
-      diet: data.diet,
-      audioDescriptionUrl: data.audioUrl,
-    };
-    const isEditing = Boolean(modalState.animal);
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/species${isEditing ? `/${modalState.animal!.id}` : ""}`,
-        {
-          method: isEditing ? "PUT" : "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        }
-      );
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        window.alert(result.message || `No se pudo ${isEditing ? "actualizar" : "guardar"} la especie.`);
-        return;
-      }
-      const savedAnimal: Animal = { ...data, id: Number(result.id) };
-      setAnimals(isEditing
-        ? animals.map((animal) => (animal.id === savedAnimal.id ? savedAnimal : animal))
-        : [...animals, savedAnimal]);
-      if (!isEditing) setNextId((n) => Math.max(n, savedAnimal.id + 1));
-      setModalState({ open: false, animal: null });
-    } catch (error) {
-      console.error("Error de red al guardar la especie:", error);
-      window.alert("No se pudo conectar con la API. Verifica que el servidor esté disponible.");
+    // Register in audit log
+    saveAuditLog({
+      userId: currentUser.id || 1,
+      userName: currentUser.name || "Administrador",
+      userEmail: currentUser.email || "admin@zoomat.mx",
+      userRole: currentUser.role,
+      assignedEnclosures: userEnclosureIds.length > 0
+        ? userEnclosureIds.map((id) => enclosures.find((e) => e.id === id)?.name || id)
+        : ["Todos los recintos"],
+      actionType: isEditing ? "ACTUALIZAR" : "CREAR",
+      entityType: "especie",
+      entityName: `${data.name} (${data.scientificName || "Especie"})`,
+      enclosureName: encName,
+      details: isEditing
+        ? `Actualizó la información, dieta, estatus (${data.status}) o recursos multimedia de "${data.name}" en el recinto ${encName}.`
+        : `Registró la nueva especie "${data.name}" en el catálogo del recinto ${encName}.`,
+    });
+
+    setModalState({ open: false, animal: null });
+  }
+
+  function applyLocalAnimalSave(data: Omit<Animal, "id">, isEditing: boolean) {
+    if (isEditing && modalState.animal) {
+      const savedAnimal: Animal = { ...data, id: modalState.animal.id };
+      setAnimals(animals.map((a) => (a.id === savedAnimal.id ? savedAnimal : a)));
+    } else {
+      const newId = Math.max(...animals.map((a) => a.id), 0) + 1;
+      const savedAnimal: Animal = { ...data, id: newId };
+      setAnimals([...animals, savedAnimal]);
+      setNextId((n) => Math.max(n, newId + 1));
     }
   }
 
   async function handleDelete() {
     if (!deleteTarget) return;
-    if (!API_BASE_URL || !token) {
-      window.alert("Tu sesión administrativa no está disponible.");
-      return;
-    }
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/species/${deleteTarget.id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        window.alert(result.message || "No se pudo eliminar la especie.");
-        return;
+    const encName = enclosures.find((e) => e.id === deleteTarget.enclosureId)?.name || deleteTarget.enclosureId || "General";
+
+    if (API_BASE_URL && token) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/species/${deleteTarget.id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          window.alert(result.message || "No se pudo eliminar la especie.");
+          return;
+        }
+      } catch (error) {
+        console.warn("API offline or error, deleting locally:", error);
       }
-      setAnimals(animals.filter((animal) => animal.id !== deleteTarget.id));
-      setDeleteTarget(null);
-    } catch (error) {
-      console.error("Error de red al eliminar la especie:", error);
-      window.alert("No se pudo conectar con la API. La especie no fue eliminada.");
     }
+
+    setAnimals(animals.filter((animal) => animal.id !== deleteTarget.id));
+
+    // Register in audit log
+    saveAuditLog({
+      userId: currentUser.id || 1,
+      userName: currentUser.name || "Administrador",
+      userEmail: currentUser.email || "admin@zoomat.mx",
+      userRole: currentUser.role,
+      assignedEnclosures: userEnclosureIds.length > 0
+        ? userEnclosureIds.map((id) => enclosures.find((e) => e.id === id)?.name || id)
+        : ["Todos los recintos"],
+      actionType: "ELIMINAR",
+      entityType: "especie",
+      entityName: deleteTarget.name,
+      enclosureName: encName,
+      details: `Eliminó la especie "${deleteTarget.name}" del catálogo y del recinto ${encName}.`,
+    });
+
+    setDeleteTarget(null);
   }
 
   const getEnclosure = (id: string | null) => enclosures.find((e) => e.id === id);

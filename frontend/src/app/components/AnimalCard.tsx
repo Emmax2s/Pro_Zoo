@@ -7,16 +7,12 @@ import { useZoo } from "../context/ZooContext";
 interface AnimalCardProps {
   id?: string;
   name: string;
-  nameEn?: string;
   scientificName: string;
   image: string;
   habitat: string;
-  habitatEn?: string;
   diet: string;
-  dietEn?: string;
   status: string;
   funFact: string;
-  funFactEn?: string;
   statusColor: string;
   category?: string;
 }
@@ -24,27 +20,23 @@ interface AnimalCardProps {
 export function AnimalCard(props: AnimalCardProps) {
   const {
     name,
-    nameEn,
     scientificName,
     image,
     habitat,
-    habitatEn,
     diet,
-    dietEn,
     status,
     funFact,
-    funFactEn,
     statusColor,
   } = props;
   const { currentLang } = useZoo();
   const isEs = currentLang === "es";
 
   const loc = getLocalizedAnimal(props as unknown as Animal, isEs);
-  const displayName = isEs ? name : (nameEn || loc.name);
+  const displayName = loc.name;
   const displayScientificName = isEs ? scientificName : (loc.scientificName || scientificName);
-  const displayHabitat = isEs ? habitat : (habitatEn || loc.habitat);
-  const displayDiet = isEs ? diet : (dietEn || loc.diet);
-  const displayFunFact = isEs ? funFact : (funFactEn || loc.funFact);
+  const displayHabitat = loc.habitat;
+  const displayDiet = loc.diet;
+  const displayFunFact = loc.funFact;
   const displayStatus = isEs ? status : loc.status;
 
   return (

@@ -19,16 +19,12 @@ export interface Enclosure {
 export interface Animal {
   id: number;
   name: string;
-  nameEn?: string;
   scientificName: string;
   category: AnimalCategory;
   status: ConservationStatus;
   habitat: string;
-  habitatEn?: string;
   diet: string;
-  dietEn?: string;
   funFact: string;
-  funFactEn?: string;
   image: string;
   audioUrl?: string;
   enclosureId: string | null;

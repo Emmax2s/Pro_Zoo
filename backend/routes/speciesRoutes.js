@@ -1,23 +1,24 @@
 import { Router } from 'express';
 import { query } from '../config/db.js';
 import { verifyToken } from './adminRoutes.js';
+import { translateSpecies } from '../services/translationService.js';
 
 const router = Router();
 
 // Helper function to format species response
-const formatSpeciesResponse = (row, language = 'es') => ({
+const formatSpeciesResponse = (row) => ({
   id: row.id.toString(),
   slug: row.slug,
-  name: language === 'en' && row.name_en ? row.name_en : row.name,
+  name: row.name,
   species: row.species_name,
-  habitat: language === 'en' && row.habitat_en ? row.habitat_en : row.habitat,
+  habitat: row.habitat,
   category: row.category,
   enclosureId: row.enclosure_id,
   imageUrl: row.image_url,
   conservation: row.conservation_status,
   conservationIucn: row.conservation_iucn,
-  description: language === 'en' && row.description_en ? row.description_en : row.description,
-  diet: language === 'en' && row.diet_en ? row.diet_en : row.diet,
+  description: row.description,
+  diet: row.diet,
   lifespan: row.lifespan,
   activity: row.activity,
   size: row.size,
@@ -35,7 +36,9 @@ router.get('/', async (req, res, next) => {
   try {
     const result = await query('SELECT * FROM species ORDER BY created_at DESC');
     const language = req.query.lang === 'en' ? 'en' : 'es';
-    const species = result.rows.map((row) => formatSpeciesResponse(row, language));
+    const species = await Promise.all(
+      result.rows.map((row) => translateSpecies(formatSpeciesResponse(row), language))
+    );
     res.json(species);
   } catch (error) {
     next(error);
@@ -60,7 +63,7 @@ router.get('/:idOrSlug', async (req, res, next) => {
     }
 
     const language = req.query.lang === 'en' ? 'en' : 'es';
-    const species = formatSpeciesResponse(result.rows[0], language);
+    const species = await translateSpecies(formatSpeciesResponse(result.rows[0]), language);
     res.json(species);
   } catch (error) {
     next(error);
@@ -91,10 +94,6 @@ router.post('/', verifyToken, async (req, res, next) => {
       conservationIucn,
       threats,
       ecosystemRole,
-      nameEn,
-      descriptionEn,
-      habitatEn,
-      dietEn,
     } = req.body;
 
     if (!slug || !name || !speciesName) {
@@ -103,10 +102,10 @@ router.post('/', verifyToken, async (req, res, next) => {
 
     const result = await query(
       `INSERT INTO species
-       (slug, name, species_name, category, enclosure_id, habitat, image_url, conservation_status, description, diet, lifespan, activity, size, weight, distribution, audio_description_url, scientific_classification, conservation_iucn, threats, ecosystem_role, name_en, description_en, habitat_en, diet_en)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+       (slug, name, species_name, category, enclosure_id, habitat, image_url, conservation_status, description, diet, lifespan, activity, size, weight, distribution, audio_description_url, scientific_classification, conservation_iucn, threats, ecosystem_role)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
        RETURNING *`,
-      [slug, name, speciesName, category, enclosureId, habitat, imageUrl, conservation, description, diet, lifespan, activity, size, weight, distribution, audioDescriptionUrl, scientificClassification, conservationIucn, threats, ecosystemRole, nameEn, descriptionEn, habitatEn, dietEn]
+      [slug, name, speciesName, category, enclosureId, habitat, imageUrl, conservation, description, diet, lifespan, activity, size, weight, distribution, audioDescriptionUrl, scientificClassification, conservationIucn, threats, ecosystemRole]
     );
 
     const newSpecies = formatSpeciesResponse(result.rows[0]);
@@ -144,10 +143,6 @@ router.put('/:id', verifyToken, async (req, res, next) => {
       conservationIucn,
       threats,
       ecosystemRole,
-      nameEn,
-      descriptionEn,
-      habitatEn,
-      dietEn,
     } = req.body;
 
     const result = await query(
@@ -172,14 +167,10 @@ router.put('/:id', verifyToken, async (req, res, next) => {
            conservation_iucn = COALESCE($18, conservation_iucn),
            threats = COALESCE($19, threats),
            ecosystem_role = COALESCE($20, ecosystem_role),
-           name_en = COALESCE($21, name_en),
-           description_en = COALESCE($22, description_en),
-           habitat_en = COALESCE($23, habitat_en),
-           diet_en = COALESCE($24, diet_en),
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $25
+       WHERE id = $21
        RETURNING *`,
-      [slug, name, speciesName, category, enclosureId, habitat, imageUrl, conservation, description, diet, lifespan, activity, size, weight, distribution, audioDescriptionUrl, scientificClassification, conservationIucn, threats, ecosystemRole, nameEn, descriptionEn, habitatEn, dietEn, id]
+      [slug, name, speciesName, category, enclosureId, habitat, imageUrl, conservation, description, diet, lifespan, activity, size, weight, distribution, audioDescriptionUrl, scientificClassification, conservationIucn, threats, ecosystemRole, id]
     );
 
     if (result.rows.length === 0) {

@@ -34,10 +34,7 @@ export const ensureDatabaseSchema = async () => {
     ALTER TABLE species
       ADD COLUMN IF NOT EXISTS category VARCHAR(50),
       ADD COLUMN IF NOT EXISTS enclosure_id VARCHAR(100),
-      ADD COLUMN IF NOT EXISTS name_en TEXT,
-      ADD COLUMN IF NOT EXISTS description_en TEXT,
-      ADD COLUMN IF NOT EXISTS habitat_en TEXT,
-      ADD COLUMN IF NOT EXISTS diet_en TEXT;
+      ADD COLUMN IF NOT EXISTS translation_cache JSONB;
 
     ALTER TABLE admin_users
       ADD COLUMN IF NOT EXISTS name VARCHAR(150),

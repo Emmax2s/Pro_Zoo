@@ -27,13 +27,13 @@ export function getLocalizedAnimal(animal: Record<string, unknown> | null | unde
   }
 
   return {
-    name: String((isEs ? animal.name : animal.nameEn || animal.name) || ""),
+    name: String(animal.name || ""),
     scientificName: String(animal.scientificName || animal.species || ""),
     category: String(animal.category || ""),
     status: String(animal.status || animal.conservation || ""),
-    habitat: String((isEs ? animal.habitat : animal.habitatEn || animal.habitat) || ""),
-    diet: String((isEs ? animal.diet : animal.dietEn || animal.diet) || ""),
-    funFact: String((isEs ? animal.funFact : animal.funFactEn || animal.funFact || animal.description) || ""),
+    habitat: String(animal.habitat || ""),
+    diet: String(animal.diet || ""),
+    funFact: String(animal.funFact || animal.description || ""),
     audioUrl: String(animal.audioUrl || animal.audioDescriptionUrl || "") || undefined,
   };
 }

@@ -24,4 +24,7 @@ export const env = {
   smtpUser: process.env.SMTP_USER || '',
   smtpPassword: process.env.SMTP_PASSWORD || '',
   mailFrom: process.env.MAIL_FROM || process.env.SMTP_USER || '',
+  translationApiUrl: process.env.TRANSLATION_API_URL || 'https://api.mymemory.translated.net/get',
+  translationSourceLanguage: process.env.TRANSLATION_SOURCE_LANGUAGE || 'es',
+  translationTargetLanguage: process.env.TRANSLATION_TARGET_LANGUAGE || 'en',
 };

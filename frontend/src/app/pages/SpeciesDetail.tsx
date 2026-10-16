@@ -69,39 +69,24 @@ export function SpeciesDetail() {
         if (!res.ok) throw new Error(t("speciesDetail.apiUnavailable"));
         const data = await res.json();
         if (active) {
-          const match = findLocal();
-          const cleanAudio =
-            data.audioDescriptionUrl && !data.audioDescriptionUrl.includes("example.com")
-              ? data.audioDescriptionUrl
-              : match?.audioUrl;
-
           setSpecies({
             id: Number(data.id) || 1,
             name: data.name,
-            nameEn: match?.nameEn,
-            scientificName: data.species || data.scientificName || match?.scientificName || "",
-            category: data.category || match?.category || "",
+            scientificName: data.species || data.scientificName || "",
+            category: data.category || "",
             status: data.conservation || "",
-            habitat: data.habitat || match?.habitat || "",
-            habitatEn: match?.habitatEn,
-            diet: data.diet || match?.diet || "",
-            dietEn: match?.dietEn,
-            funFact: data.description || data.funFact || match?.funFact || "",
-            funFactEn: match?.funFactEn,
-            image: data.imageUrl || data.image || match?.image || "",
-            audioUrl: cleanAudio,
+            habitat: data.habitat || "",
+            diet: data.diet || "",
+            funFact: data.description || data.funFact || "",
+            image: data.imageUrl || data.image || "",
+            audioUrl: data.audioDescriptionUrl,
             enclosureId: data.enclosureId ?? null,
           });
         }
       })
       .catch(() => {
         if (active) {
-          const match = findLocal();
-          if (match) {
-            setSpecies(match);
-          } else {
-            setError(t("speciesDetail.notFound"));
-          }
+          setError(t("speciesDetail.notFound"));
         }
       })
       .finally(() => {

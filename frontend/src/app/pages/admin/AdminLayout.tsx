@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router";
 import { Navigate } from "react-router";
-import { LayoutDashboard, Users, PawPrint, LogOut, Building2, ChevronDown, Home } from "lucide-react";
+import { LayoutDashboard, Users, PawPrint, LogOut, Building2, ChevronDown, Home, FileText } from "lucide-react";
 import { useZoo } from "../../context/ZooContext";
 import { useAuth } from "../../context/AuthContext";
 import logoZoomat from "../../../assets/logo-zoomat.png";
@@ -56,6 +56,7 @@ export function AdminLayout() {
     { path: "/admin/recintos", icon: Building2, label: "Recintos" },
     { path: "/admin/animales", icon: PawPrint, label: "Especies" },
     { path: "/admin/usuarios", icon: Users, label: "Administradores" },
+    { path: "/admin/documentos", icon: FileText, label: "Transparencia y PDFs" },
   ];
 
   const enclosureAdminMenu = [

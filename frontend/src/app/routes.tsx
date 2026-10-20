@@ -15,6 +15,7 @@ import { AdminAnimals } from "./pages/admin/AdminAnimals";
 import { AdminUsers } from "./pages/admin/AdminUsers";
 import { AdminEnclosures } from "./pages/admin/AdminEnclosures";
 import { AdminHome } from "./pages/admin/AdminHome";
+import { AdminDocuments } from "./pages/admin/AdminDocuments";
 import { Login } from "./pages/Login";
 import { PasswordRecovery } from "./pages/PasswordRecovery";
 import { SpeciesDetail } from "./pages/SpeciesDetail";
@@ -61,6 +62,7 @@ export const router = createBrowserRouter([
       { path: "recintos", Component: AdminEnclosures },
       { path: "animales", Component: AdminAnimals },
       { path: "usuarios", Component: AdminUsers },
+      { path: "documentos", Component: AdminDocuments },
     ],
   },
 ]);

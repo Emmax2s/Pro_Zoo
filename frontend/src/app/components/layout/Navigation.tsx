@@ -1,23 +1,107 @@
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router";
-import { Menu, X, Clock, Globe } from "lucide-react";
-import { useState } from "react";
-import { useZoo } from "../../context/ZooContext";
+import { Search, ChevronDown, Menu, X, Shield, FileText, Lock } from "lucide-react";
+import { 
+  loadStoredDocuments, 
+  InstitutionalDocument 
+} from "../../services/documentStore";
+import { DocumentModal } from "../ui/DocumentModal";
 import logoZoomat from "../../../assets/logo-zoomat.png";
 
+// SVG Oficial del Glifo Escudo de Chiapas
+export function ChiapasGlyph({ className = "w-7 h-7" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 100 100"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-hidden="true"
+    >
+      <path
+        d="M50 8L20 38L32 50L50 32L68 50L80 38L50 8Z"
+        fill="currentColor"
+      />
+      <path
+        d="M50 24L30 44L40 54L50 44L60 54L70 44L50 24Z"
+        fill="currentColor"
+        opacity="0.9"
+      />
+      <path
+        d="M14 44L50 80L86 44L76 34L50 60L24 34L14 44Z"
+        fill="currentColor"
+      />
+      <path
+        d="M24 54L50 80L76 54L66 44L50 60L34 44L24 54Z"
+        fill="currentColor"
+        opacity="0.8"
+      />
+      <path
+        d="M50 66L38 54L50 42L62 54L50 66Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 export function Navigation() {
-  const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { currentLang, toggleLanguage } = useZoo();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [transparencyOpen, setTransparencyOpen] = useState(false);
+  const [datosPersonalesOpen, setDatosPersonalesOpen] = useState(false);
+  const [documents, setDocuments] = useState<InstitutionalDocument[]>(loadStoredDocuments());
+  const [selectedDoc, setSelectedDoc] = useState<InstitutionalDocument | null>(null);
 
-  const isEs = currentLang === "es";
+  const transparencyRef = useRef<HTMLDivElement>(null);
+  const datosRef = useRef<HTMLDivElement>(null);
 
-  const mainLinks = [
-    { to: "/", label: isEs ? "INICIO" : "HOME" },
-    { to: "/animales", label: isEs ? "ANIMALES" : "ANIMALS" },
-    { to: "/visita", label: isEs ? "VISITA" : "VISIT" },
-    { to: "/mapa", label: isEs ? "MAPA" : "MAP" },
-    { to: "/contacto", label: isEs ? "CONTACTO" : "CONTACT" },
-  ];
+  // Sync documents with store updates
+  useEffect(() => {
+    const handleUpdate = () => {
+      setDocuments(loadStoredDocuments());
+    };
+    window.addEventListener("zoomat-documents-changed", handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+    return () => {
+      window.removeEventListener("zoomat-documents-changed", handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
+    };
+  }, []);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (transparencyRef.current && !transparencyRef.current.contains(e.target as Node)) {
+        setTransparencyOpen(false);
+      }
+      if (datosRef.current && !datosRef.current.contains(e.target as Node)) {
+        setDatosPersonalesOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const openDocById = (id: string) => {
+    const doc = documents.find((d) => d.id === id);
+    if (doc) {
+      setSelectedDoc(doc);
+    } else {
+      // Fallback
+      setSelectedDoc({
+        id,
+        category: "transparencia",
+        title: id,
+        description: "Documento oficial del Gobierno de Chiapas.",
+      });
+    }
+    setTransparencyOpen(false);
+    setDatosPersonalesOpen(false);
+    setMobileMenuOpen(false);
+  };
+
+  const transparencyDocs = documents.filter((d) => d.category === "transparencia");
+  const datosPersonalesDocs = documents.filter((d) => d.category === "datos_personales");
 
   const isActive = (path: string) => {
     if (path === "/") return location.pathname === "/";
@@ -25,147 +109,354 @@ export function Navigation() {
   };
 
   return (
-    <header className="sticky top-0 z-50 shadow-2xl select-none">
-
-      {/* 2. MAIN RUSTIC WOOD PLANK HEADER BAR (Photo 1 Signature Style) */}
-      <div className="wood-texture-bg border-b-4 border-[#2b1706] shadow-xl relative overflow-visible">
-        {/* Subtle top/bottom glossy bevel overlays */}
-        <div className="absolute inset-x-0 top-0 h-1 bg-amber-200/20 pointer-events-none" />
-        <div className="absolute inset-x-0 bottom-0 h-1 bg-black/40 pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 relative">
-          <div className="flex items-center justify-between min-h-[58px] md:min-h-[66px] py-1 gap-2">
-
-            {/* LEFT: HANGING PARCHMENT PAPER SIGN WITH LOGO */}
-            <div className="relative z-20 flex-shrink-0 pt-0.5 -mb-4 md:-mb-6">
-              {/* Hanging string nails */}
-              <div className="flex justify-between w-24 sm:w-28 md:w-30 px-3.5 mb-0.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-950 border border-stone-400 shadow-md inline-block" />
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-950 border border-stone-400 shadow-md inline-block" />
+    <>
+      <header className="sticky top-0 z-40 select-none shadow-md">
+        {/* 1. BARRA SUPERIOR INSTITUCIONAL (chiapas.gob.mx - FOTO 1) */}
+        <div className="bg-[#1c1d1f] text-white border-b border-white/10 text-xs font-sans tracking-wide">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-9 sm:h-10">
+            {/* Izquierda: Escudo de Chiapas y chiapas.gob.mx */}
+            <a
+              href="https://www.chiapas.gob.mx"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-stone-200 hover:text-white transition-colors group"
+            >
+              <ChiapasGlyph className="w-5 h-5 text-stone-300 group-hover:text-white transition-colors" />
+              <div className="flex flex-col leading-none">
+                <span className="font-extrabold text-[12px] sm:text-[13px] tracking-tight text-white">chiapas</span>
+                <span className="text-[9px] sm:text-[10px] text-stone-300 font-light tracking-wide">.gob.mx</span>
               </div>
+            </a>
 
-              {/* White Card Tag (clean rounded corners, pixel-perfect, no stray dog-ear artifact) */}
-              <Link
-                to="/"
-                className="block w-24 sm:w-28 md:w-30 bg-white text-stone-900 rounded-b-2xl rounded-t-sm p-1.5 pb-2 shadow-2xl border-2 border-stone-200 relative group hover:-translate-y-0.5 transition-transform duration-200 overflow-hidden"
+            {/* Derecha: Enlaces Rápidos del Gobierno y Búsqueda */}
+            <div className="flex items-center gap-4 sm:gap-6 text-[11px] sm:text-[12px] font-medium text-stone-300">
+              <a
+                href="https://www.chiapas.gob.mx/tramites"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors hidden sm:inline"
               >
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-full flex items-center justify-center">
-                    <img
-                      src={logoZoomat}
-                      alt="Logo Oficial ZooMAT"
-                      className="w-20 h-20 sm:w-22 sm:h-22 md:w-24 md:h-24 object-contain rounded-full shadow-md group-hover:scale-105 transition-transform bg-white"
-                    />
-                  </div>
-                  <div className="mt-1 font-adventure text-sm sm:text-base md:text-lg text-stone-900 leading-none tracking-tight">
-                    ZooMAT
-                  </div>
-                  <span className="text-[7px] sm:text-[7.5px] md:text-[8px] font-black text-emerald-800 tracking-wider uppercase mt-0.5 leading-tight">
-                    Miguel Álvarez del Toro
-                  </span>
-                </div>
-              </Link>
-            </div>
-
-            {/* CENTER: OPERATIONAL BADGE & MAIN ADVENTURE NAVIGATION */}
-            <div className="flex-1 flex flex-col items-center justify-center px-2">
-              {/* Horario y Teléfono pill */}
-              <div className="hidden lg:flex items-center gap-2 bg-black/45 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-amber-200/25 text-white text-[10px] font-semibold shadow-md mb-1">
-                <div className="flex items-center gap-1.5 text-amber-300">
-                  <Clock className="w-3 h-3" />
-                  <span>{isEs ? "Horario: Mar-Dom: 8:30 - 16:30" : "Hours: Tue-Sun 8:30 - 16:30"}</span>
-                </div>
-                <span className="text-amber-200/50">|</span>
-                <div className="flex items-center gap-1.5 text-stone-100">
-                  <span>{isEs ? "Llámanos:" : "Call us:"}</span>
-                  <a href="tel:+529616144700" className="text-amber-300 font-bold hover:underline">
-                    (961) 614-4700
-                  </a>
-                </div>
-              </div>
-
-              {/* Main Adventure Nav Tabs (Desktop) */}
-              <nav className="hidden md:flex items-center gap-1.5 lg:gap-3 xl:gap-4">
-                {mainLinks.map((link) => (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    className={`font-adventure text-sm lg:text-base xl:text-lg px-2.5 py-0.5 rounded-xl transition-all tracking-wide ${
-                      isActive(link.to)
-                        ? "text-amber-300 text-adventure-shadow scale-105 bg-black/35 border border-amber-400/40 shadow-md"
-                        : "text-white text-wood-carved hover:text-amber-300 hover:scale-105"
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </nav>
-            </div>
-
-            {/* RIGHT: LANGUAGE SWITCHER & MOBILE MENU */}
-            <div className="flex items-center gap-2.5 sm:gap-3.5 flex-shrink-0">
-              {/* Botón de Idioma colgante de madera */}
-              <div className="relative pt-0.5 flex flex-col items-center">
-                {/* 2 Ropes */}
-                <div className="flex justify-between w-10 sm:w-14 px-1 -mb-0.5">
-                  <span className="w-1 h-2 bg-gradient-to-b from-amber-900 to-amber-700 shadow-sm" />
-                  <span className="w-1 h-2 bg-gradient-to-b from-amber-900 to-amber-700 shadow-sm" />
-                </div>
-
-                <button
-                  onClick={toggleLanguage}
-                  className="wood-texture-dark px-2 sm:px-2.5 py-1 rounded-xl border-2 border-amber-600/70 shadow-2xl flex items-center gap-1.5 text-amber-300 font-adventure text-xs md:text-sm tracking-wide hover:scale-105 hover:border-amber-400 transition-all wood-button-shadow cursor-pointer group"
-                  title={isEs ? "Switch language to English" : "Cambiar idioma a Español"}
-                  aria-label="Cambiar idioma / Switch language"
-                >
-                  <Globe className="w-3.5 h-3.5 text-amber-400 group-hover:rotate-45 transition-transform" />
-                  <span className="text-white text-adventure-shadow font-adventure font-bold">
-                    {isEs ? "ES" : "EN"}
-                  </span>
-                </button>
-              </div>
-
-              {/* Mobile menu toggle button */}
+                Trámites
+              </a>
+              <a
+                href="https://www.chiapas.gob.mx/gobierno"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors hidden sm:inline"
+              >
+                Gobierno
+              </a>
+              <a
+                href="https://www.chiapas.gob.mx/participa"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors hidden md:inline"
+              >
+                Participa
+              </a>
               <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="md:hidden p-1.5 rounded-xl wood-texture-dark border border-amber-600 text-amber-300 hover:text-white shadow-lg"
-                aria-label="Abrir menú"
+                onClick={() => openDocById("transparencia-portal")}
+                className="hover:text-white transition-colors cursor-pointer"
               >
-                {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                Transparencia
+              </button>
+              <button
+                onClick={() => alert("Búsqueda institucional en línea")}
+                className="p-1 hover:text-white transition-colors cursor-pointer"
+                aria-label="Buscar"
+              >
+                <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-stone-300 hover:text-white" />
               </button>
             </div>
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu with rustic wood theme */}
-        {isOpen && (
-          <div className="md:hidden wood-texture-dark border-t-2 border-amber-800/80 px-4 py-4 space-y-2 backdrop-blur-md shadow-2xl">
-            {mainLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                onClick={() => setIsOpen(false)}
-                className={`block px-4 py-2.5 rounded-xl font-adventure text-lg tracking-wider transition ${
-                  isActive(link.to)
-                    ? "bg-amber-500/30 text-amber-300 border border-amber-500/40"
-                    : "text-stone-200 hover:bg-black/30 hover:text-amber-300"
-                }`}
-              >
-                {link.label}
+        {/* 2. BARRA PRINCIPAL DE NAVEGACIÓN (FOTO 1) */}
+        <div className="bg-white border-b border-stone-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <div className="flex items-center justify-between min-h-[72px] sm:min-h-[80px] py-2 gap-3">
+              
+              {/* IZQUIERDA: IDENTIDAD INSTITUCIONAL GOBIERNO DE CHIAPAS / ZOOMAT */}
+              <Link to="/" className="flex items-center gap-3 sm:gap-4 flex-shrink-0 group">
+                <img
+                  src={logoZoomat}
+                  alt="ZooMAT Logo Oficial"
+                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-contain p-0.5 border border-stone-200 shadow-sm group-hover:scale-105 transition-transform"
+                />
+                <div className="flex flex-col text-[#731c34]">
+                  <span className="text-[11px] sm:text-[13px] font-black uppercase tracking-wider leading-tight">
+                    Coordinación Estatal
+                  </span>
+                  <span className="text-[11px] sm:text-[13px] font-black uppercase tracking-wider leading-tight">
+                    Para el Mejoramiento
+                  </span>
+                  <span className="text-[11px] sm:text-[13px] font-black uppercase tracking-wider leading-tight">
+                    del ZooMAT
+                  </span>
+                  <div className="flex items-center gap-1 mt-0.5 text-[8.5px] sm:text-[9.5px] font-bold text-[#8c2642] tracking-widest uppercase">
+                    <span>Gobierno de Chiapas</span>
+                    <span className="text-[7px] text-amber-700">✦</span>
+                    <span>2018 - 2024</span>
+                  </div>
+                </div>
               </Link>
-            ))}
 
-            <div className="pt-3 border-t border-amber-900/60 flex items-center justify-between text-xs text-stone-300">
-              <span className="flex items-center gap-1.5 text-amber-400">
-                <Clock className="w-3.5 h-3.5" /> 9:00 - 17:00
-              </span>
-              <a href="tel:+529616144700" className="font-bold text-amber-300">
-                (961) 614-4700
-              </a>
+              {/* CENTRO / DERECHA: ENLACES DEL MENÚ (FOTO 1) */}
+              <nav className="hidden xl:flex items-center gap-4 text-[13.5px] font-medium text-stone-800">
+                <Link
+                  to="/"
+                  className={`py-1.5 px-2 transition-colors hover:text-[#731c34] ${
+                    isActive("/") && location.pathname === "/" ? "text-[#731c34] font-bold" : ""
+                  }`}
+                >
+                  Inicio
+                </Link>
+
+                <button
+                  onClick={() => openDocById("institucional-quienes-somos")}
+                  className="py-1.5 px-2 transition-colors hover:text-[#731c34] cursor-pointer"
+                >
+                  Quienes somos
+                </button>
+
+                <button
+                  onClick={() => openDocById("institucional-comite-etica")}
+                  className="py-1.5 px-2 transition-colors hover:text-[#731c34] cursor-pointer"
+                >
+                  Comité de Ética
+                </button>
+
+                {/* DROPDOWN TRANSPARENCIA (FOTO 4 - 14 ELEMENTOS) */}
+                <div
+                  ref={transparencyRef}
+                  className="relative"
+                  onMouseEnter={() => setTransparencyOpen(true)}
+                  onMouseLeave={() => setTransparencyOpen(false)}
+                >
+                  <button
+                    onClick={() => setTransparencyOpen(!transparencyOpen)}
+                    className={`flex items-center gap-1 py-1.5 px-2 transition-colors hover:text-[#731c34] cursor-pointer ${
+                      transparencyOpen ? "text-[#731c34] font-bold" : ""
+                    }`}
+                  >
+                    <span>Transparencia</span>
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </button>
+
+                  {transparencyOpen && (
+                    <div className="absolute left-0 top-full mt-1 w-64 bg-white rounded-xl shadow-2xl border border-stone-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                      <div className="px-3 py-1 mb-1 border-b border-stone-100 flex items-center justify-between text-[10px] font-bold text-stone-500 uppercase tracking-wider">
+                        <span>Portal de Transparencia</span>
+                        <span className="bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded">14</span>
+                      </div>
+                      <div className="max-h-[380px] overflow-y-auto divide-y divide-stone-50">
+                        {transparencyDocs.map((item) => (
+                          <button
+                            key={item.id}
+                            onClick={() => openDocById(item.id)}
+                            className="w-full text-left px-3.5 py-2 text-xs text-stone-700 hover:bg-stone-50 hover:text-[#731c34] transition-colors flex items-center justify-between group cursor-pointer"
+                          >
+                            <span className="font-medium group-hover:font-semibold">{item.title}</span>
+                            {item.pdfUrl ? (
+                              <span className="text-[9px] bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded">PDF</span>
+                            ) : null}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* DROPDOWN DATOS PERSONALES (FOTO 3 - 2 ELEMENTOS) */}
+                <div
+                  ref={datosRef}
+                  className="relative"
+                  onMouseEnter={() => setDatosPersonalesOpen(true)}
+                  onMouseLeave={() => setDatosPersonalesOpen(false)}
+                >
+                  <button
+                    onClick={() => setDatosPersonalesOpen(!datosPersonalesOpen)}
+                    className={`flex items-center gap-1 py-1.5 px-2 transition-colors hover:text-[#731c34] cursor-pointer ${
+                      datosPersonalesOpen ? "text-[#731c34] font-bold" : ""
+                    }`}
+                  >
+                    <span>Datos Personales</span>
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </button>
+
+                  {datosPersonalesOpen && (
+                    <div className="absolute left-0 top-full mt-1 w-56 bg-white rounded-xl shadow-2xl border border-stone-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                      <div className="px-3 py-1 mb-1 border-b border-stone-100 text-[10px] font-bold text-stone-500 uppercase tracking-wider">
+                        Protección de Datos
+                      </div>
+                      {datosPersonalesDocs.map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => openDocById(item.id)}
+                          className="w-full text-left px-3.5 py-2 text-xs text-stone-700 hover:bg-stone-50 hover:text-[#731c34] transition-colors flex items-center justify-between group cursor-pointer"
+                        >
+                          <span className="font-medium group-hover:font-semibold">{item.title}</span>
+                          {item.pdfUrl ? (
+                            <span className="text-[9px] bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded">PDF</span>
+                          ) : null}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* ENLACES RESTANTES: ANIMALES, VISITA, MAPA, CONTACTO */}
+                <Link
+                  to="/animales"
+                  className={`py-1.5 px-2 transition-colors hover:text-[#731c34] ${
+                    isActive("/animales") ? "text-[#731c34] font-bold" : ""
+                  }`}
+                >
+                  Animales
+                </Link>
+
+                <Link
+                  to="/visita"
+                  className={`py-1.5 px-2 transition-colors hover:text-[#731c34] ${
+                    isActive("/visita") ? "text-[#731c34] font-bold" : ""
+                  }`}
+                >
+                  Visita
+                </Link>
+
+                <Link
+                  to="/mapa"
+                  className={`py-1.5 px-2 transition-colors hover:text-[#731c34] ${
+                    isActive("/mapa") ? "text-[#731c34] font-bold" : ""
+                  }`}
+                >
+                  Mapa
+                </Link>
+
+                <Link
+                  to="/contacto"
+                  className={`py-1.5 px-2 transition-colors hover:text-[#731c34] ${
+                    isActive("/contacto") ? "text-[#731c34] font-bold" : ""
+                  }`}
+                >
+                  Contacto
+                </Link>
+              </nav>
+
+              {/* BOTÓN MÓVIL / PANTALLAS MEDIANAS */}
+              <div className="xl:hidden flex items-center gap-2">
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="p-2 rounded-xl text-stone-800 hover:text-[#731c34] hover:bg-stone-100 transition-colors cursor-pointer"
+                  aria-label="Abrir menú"
+                >
+                  {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* MENÚ MÓVIL DESPLEGABLE */}
+        {mobileMenuOpen && (
+          <div className="xl:hidden bg-white border-b-2 border-[#731c34] shadow-2xl px-5 py-4 space-y-3 max-h-[80vh] overflow-y-auto">
+            <Link
+              to="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1.5"
+            >
+              Inicio
+            </Link>
+
+            <button
+              onClick={() => openDocById("institucional-quienes-somos")}
+              className="block w-full text-left text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1.5 cursor-pointer"
+            >
+              Quienes somos
+            </button>
+
+            <button
+              onClick={() => openDocById("institucional-comite-etica")}
+              className="block w-full text-left text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1.5 cursor-pointer"
+            >
+              Comité de Ética
+            </button>
+
+            {/* Apartado Móvil Transparencia */}
+            <div className="border-t border-stone-100 pt-2">
+              <p className="text-xs font-bold text-[#731c34] uppercase tracking-wider mb-1">
+                Transparencia (14 apartados)
+              </p>
+              <div className="pl-2 space-y-1">
+                {transparencyDocs.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => openDocById(item.id)}
+                    className="block w-full text-left text-xs text-stone-600 hover:text-[#731c34] py-1 cursor-pointer"
+                  >
+                    • {item.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Apartado Móvil Datos Personales */}
+            <div className="border-t border-stone-100 pt-2">
+              <p className="text-xs font-bold text-[#731c34] uppercase tracking-wider mb-1">
+                Datos Personales
+              </p>
+              <div className="pl-2 space-y-1">
+                {datosPersonalesDocs.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => openDocById(item.id)}
+                    className="block w-full text-left text-xs text-stone-600 hover:text-[#731c34] py-1 cursor-pointer"
+                  >
+                    • {item.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-stone-100 pt-2 space-y-2">
+              <Link
+                to="/animales"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1"
+              >
+                Animales
+              </Link>
+              <Link
+                to="/visita"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1"
+              >
+                Visita
+              </Link>
+              <Link
+                to="/mapa"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1"
+              >
+                Mapa
+              </Link>
+              <Link
+                to="/contacto"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1"
+              >
+                Contacto
+              </Link>
             </div>
           </div>
         )}
-      </div>
-    </header>
+      </header>
+
+      {/* Modal Institucional para Ver o Descargar Documentos PDF */}
+      <DocumentModal
+        document={selectedDoc}
+        onClose={() => setSelectedDoc(null)}
+      />
+    </>
   );
 }

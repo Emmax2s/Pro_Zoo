@@ -19,6 +19,8 @@ import { AdminDocuments } from "./pages/admin/AdminDocuments";
 import { Login } from "./pages/Login";
 import { PasswordRecovery } from "./pages/PasswordRecovery";
 import { SpeciesDetail } from "./pages/SpeciesDetail";
+import { AboutUs } from "./pages/AboutUs";
+import { EthicsCommittee } from "./pages/EthicsCommittee";
 
 export const router = createBrowserRouter([
   {
@@ -29,6 +31,12 @@ export const router = createBrowserRouter([
       { path: "animales", Component: Animals },
       { path: "especie/:idOrSlug", Component: SpeciesDetail },
       { path: "especies/:idOrSlug", Component: SpeciesDetail },
+      { path: "nosotros", Component: AboutUs },
+      { path: "quienes-somos", Component: AboutUs },
+      { path: "comite-de-etica", Component: EthicsCommittee },
+      { path: "codigo-de-etica", Component: EthicsCommittee },
+      { path: "CodigoDeEtica", Component: EthicsCommittee },
+      { path: "carr_video", Component: EthicsCommittee },
       { path: "visita", Component: Visit },
       { path: "mapa", Component: ZooMap },
       { path: "contacto", Component: Contact },

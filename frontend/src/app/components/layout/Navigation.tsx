@@ -202,21 +202,25 @@ export function Navigation() {
                 Inicio
               </Link>
 
-              <button
-                onClick={() => openDocById("institucional-quienes-somos")}
+              <Link
+                to="/nosotros"
                 style={{ fontSize: "20px" }}
-                className="py-1.5 px-1.5 transition-colors text-stone-800 hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer"
+                className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer ${
+                  isActive("/nosotros") || isActive("/quienes-somos") ? "text-[#731c34] font-medium" : "text-stone-800"
+                }`}
               >
                 Quienes somos
-              </button>
+              </Link>
 
-              <button
-                onClick={() => openDocById("institucional-comite-etica")}
+              <Link
+                to="/comite-de-etica"
                 style={{ fontSize: "20px" }}
-                className="py-1.5 px-1.5 transition-colors text-stone-800 hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer"
+                className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer ${
+                  isActive("/comite-de-etica") || isActive("/codigo-de-etica") ? "text-[#731c34] font-medium" : "text-stone-800"
+                }`}
               >
                 Comité de Ética
-              </button>
+              </Link>
 
               {/* DROPDOWN TRANSPARENCIA (FOTO 4 - 14 ELEMENTOS) */}
               <div
@@ -367,19 +371,21 @@ export function Navigation() {
               Inicio
             </Link>
 
-            <button
-              onClick={() => openDocById("institucional-quienes-somos")}
-              className="block w-full text-left text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1.5 cursor-pointer"
+            <Link
+              to="/nosotros"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block w-full text-left text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1.5"
             >
               Quienes somos
-            </button>
+            </Link>
 
-            <button
-              onClick={() => openDocById("institucional-comite-etica")}
-              className="block w-full text-left text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1.5 cursor-pointer"
+            <Link
+              to="/comite-de-etica"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block w-full text-left text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1.5"
             >
               Comité de Ética
-            </button>
+            </Link>
 
             {/* Apartado Móvil Transparencia */}
             <div className="border-t border-stone-100 pt-2">

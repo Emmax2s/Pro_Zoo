@@ -56,7 +56,7 @@ export function AdminLayout() {
     { path: "/admin/recintos", icon: Building2, label: "Recintos" },
     { path: "/admin/animales", icon: PawPrint, label: "Especies" },
     { path: "/admin/usuarios", icon: Users, label: "Administradores" },
-    { path: "/admin/documentos", icon: FileText, label: "Transparencia y PDFs" },
+    { path: "/admin/documentos", icon: FileText, label: "Transparencia, PDFs y Sexenio" },
   ];
 
   const enclosureAdminMenu = [

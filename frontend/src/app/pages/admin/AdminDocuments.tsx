@@ -701,46 +701,6 @@ export function AdminDocuments() {
                 />
               </div>
 
-              {/* Banner superior */}
-              <div className="bg-stone-50 p-4 rounded-xl border border-stone-200">
-                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wide mb-2">
-                  Banner Superior del Comité de Ética
-                </label>
-                <div className="flex flex-col sm:flex-row items-center gap-4">
-                  <img
-                    src={sexenioForm.ethicsBanner || "/assets/images/banner_etica.jpg"}
-                    alt="Banner Comité de Ética"
-                    className="w-64 h-20 object-cover rounded-lg border border-stone-300"
-                  />
-                  <div className="flex-1 space-y-2 w-full">
-                    <input
-                      type="text"
-                      value={sexenioForm.ethicsBanner}
-                      onChange={(e) => handleSexenioChange("ethicsBanner", e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs rounded-xl border border-stone-300 bg-white"
-                      placeholder="Ruta o URL del banner de ética"
-                    />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      ref={bannerImgInputRef}
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleImageUpload("ethicsBanner", file);
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => bannerImgInputRef.current?.click()}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-800 text-white hover:bg-black text-xs font-bold transition cursor-pointer"
-                    >
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>Subir Nuevo Banner</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 

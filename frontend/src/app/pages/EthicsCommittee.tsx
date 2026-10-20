@@ -54,18 +54,6 @@ export function EthicsCommittee() {
           <span className="text-[#731c34]">Comité de Ética</span>
         </div>
 
-        {/* Banner Oficial Superior */}
-        <div className="rounded-2xl overflow-hidden border border-stone-200 shadow-sm bg-white">
-          <img
-            src={sexenio.ethicsBanner || "/assets/images/banner_etica.jpg"}
-            alt="Comité de Ética y de Prevención de Conflictos de Interés"
-            className="w-full h-auto max-h-[220px] object-cover sm:object-fill"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = "/assets/images/banner_etica.jpg";
-            }}
-          />
-        </div>
-
         {/* Tarjeta de Objetivos del Comité de Ética (FOTO DEL USUARIO) */}
         <div className="bg-white rounded-2xl border border-stone-200/90 shadow-sm p-6 sm:p-10 space-y-6">
           <div className="space-y-3">

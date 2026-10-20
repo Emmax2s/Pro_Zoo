@@ -206,8 +206,14 @@ export function Home() {
 
   return (
     <div className="bg-[#faf8f2] text-stone-900">
-      {/* 1. Full-bleed Edge-to-Edge Hero Carousel with Wood Bottom Beam */}
+      {/* 1. Full-bleed Edge-to-Edge Hero Carousel with Top & Bottom Wood Beams */}
       <section className="relative w-full overflow-hidden bg-stone-950">
+        {/* Barra café rústica superior (arriba de la imagen del carrusel) */}
+        <div className="wood-texture-bg h-7 sm:h-9 w-full border-t-2 border-b-4 border-[#2b1706] shadow-2xl relative z-30">
+          <div className="absolute inset-x-0 top-0 h-0.5 bg-amber-200/25" />
+          <div className="absolute inset-x-0 bottom-0 h-0.5 bg-black/45" />
+        </div>
+
         <div className="w-full h-[450px] sm:h-[550px] md:h-[650px] lg:h-[720px] relative">
           <HeroCarousel />
         </div>

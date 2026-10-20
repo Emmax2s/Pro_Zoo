@@ -442,27 +442,6 @@ export function Home() {
         </div>
       </section>
 
-      {/* 6. Conservation Message */}
-      <section className="py-20 md:py-24 bg-[#faf6ee] text-center border-t border-[#e2d5bd]">
-        <div className="max-w-3xl mx-auto px-4">
-          <div className="wood-texture-bg w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-8 rotate-6 border border-amber-500 shadow-md">
-            <Heart className="w-8 h-8 text-amber-300 -rotate-6" />
-          </div>
-          <h2 className="font-adventure text-3xl md:text-5xl text-stone-900 mb-6 tracking-wide text-adventure-shadow">
-            {t("home.conservation.title")}
-          </h2>
-          <p className="text-lg text-stone-700 leading-relaxed mb-10 font-medium">
-            {t("home.conservation.desc")}
-          </p>
-          <Link
-            to="/contacto"
-            className="inline-flex items-center gap-2 text-stone-900 font-adventure text-base hover:text-amber-950 transition-colors bg-white px-8 py-3.5 rounded-full border-2 border-amber-400 shadow-md hover:shadow-lg hover:scale-105"
-          >
-            <span>{t("home.conservation.support")}</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-      </section>
     </div>
   );
 }

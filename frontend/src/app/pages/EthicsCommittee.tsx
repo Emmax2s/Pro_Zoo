@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { 
-  CheckCircle2, FileText, Download, Eye, ShieldCheck, ChevronRight, 
-  ExternalLink, HeartHandshake, AlertTriangle, Users, Award 
+  CheckCircle2, FileText, Download, Eye, ShieldCheck, ChevronRight 
 } from "lucide-react";
 import { 
   loadSexenioInfo, 
@@ -164,40 +163,6 @@ export function EthicsCommittee() {
               No hay documentos registrados en esta sección.
             </div>
           )}
-        </div>
-
-        {/* Tarjeta de Denuncias y Contacto Confidencial */}
-        <div className="bg-gradient-to-r from-emerald-800 to-teal-900 rounded-2xl p-6 sm:p-8 text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-2 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-emerald-200 text-xs font-bold">
-              <HeartHandshake className="w-3.5 h-3.5" />
-              <span>Canal de Atención Institucional</span>
-            </div>
-            <h3 className="text-xl sm:text-2xl font-bold">
-              ¿Deseas presentar una queja o denuncia ante el Comité de Ética?
-            </h3>
-            <p className="text-xs sm:text-sm text-emerald-100/90 max-w-xl">
-              Garantizamos confidencialidad, imparcialidad y acompañamiento permanente en estricto apego a las Reglas de Integridad y Protocolo de Atención.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
-            <a
-              href="mailto:comite.etica@zoomat.chiapas.gob.mx"
-              className="px-5 py-2.5 rounded-xl bg-white text-emerald-950 hover:bg-emerald-50 text-xs sm:text-sm font-bold shadow-md transition text-center"
-            >
-              Contactar al Comité
-            </a>
-            <a
-              href="https://declarachiapas.shyfpchiapas.gob.mx/login"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs sm:text-sm font-bold border border-emerald-500 shadow-md transition text-center inline-flex items-center justify-center gap-1.5"
-            >
-              <span>Declara Chiapas</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          </div>
         </div>
 
       </div>

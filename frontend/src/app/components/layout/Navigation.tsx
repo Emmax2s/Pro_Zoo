@@ -7,6 +7,8 @@ import {
 } from "../../services/documentStore";
 import { DocumentModal } from "../ui/DocumentModal";
 import logoZoomat from "../../../assets/logo-zoomat.png";
+import logoChiapasGob from "../../../assets/logo-chiapas-gob.png";
+import logoCoordinacionZoomat from "../../../assets/logo-coordinacion-zoomat.png";
 
 // SVG Oficial del Glifo Escudo de Chiapas
 export function ChiapasGlyph({ className = "w-7 h-7" }: { className?: string }) {
@@ -111,21 +113,21 @@ export function Navigation() {
   return (
     <>
       <header className="sticky top-0 z-40 select-none shadow-md">
-        {/* 1. BARRA SUPERIOR INSTITUCIONAL (chiapas.gob.mx - FOTO 1) */}
-        <div className="bg-[#1c1d1f] text-white border-b border-white/10 text-xs font-sans tracking-wide">
+        {/* 1. BARRA SUPERIOR INSTITUCIONAL (chiapas.gob.mx - FOTO 2) */}
+        <div className="bg-[#212529] text-white border-b border-white/10 text-xs font-sans tracking-wide">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-9 sm:h-10">
-            {/* Izquierda: Escudo de Chiapas y chiapas.gob.mx */}
+            {/* Izquierda: Logotipo oficial chiapas.gob.mx (Foto 2) */}
             <a
               href="https://www.chiapas.gob.mx"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-stone-200 hover:text-white transition-colors group"
+              className="flex items-center py-1 group"
             >
-              <ChiapasGlyph className="w-5 h-5 text-stone-300 group-hover:text-white transition-colors" />
-              <div className="flex flex-col leading-none">
-                <span className="font-extrabold text-[12px] sm:text-[13px] tracking-tight text-white">chiapas</span>
-                <span className="text-[9px] sm:text-[10px] text-stone-300 font-light tracking-wide">.gob.mx</span>
-              </div>
+              <img
+                src={logoChiapasGob}
+                alt="chiapas.gob.mx"
+                className="h-6 sm:h-7 md:h-7.5 w-auto object-contain group-hover:opacity-90 transition-opacity"
+              />
             </a>
 
             {/* Derecha: Enlaces Rápidos del Gobierno y Búsqueda */}
@@ -171,34 +173,18 @@ export function Navigation() {
           </div>
         </div>
 
-        {/* 2. BARRA PRINCIPAL DE NAVEGACIÓN (FOTO 1) */}
+        {/* 2. BARRA PRINCIPAL DE NAVEGACIÓN (FOTO 1 & FOTO 3) */}
         <div className="bg-white border-b border-stone-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between min-h-[72px] sm:min-h-[80px] py-2 gap-3">
               
-              {/* IZQUIERDA: IDENTIDAD INSTITUCIONAL GOBIERNO DE CHIAPAS / ZOOMAT */}
-              <Link to="/" className="flex items-center gap-3 sm:gap-4 flex-shrink-0 group">
+              {/* IZQUIERDA: LOGOTIPO OFICIAL COORDINACIÓN ESTATAL (FOTO 3) */}
+              <Link to="/" className="flex items-center flex-shrink-0 group py-1">
                 <img
-                  src={logoZoomat}
-                  alt="ZooMAT Logo Oficial"
-                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-contain p-0.5 border border-stone-200 shadow-sm group-hover:scale-105 transition-transform"
+                  src={logoCoordinacionZoomat}
+                  alt="Coordinación Estatal para el Mejoramiento del ZooMAT - Gobierno de Chiapas"
+                  className="h-12 sm:h-14 md:h-16 w-auto object-contain group-hover:scale-[1.02] transition-transform"
                 />
-                <div className="flex flex-col text-[#731c34]">
-                  <span className="text-[11px] sm:text-[13px] font-black uppercase tracking-wider leading-tight">
-                    Coordinación Estatal
-                  </span>
-                  <span className="text-[11px] sm:text-[13px] font-black uppercase tracking-wider leading-tight">
-                    Para el Mejoramiento
-                  </span>
-                  <span className="text-[11px] sm:text-[13px] font-black uppercase tracking-wider leading-tight">
-                    del ZooMAT
-                  </span>
-                  <div className="flex items-center gap-1 mt-0.5 text-[8.5px] sm:text-[9.5px] font-bold text-[#8c2642] tracking-widest uppercase">
-                    <span>Gobierno de Chiapas</span>
-                    <span className="text-[7px] text-amber-700">✦</span>
-                    <span>2018 - 2024</span>
-                  </div>
-                </div>
               </Link>
 
               {/* CENTRO / DERECHA: ENLACES DEL MENÚ (FOTO 1) */}

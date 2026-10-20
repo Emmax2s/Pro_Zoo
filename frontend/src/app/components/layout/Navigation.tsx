@@ -114,29 +114,29 @@ export function Navigation() {
     <>
       <header className="sticky top-0 z-40 select-none shadow-md">
         {/* 1. BARRA SUPERIOR INSTITUCIONAL (chiapas.gob.mx - FOTO 2) */}
-        <div className="bg-[#212529] text-white border-b border-white/10 text-xs font-sans tracking-wide">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-9 sm:h-10">
+        <div className="bg-[#212529] text-white border-b border-white/10 font-sans tracking-wide">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between min-h-[44px] sm:min-h-[48px] py-1.5">
             {/* Izquierda: Logotipo oficial chiapas.gob.mx (Foto 2) */}
             <a
               href="https://www.chiapas.gob.mx"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center py-1 group"
+              className="flex items-center py-0.5 group"
             >
               <img
                 src={logoChiapasGob}
                 alt="chiapas.gob.mx"
-                className="h-6 sm:h-7 md:h-7.5 w-auto object-contain group-hover:opacity-90 transition-opacity"
+                className="h-7 sm:h-8 md:h-8.5 w-auto object-contain group-hover:opacity-90 transition-opacity"
               />
             </a>
 
-            {/* Derecha: Enlaces Rápidos del Gobierno y Búsqueda */}
-            <div className="flex items-center gap-4 sm:gap-6 text-[11px] sm:text-[12px] font-medium text-stone-300">
+            {/* Derecha: Enlaces Rápidos del Gobierno y Búsqueda (Tamaño uniforme igual a Transparencia) */}
+            <div className="flex items-center gap-5 sm:gap-7 text-sm font-medium text-stone-200">
               <a
                 href="https://www.chiapas.gob.mx/tramites"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-white transition-colors hidden sm:inline"
+                className="text-stone-300 hover:text-white transition-colors text-sm font-medium hidden sm:inline"
               >
                 Trámites
               </a>
@@ -144,7 +144,7 @@ export function Navigation() {
                 href="https://www.chiapas.gob.mx/gobierno"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-white transition-colors hidden sm:inline"
+                className="text-stone-300 hover:text-white transition-colors text-sm font-medium hidden sm:inline"
               >
                 Gobierno
               </a>
@@ -152,13 +152,13 @@ export function Navigation() {
                 href="https://www.chiapas.gob.mx/participa"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-white transition-colors hidden md:inline"
+                className="text-stone-300 hover:text-white transition-colors text-sm font-medium hidden md:inline"
               >
                 Participa
               </a>
               <button
                 onClick={() => openDocById("transparencia-portal")}
-                className="hover:text-white transition-colors cursor-pointer"
+                className="text-stone-300 hover:text-white transition-colors text-sm font-medium cursor-pointer"
               >
                 Transparencia
               </button>
@@ -167,7 +167,7 @@ export function Navigation() {
                 className="p-1 hover:text-white transition-colors cursor-pointer"
                 aria-label="Buscar"
               >
-                <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-stone-300 hover:text-white" />
+                <Search className="w-4 h-4 text-stone-300 hover:text-white" />
               </button>
             </div>
           </div>

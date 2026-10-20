@@ -193,13 +193,13 @@ export function Navigation() {
                 />
               </Link>
 
-              {/* CENTRO / DERECHA: ENLACES DEL MENÚ (17.5px - 18px Estándar Oficial) */}
-              <nav className="hidden lg:flex items-center gap-3 xl:gap-5 2xl:gap-7 text-stone-800 font-semibold">
+              {/* CENTRO / DERECHA: ENLACES DEL MENÚ (Tamaño idéntico a Foto 1: 26px - 28px) */}
+              <nav className="hidden lg:flex flex-wrap items-center justify-end gap-x-5 xl:gap-x-6 2xl:gap-x-8 gap-y-1 text-stone-900">
                 <Link
                   to="/"
-                  style={{ fontSize: "17.5px" }}
-                  className={`py-2 px-2.5 transition-colors hover:text-[#731c34] ${
-                    isActive("/") && location.pathname === "/" ? "text-[#731c34] font-bold" : "text-stone-800"
+                  style={{ fontSize: "26px" }}
+                  className={`py-1 px-2 transition-colors hover:text-[#731c34] font-bold font-adventure tracking-wide ${
+                    isActive("/") && location.pathname === "/" ? "text-[#731c34]" : "text-stone-900"
                   }`}
                 >
                   Inicio
@@ -207,16 +207,16 @@ export function Navigation() {
 
                 <button
                   onClick={() => openDocById("institucional-quienes-somos")}
-                  style={{ fontSize: "17.5px" }}
-                  className="py-2 px-2.5 transition-colors text-stone-800 hover:text-[#731c34] font-semibold cursor-pointer"
+                  style={{ fontSize: "26px" }}
+                  className="py-1 px-2 transition-colors text-stone-900 hover:text-[#731c34] font-bold font-adventure tracking-wide cursor-pointer"
                 >
                   Quienes somos
                 </button>
 
                 <button
                   onClick={() => openDocById("institucional-comite-etica")}
-                  style={{ fontSize: "17.5px" }}
-                  className="py-2 px-2.5 transition-colors text-stone-800 hover:text-[#731c34] font-semibold cursor-pointer"
+                  style={{ fontSize: "26px" }}
+                  className="py-1 px-2 transition-colors text-stone-900 hover:text-[#731c34] font-bold font-adventure tracking-wide cursor-pointer"
                 >
                   Comité de Ética
                 </button>
@@ -230,32 +230,32 @@ export function Navigation() {
                 >
                   <button
                     onClick={() => setTransparencyOpen(!transparencyOpen)}
-                    style={{ fontSize: "17.5px" }}
-                    className={`flex items-center gap-1.5 py-2 px-2.5 transition-colors hover:text-[#731c34] font-semibold cursor-pointer ${
-                      transparencyOpen ? "text-[#731c34] font-bold" : "text-stone-800"
+                    style={{ fontSize: "26px" }}
+                    className={`flex items-center gap-1.5 py-1 px-2 transition-colors hover:text-[#731c34] font-bold font-adventure tracking-wide cursor-pointer ${
+                      transparencyOpen ? "text-[#731c34]" : "text-stone-900"
                     }`}
                   >
                     <span>Transparencia</span>
-                    <ChevronDown className="w-4 h-4" />
+                    <ChevronDown className="w-5 h-5 stroke-[2.5]" />
                   </button>
 
                   {transparencyOpen && (
-                    <div className="absolute left-0 top-full mt-1 w-72 bg-white rounded-xl shadow-2xl border border-stone-200 py-2.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-                      <div className="px-4 py-1.5 mb-1 border-b border-stone-100 flex items-center justify-between text-[11px] font-bold text-stone-500 uppercase tracking-wider">
+                    <div className="absolute left-0 top-full mt-1 w-80 bg-white rounded-xl shadow-2xl border border-stone-200 py-2.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                      <div className="px-4 py-1.5 mb-1 border-b border-stone-100 flex items-center justify-between text-xs font-bold text-stone-500 uppercase tracking-wider font-sans">
                         <span>Portal de Transparencia</span>
-                        <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px]">14</span>
+                        <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[11px]">14</span>
                       </div>
                       <div className="max-h-[420px] overflow-y-auto divide-y divide-stone-50">
                         {transparencyDocs.map((item) => (
                           <button
                             key={item.id}
                             onClick={() => openDocById(item.id)}
-                            style={{ fontSize: "14.5px" }}
-                            className="w-full text-left px-4 py-2.5 text-stone-700 hover:bg-stone-50 hover:text-[#731c34] transition-colors flex items-center justify-between group cursor-pointer"
+                            style={{ fontSize: "15px" }}
+                            className="w-full text-left px-4 py-2.5 text-stone-700 hover:bg-stone-50 hover:text-[#731c34] transition-colors flex items-center justify-between group cursor-pointer font-sans"
                           >
                             <span className="font-medium group-hover:font-semibold">{item.title}</span>
                             {item.pdfUrl ? (
-                              <span className="text-[9px] bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded">PDF</span>
+                              <span className="text-[10px] bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded">PDF</span>
                             ) : null}
                           </button>
                         ))}
@@ -273,30 +273,30 @@ export function Navigation() {
                 >
                   <button
                     onClick={() => setDatosPersonalesOpen(!datosPersonalesOpen)}
-                    style={{ fontSize: "17.5px" }}
-                    className={`flex items-center gap-1.5 py-2 px-2.5 transition-colors hover:text-[#731c34] font-semibold cursor-pointer ${
-                      datosPersonalesOpen ? "text-[#731c34] font-bold" : "text-stone-800"
+                    style={{ fontSize: "26px" }}
+                    className={`flex items-center gap-1.5 py-1 px-2 transition-colors hover:text-[#731c34] font-bold font-adventure tracking-wide cursor-pointer ${
+                      datosPersonalesOpen ? "text-[#731c34]" : "text-stone-900"
                     }`}
                   >
                     <span>Datos Personales</span>
-                    <ChevronDown className="w-4 h-4" />
+                    <ChevronDown className="w-5 h-5 stroke-[2.5]" />
                   </button>
 
                   {datosPersonalesOpen && (
-                    <div className="absolute left-0 top-full mt-1 w-64 bg-white rounded-xl shadow-2xl border border-stone-200 py-2.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-                      <div className="px-4 py-1.5 mb-1 border-b border-stone-100 text-[11px] font-bold text-stone-500 uppercase tracking-wider">
+                    <div className="absolute left-0 top-full mt-1 w-72 bg-white rounded-xl shadow-2xl border border-stone-200 py-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 font-sans">
+                      <div className="px-4 py-1.5 mb-1 border-b border-stone-100 text-xs font-bold text-stone-500 uppercase tracking-wider">
                         Protección de Datos
                       </div>
                       {datosPersonalesDocs.map((item) => (
                         <button
                           key={item.id}
                           onClick={() => openDocById(item.id)}
-                          style={{ fontSize: "14.5px" }}
-                          className="w-full text-left px-4 py-2.5 text-stone-700 hover:bg-stone-50 hover:text-[#731c34] transition-colors flex items-center justify-between group cursor-pointer"
+                          style={{ fontSize: "15px" }}
+                          className="w-full text-left px-4 py-2.5 text-stone-700 hover:bg-stone-50 hover:text-[#731c34] transition-colors flex items-center justify-between group cursor-pointer font-sans"
                         >
                           <span className="font-medium group-hover:font-semibold">{item.title}</span>
                           {item.pdfUrl ? (
-                            <span className="text-[9px] bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded">PDF</span>
+                            <span className="text-[10px] bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded">PDF</span>
                           ) : null}
                         </button>
                       ))}
@@ -307,9 +307,9 @@ export function Navigation() {
                 {/* ENLACES RESTANTES: ANIMALES, VISITA, MAPA, CONTACTO */}
                 <Link
                   to="/animales"
-                  style={{ fontSize: "17.5px" }}
-                  className={`py-2 px-2.5 transition-colors hover:text-[#731c34] font-semibold ${
-                    isActive("/animales") ? "text-[#731c34] font-bold" : "text-stone-800"
+                  style={{ fontSize: "26px" }}
+                  className={`py-1 px-2 transition-colors hover:text-[#731c34] font-bold font-adventure tracking-wide ${
+                    isActive("/animales") ? "text-[#731c34]" : "text-stone-900"
                   }`}
                 >
                   Animales
@@ -317,9 +317,9 @@ export function Navigation() {
 
                 <Link
                   to="/visita"
-                  style={{ fontSize: "17.5px" }}
-                  className={`py-2 px-2.5 transition-colors hover:text-[#731c34] font-semibold ${
-                    isActive("/visita") ? "text-[#731c34] font-bold" : "text-stone-800"
+                  style={{ fontSize: "26px" }}
+                  className={`py-1 px-2 transition-colors hover:text-[#731c34] font-bold font-adventure tracking-wide ${
+                    isActive("/visita") ? "text-[#731c34]" : "text-stone-900"
                   }`}
                 >
                   Visita
@@ -327,9 +327,9 @@ export function Navigation() {
 
                 <Link
                   to="/mapa"
-                  style={{ fontSize: "17.5px" }}
-                  className={`py-2 px-2.5 transition-colors hover:text-[#731c34] font-semibold ${
-                    isActive("/mapa") ? "text-[#731c34] font-bold" : "text-stone-800"
+                  style={{ fontSize: "26px" }}
+                  className={`py-1 px-2 transition-colors hover:text-[#731c34] font-bold font-adventure tracking-wide ${
+                    isActive("/mapa") ? "text-[#731c34]" : "text-stone-900"
                   }`}
                 >
                   Mapa
@@ -337,9 +337,9 @@ export function Navigation() {
 
                 <Link
                   to="/contacto"
-                  style={{ fontSize: "17.5px" }}
-                  className={`py-2 px-2.5 transition-colors hover:text-[#731c34] font-semibold ${
-                    isActive("/contacto") ? "text-[#731c34] font-bold" : "text-stone-800"
+                  style={{ fontSize: "26px" }}
+                  className={`py-1 px-2 transition-colors hover:text-[#731c34] font-bold font-adventure tracking-wide ${
+                    isActive("/contacto") ? "text-[#731c34]" : "text-stone-900"
                   }`}
                 >
                   Contacto

@@ -115,7 +115,7 @@ export function Navigation() {
       <header className="sticky top-0 z-40 select-none shadow-md">
         {/* 1. BARRA SUPERIOR INSTITUCIONAL (chiapas.gob.mx - FOTO 2) */}
         <div className="bg-[#212529] text-white border-b border-white/10 font-sans">
-          <div className="w-full px-3 sm:px-6 lg:px-8 flex items-center justify-between min-h-[46px] sm:min-h-[50px] py-1.5">
+          <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between min-h-[52px] sm:min-h-[58px] py-2">
             {/* Izquierda: Logotipo oficial chiapas.gob.mx en la esquina */}
             <a
               href="https://www.chiapas.gob.mx"
@@ -126,17 +126,17 @@ export function Navigation() {
               <img
                 src={logoChiapasGob}
                 alt="chiapas.gob.mx"
-                className="h-7 sm:h-8 w-auto object-contain group-hover:opacity-90 transition-opacity"
+                className="h-8 sm:h-9 md:h-10 w-auto object-contain group-hover:opacity-90 transition-opacity"
               />
             </a>
 
-            {/* Derecha: Enlaces Rápidos del Gobierno y Búsqueda */}
-            <div className="flex items-center gap-4 sm:gap-6 md:gap-7 text-stone-200">
+            {/* Derecha: Enlaces Rápidos del Gobierno y Búsqueda (18px) */}
+            <div className="flex items-center gap-5 sm:gap-7 md:gap-8 text-stone-200">
               <a
                 href="https://www.chiapas.gob.mx/tramites"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ fontSize: "15px" }}
+                style={{ fontSize: "18px" }}
                 className="text-stone-300 hover:text-white transition-colors font-normal hidden sm:inline"
               >
                 Trámites
@@ -145,7 +145,7 @@ export function Navigation() {
                 href="https://www.chiapas.gob.mx/gobierno"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ fontSize: "15px" }}
+                style={{ fontSize: "18px" }}
                 className="text-stone-300 hover:text-white transition-colors font-normal hidden sm:inline"
               >
                 Gobierno
@@ -154,14 +154,14 @@ export function Navigation() {
                 href="https://www.chiapas.gob.mx/participa"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ fontSize: "15px" }}
+                style={{ fontSize: "18px" }}
                 className="text-stone-300 hover:text-white transition-colors font-normal hidden md:inline"
               >
                 Participa
               </a>
               <button
                 onClick={() => openDocById("transparencia-portal")}
-                style={{ fontSize: "15px" }}
+                style={{ fontSize: "18px" }}
                 className="text-stone-300 hover:text-white transition-colors font-normal cursor-pointer"
               >
                 Transparencia
@@ -171,31 +171,31 @@ export function Navigation() {
                 className="p-1 hover:text-white transition-colors cursor-pointer"
                 aria-label="Buscar"
               >
-                <Search className="w-4 h-4 text-stone-300 hover:text-white" />
+                <Search className="w-5 h-5 text-stone-300 hover:text-white" />
               </button>
             </div>
           </div>
         </div>
 
-        {/* 2. BARRA PRINCIPAL DE NAVEGACIÓN (LOGOTIPO EN ESQUINA, TODO EN UNA SOLA LÍNEA, SIN NEGRITA) */}
+        {/* 2. BARRA PRINCIPAL DE NAVEGACIÓN (LOGOTIPO EN ESQUINA, TODO EN UNA SOLA LÍNEA, 20px) */}
         <div className="bg-white border-b border-stone-200 shadow-sm">
-          <div className="w-full px-3 sm:px-6 lg:px-8 flex items-center justify-between min-h-[76px] sm:min-h-[84px] md:min-h-[90px] py-2 gap-2 sm:gap-4">
+          <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between min-h-[95px] sm:min-h-[105px] md:min-h-[115px] py-2.5 sm:py-3.5 gap-2 sm:gap-4">
             
             {/* IZQUIERDA: LOGOTIPO EN LA ESQUINA DE LA FILA */}
-            <Link to="/" className="flex items-center flex-shrink-0 group py-0.5">
+            <Link to="/" className="flex items-center flex-shrink-0 group py-1">
               <img
                 src={logoCoordinacionZoomat}
                 alt="Coordinación Estatal para el Mejoramiento del ZooMAT - Gobierno de Chiapas"
-                className="h-14 sm:h-16 md:h-18 lg:h-20 w-auto object-contain group-hover:opacity-95 transition-opacity"
+                className="h-16 sm:h-20 md:h-24 lg:h-26 w-auto object-contain group-hover:opacity-95 transition-opacity"
               />
             </Link>
 
-            {/* DERECHA: ENLACES DEL MENÚ EN UNA SOLA LÍNEA (SIN NEGRITA, 16px) */}
-            <nav className="hidden lg:flex items-center flex-nowrap whitespace-nowrap gap-2.5 sm:gap-3.5 md:gap-4 lg:gap-4.5 xl:gap-5.5 2xl:gap-7 text-stone-800">
+            {/* DERECHA: ENLACES DEL MENÚ EN UNA SOLA LÍNEA (20px, SIN NEGRITA) */}
+            <nav className="hidden lg:flex items-center flex-nowrap whitespace-nowrap gap-2 sm:gap-3 md:gap-4 xl:gap-5.5 2xl:gap-7 text-stone-800">
               <Link
                 to="/"
-                style={{ fontSize: "16px" }}
-                className={`py-1 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
+                style={{ fontSize: "20px" }}
+                className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
                   isActive("/") && location.pathname === "/" ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}
               >
@@ -204,16 +204,16 @@ export function Navigation() {
 
               <button
                 onClick={() => openDocById("institucional-quienes-somos")}
-                style={{ fontSize: "16px" }}
-                className="py-1 px-1.5 transition-colors text-stone-800 hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer"
+                style={{ fontSize: "20px" }}
+                className="py-1.5 px-1.5 transition-colors text-stone-800 hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer"
               >
                 Quienes somos
               </button>
 
               <button
                 onClick={() => openDocById("institucional-comite-etica")}
-                style={{ fontSize: "16px" }}
-                className="py-1 px-1.5 transition-colors text-stone-800 hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer"
+                style={{ fontSize: "20px" }}
+                className="py-1.5 px-1.5 transition-colors text-stone-800 hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer"
               >
                 Comité de Ética
               </button>
@@ -227,32 +227,32 @@ export function Navigation() {
               >
                 <button
                   onClick={() => setTransparencyOpen(!transparencyOpen)}
-                  style={{ fontSize: "16px" }}
-                  className={`flex items-center gap-1 py-1 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer ${
+                  style={{ fontSize: "20px" }}
+                  className={`flex items-center gap-1 py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer ${
                     transparencyOpen ? "text-[#731c34] font-medium" : "text-stone-800"
                   }`}
                 >
                   <span>Transparencia</span>
-                  <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+                  <ChevronDown className="w-4 h-4 opacity-60" />
                 </button>
 
                 {transparencyOpen && (
-                  <div className="absolute left-0 top-full mt-1 w-72 bg-white rounded-xl shadow-2xl border border-stone-200 py-2.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="px-4 py-1.5 mb-1 border-b border-stone-100 flex items-center justify-between text-[11px] font-bold text-stone-500 uppercase tracking-wider font-sans">
+                  <div className="absolute left-0 top-full mt-1 w-80 bg-white rounded-xl shadow-2xl border border-stone-200 py-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 font-sans">
+                    <div className="px-4 py-1.5 mb-1 border-b border-stone-100 flex items-center justify-between text-xs font-bold text-stone-500 uppercase tracking-wider">
                       <span>Portal de Transparencia</span>
-                      <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px]">14</span>
+                      <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[11px]">14</span>
                     </div>
                     <div className="max-h-[420px] overflow-y-auto divide-y divide-stone-50">
                       {transparencyDocs.map((item) => (
                         <button
                           key={item.id}
                           onClick={() => openDocById(item.id)}
-                          style={{ fontSize: "14px" }}
-                          className="w-full text-left px-4 py-2 text-stone-700 hover:bg-stone-50 hover:text-[#731c34] transition-colors flex items-center justify-between group cursor-pointer font-sans font-normal"
+                          style={{ fontSize: "15px" }}
+                          className="w-full text-left px-4 py-2.5 text-stone-700 hover:bg-stone-50 hover:text-[#731c34] transition-colors flex items-center justify-between group cursor-pointer font-sans font-normal"
                         >
                           <span className="group-hover:text-[#731c34]">{item.title}</span>
                           {item.pdfUrl ? (
-                            <span className="text-[9px] bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded">PDF</span>
+                            <span className="text-[10px] bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded">PDF</span>
                           ) : null}
                         </button>
                       ))}
@@ -270,32 +270,32 @@ export function Navigation() {
               >
                 <button
                   onClick={() => setDatosPersonalesOpen(!datosPersonalesOpen)}
-                  style={{ fontSize: "16px" }}
-                  className={`flex items-center gap-1 py-1 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer ${
+                  style={{ fontSize: "20px" }}
+                  className={`flex items-center gap-1 py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer ${
                     datosPersonalesOpen ? "text-[#731c34] font-medium" : "text-stone-800"
                   }`}
                 >
                   <span>Datos Personales</span>
-                  <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+                  <ChevronDown className="w-4 h-4 opacity-60" />
                 </button>
 
                 {datosPersonalesOpen && (
-                  <div className="absolute left-0 top-full mt-1 w-64 bg-white rounded-xl shadow-2xl border border-stone-200 py-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 font-sans">
-                    <div className="px-4 py-1.5 mb-1 border-b border-stone-100 text-[11px] font-bold text-stone-500 uppercase tracking-wider">
+                  <div className="absolute left-0 top-full mt-1 w-72 bg-white rounded-xl shadow-2xl border border-stone-200 py-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 font-sans">
+                    <div className="px-4 py-1.5 mb-1 border-b border-stone-100 text-xs font-bold text-stone-500 uppercase tracking-wider">
                       Protección de Datos
                     </div>
                     {datosPersonalesDocs.map((item) => (
-                          <button
-                            key={item.id}
-                            onClick={() => openDocById(item.id)}
-                            style={{ fontSize: "14px" }}
-                            className="w-full text-left px-4 py-2 text-stone-700 hover:bg-stone-50 hover:text-[#731c34] transition-colors flex items-center justify-between group cursor-pointer font-sans font-normal"
-                          >
-                            <span className="group-hover:text-[#731c34]">{item.title}</span>
-                            {item.pdfUrl ? (
-                              <span className="text-[9px] bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded">PDF</span>
-                            ) : null}
-                          </button>
+                      <button
+                        key={item.id}
+                        onClick={() => openDocById(item.id)}
+                        style={{ fontSize: "15px" }}
+                        className="w-full text-left px-4 py-2.5 text-stone-700 hover:bg-stone-50 hover:text-[#731c34] transition-colors flex items-center justify-between group cursor-pointer font-sans font-normal"
+                      >
+                        <span className="group-hover:text-[#731c34]">{item.title}</span>
+                        {item.pdfUrl ? (
+                          <span className="text-[10px] bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded">PDF</span>
+                        ) : null}
+                      </button>
                     ))}
                   </div>
                 )}
@@ -304,8 +304,8 @@ export function Navigation() {
               {/* ENLACES RESTANTES: ANIMALES, VISITA, MAPA, CONTACTO */}
               <Link
                 to="/animales"
-                style={{ fontSize: "16px" }}
-                className={`py-1 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
+                style={{ fontSize: "20px" }}
+                className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
                   isActive("/animales") ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}
               >
@@ -314,8 +314,8 @@ export function Navigation() {
 
               <Link
                 to="/visita"
-                style={{ fontSize: "16px" }}
-                className={`py-1 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
+                style={{ fontSize: "20px" }}
+                className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
                   isActive("/visita") ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}
               >
@@ -324,8 +324,8 @@ export function Navigation() {
 
               <Link
                 to="/mapa"
-                style={{ fontSize: "16px" }}
-                className={`py-1 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
+                style={{ fontSize: "20px" }}
+                className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
                   isActive("/mapa") ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}
               >
@@ -334,8 +334,8 @@ export function Navigation() {
 
               <Link
                 to="/contacto"
-                style={{ fontSize: "16px" }}
-                className={`py-1 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
+                style={{ fontSize: "20px" }}
+                className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
                   isActive("/contacto") ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}
               >

@@ -11,6 +11,7 @@ export interface InstitutionalDocument {
   title: string;
   description: string;
   pdfUrl?: string;
+  pdfUrls?: string[];
   fileName?: string;
   fileSize?: string;
   updatedAt?: string;
@@ -36,6 +37,7 @@ export interface SexenioInfo {
   ethicsP1: string;
   ethicsP2: string;
   ethicsP3: string;
+  ethicsVideos: string[];
 }
 
 export const DEFAULT_SEXENIO_INFO: SexenioInfo = {
@@ -57,6 +59,7 @@ export const DEFAULT_SEXENIO_INFO: SexenioInfo = {
   ethicsP1: "El Comité de Ética y de Prevención de Conflictos de Interés, tiene como objetivo establecer acciones, mecanismos y medidas que favorezcan los principios de integridad, prevención y atención de las conductas discriminatorias de hostigamiento sexual y acoso sexual, que regulen el comportamiento de los servidores públicos de la SEMAHN y se conduzcan, en el ejercicio de sus funciones, con ética, permitiendo establecer un ambiente laboral basado en la tolerancia, respeto y debido servicio público, favoreciendo a su vez una cultura institucional de igualdad de género y un clima libre de violencia.",
   ethicsP2: "Así mismo, vigilar el cumplimiento del Código de Conducta dentro de la Secretaría, y dar seguimiento a los casos para el establecimiento de sanciones por faltas en contra del Código.",
   ethicsP3: "Promoviendo entre los servidores públicos de esta Secretaría, los valores que permitan incidir en su desempeño de sus funciones y comportamiento laboral, para formar una ética e identidad profesional compartida y un sentido de orgullo y pertenencia al servicio público.",
+  ethicsVideos: [],
 };
 
 export const DEFAULT_DOCUMENTS: InstitutionalDocument[] = [

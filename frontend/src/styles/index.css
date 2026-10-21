@@ -2,6 +2,26 @@
 @import './tailwind.css';
 @import './theme.css';
 
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  transition-property: transform, background-color, border-color, box-shadow, color, opacity;
+  transition-duration: 180ms;
+  transition-timing-function: ease-out;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(245, 158, 11, 0.7);
+  outline-offset: 2px;
+}
+
 /* Zoo Safari & Rustic Wood Themes */
 .font-adventure {
   font-family: 'Lilita One', 'Montserrat', cursive, sans-serif;
@@ -86,4 +106,3 @@
   z-index: 30;
   box-shadow: 0 20px 35px -5px rgba(0, 0, 0, 0.5);
 }
-

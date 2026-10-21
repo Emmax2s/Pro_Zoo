@@ -77,6 +77,28 @@ export function EthicsCommittee() {
           </div>
         </div>
 
+        {sexenio.ethicsVideos?.length > 0 && (
+          <div className="bg-white rounded-2xl border border-stone-200/90 shadow-sm p-6 sm:p-10 space-y-5">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-stone-900">Videos del Comité de Ética</h2>
+              <p className="text-sm text-stone-500 mt-1">Material audiovisual institucional.</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {sexenio.ethicsVideos.map((video, index) => (
+                <video
+                  key={`${video}-${index}`}
+                  src={video}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  className="w-full max-w-full aspect-video rounded-xl bg-black object-contain shadow-sm"
+                  aria-label={`Video del Comité de Ética ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Sección de Documentos, Actas y Protocolos */}
         <div className="bg-white rounded-2xl border border-stone-200/90 shadow-sm p-6 sm:p-10 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 pb-5">

@@ -8,6 +8,29 @@ import { useTranslation } from "react-i18next";
 import { useZoo } from "../context/ZooContext";
 import { getLocalizedAnimal } from "../services/speciesTranslator";
 
+const transparencyBanners = [
+  {
+    image: "/assets/images/plataforma-nacional-transparencia.png",
+    alt: "Plataforma Nacional de Transparencia",
+    href: "https://www.plataformadetransparencia.org.mx/Inicio",
+  },
+  {
+    image: "/assets/images/transparencia-pueblo.png",
+    alt: "Transparencia del Pueblo",
+    href: "https://anticorrupcionybg.gob.mx/transparenciapueblo/",
+  },
+  {
+    image: "/assets/images/transparencia-para-el-pueblo.png",
+    alt: "Plataforma Nacional de Transparencia",
+    href: "https://www.plataformadetransparencia.org.mx/Inicio",
+  },
+  {
+    image: "/assets/images/consulta-transparencia.png",
+    alt: "Consulta Pública INAI (ZooMAT)",
+    href: "https://consultapublicamx.inai.org.mx/vut-web/?idSujetoObigadoParametro=1179&idEntidadParametro=7&idSectorParametro=",
+  },
+];
+
 // ── Hero Carousel (Clean & Beautiful with Wooden Controls) ───────────────────
 function HeroCarousel() {
   const { slides } = useZoo();
@@ -391,6 +414,26 @@ export function Home() {
                 <p className="text-stone-300 text-lg mb-10 leading-relaxed font-medium">
                   {t("home.visit.desc")}
                 </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-10">
+                  {transparencyBanners.map((banner) => (
+                    <a
+                      key={`${banner.image}-${banner.href}`}
+                      href={banner.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group block overflow-hidden rounded-xl border border-amber-400/30 bg-black/30 transition-all duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 active:scale-[.98]"
+                    >
+                      <img
+                        src={banner.image}
+                        alt={banner.alt}
+                        loading="lazy"
+                        className="block w-full max-w-full aspect-[3.2/1] object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <span className="sr-only">Abrir {banner.alt}</span>
+                    </a>
+                  ))}
+                </div>
 
                 <div className="space-y-5 mb-10">
                   <div className="flex items-center gap-4 text-stone-200 bg-black/40 p-4 rounded-2xl border border-amber-900/60">

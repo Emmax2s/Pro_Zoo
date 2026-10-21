@@ -41,6 +41,7 @@ export function AdminDocuments() {
   const photoInputRef = useRef<HTMLInputElement | null>(null);
   const organigramaImgInputRef = useRef<HTMLInputElement | null>(null);
   const bannerImgInputRef = useRef<HTMLInputElement | null>(null);
+  const ethicsVideoInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const handleDocUpdate = () => setDocuments(loadStoredDocuments());
@@ -65,27 +66,40 @@ export function AdminDocuments() {
   };
 
   // Handle PDF file upload
-  const handleFileUpload = async (id: string, file: File) => {
-    if (!file) return;
+  const handleFileUpload = async (id: string, files: FileList | null) => {
+    if (!files?.length) return;
+    const selectedFiles = Array.from(files);
 
-    if (!file.type.includes("pdf") && !file.name.toLowerCase().endsWith(".pdf")) {
-      alert("Por favor selecciona un archivo en formato PDF (.pdf).");
+    if (selectedFiles.length > 5) {
+      alert("Puedes seleccionar un máximo de 5 archivos PDF.");
       return;
     }
 
-    if (file.size > 25 * 1024 * 1024) {
-      alert("El archivo supera el límite de 25 MB.");
+    const invalidFile = selectedFiles.find((file) =>
+      !file.type.includes("pdf") && !file.name.toLowerCase().endsWith(".pdf")
+    );
+    if (invalidFile) {
+      alert(`"${invalidFile.name}" no es un archivo PDF válido.`);
+      return;
+    }
+
+    const oversizedFile = selectedFiles.find((file) => file.size > 25 * 1024 * 1024);
+    if (oversizedFile) {
+      alert(`"${oversizedFile.name}" supera el límite de 25 MB.`);
       return;
     }
 
     setUploadingId(id);
 
     try {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const base64Data = reader.result as string;
+      const uploadedFiles = await Promise.all(selectedFiles.map(async (file) => {
+        const base64Data = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error(`No se pudo leer "${file.name}".`));
+          reader.readAsDataURL(file);
+        });
         let finalUrl = base64Data;
-
         try {
           const res = await fetch("/api/upload", {
             method: "POST",
@@ -102,28 +116,25 @@ export function AdminDocuments() {
             }
           }
         } catch {
-          // Keep base64 fallback
+          // Keep the local data URL when the optional upload endpoint is unavailable.
         }
-
-        const sizeInMb = (file.size / (1024 * 1024)).toFixed(2) + " MB";
-        const updatedList = updateDocument(id, {
-          pdfUrl: finalUrl,
-          fileName: file.name,
-          fileSize: sizeInMb,
-        });
-        setDocuments(updatedList);
-        setUploadingId(null);
-        showToast(`Documento PDF "${file.name}" cargado exitosamente.`);
-      };
-
-      reader.onerror = () => {
-        alert("Error al leer el archivo PDF.");
-        setUploadingId(null);
-      };
-
-      reader.readAsDataURL(file);
-    } catch {
-      alert("Ocurrió un error inesperado al procesar el archivo.");
+        return {
+          url: finalUrl,
+          name: file.name,
+          size: (file.size / (1024 * 1024)).toFixed(2) + " MB",
+        };
+      }));
+      const updatedList = updateDocument(id, {
+        pdfUrl: uploadedFiles[0].url,
+        pdfUrls: uploadedFiles.map((file) => file.url),
+        fileName: uploadedFiles.map((file) => file.name).join(", "),
+        fileSize: uploadedFiles.map((file) => file.size).join(", "),
+      });
+      setDocuments(updatedList);
+      showToast(`${uploadedFiles.length} PDF(s) cargado(s) exitosamente.`);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Ocurrió un error inesperado al procesar los archivos.");
+    } finally {
       setUploadingId(null);
     }
   };
@@ -141,11 +152,76 @@ export function AdminDocuments() {
     showToast("Enlace de documento guardado exitosamente.");
   };
 
+  const handleEthicsVideoUpload = async (files: FileList | null) => {
+    if (!files?.length) return;
+
+    const selectedFiles = Array.from(files);
+    const currentVideos = sexenioForm.ethicsVideos || [];
+    if (currentVideos.length + selectedFiles.length > 4) {
+      alert(`El Comité de Ética permite un máximo de 4 videos. Ya hay ${currentVideos.length} registrados.`);
+      return;
+    }
+
+    const invalidFile = selectedFiles.find((file) => !file.type.startsWith("video/"));
+    if (invalidFile) {
+      alert(`"${invalidFile.name}" no es un video válido.`);
+      return;
+    }
+
+    const oversizedFile = selectedFiles.find((file) => file.size > 25 * 1024 * 1024);
+    if (oversizedFile) {
+      alert(`"${oversizedFile.name}" supera el límite de 25 MB.`);
+      return;
+    }
+
+    try {
+      const uploadedVideos = await Promise.all(selectedFiles.map(async (file) => {
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error(`No se pudo leer "${file.name}".`));
+          reader.readAsDataURL(file);
+        });
+
+        try {
+          const response = await fetch("/api/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ filename: file.name, data: dataUrl }),
+          });
+          const result = await response.json();
+          if (response.ok && result.url) return result.url as string;
+        } catch {
+          // Use the data URL when the optional upload endpoint is unavailable.
+        }
+        return dataUrl;
+      }));
+
+      const updated = saveSexenioInfo({ ethicsVideos: [...currentVideos, ...uploadedVideos] });
+      setSexenio(updated);
+      setSexenioForm(updated);
+      showToast(`${uploadedVideos.length} video(s) del Comité de Ética cargado(s) exitosamente.`);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "No se pudieron cargar los videos.");
+    } finally {
+      if (ethicsVideoInputRef.current) ethicsVideoInputRef.current.value = "";
+    }
+  };
+
+  const handleRemoveEthicsVideo = (index: number) => {
+    const videos = (sexenioForm.ethicsVideos || []).filter((_, videoIndex) => videoIndex !== index);
+    const updated = saveSexenioInfo({ ethicsVideos: videos });
+    setSexenio(updated);
+    setSexenioForm(updated);
+    showToast("Video removido del Comité de Ética.");
+  };
+
   // Remove PDF from a document
   const handleRemovePdf = (id: string, title: string) => {
     if (window.confirm(`¿Estás seguro de quitar el archivo PDF asignado a "${title}"?`)) {
       const updatedList = updateDocument(id, {
         pdfUrl: "",
+        pdfUrls: [],
         fileName: undefined,
         fileSize: undefined,
       });
@@ -245,7 +321,7 @@ export function AdminDocuments() {
             Gestión Institucional de Sexenio y Documentos PDF
           </h1>
           <p className="text-sm text-stone-600 mt-1 max-w-3xl leading-relaxed">
-            Actualiza en tiempo real toda la información de cada sexenio: <strong>Quienes somos</strong> (Titular, Misión, Visión, Organigrama), <strong>Comité de Ética</strong> (Objetivos, Actas, Protocolos) y sube los archivos PDF para <strong>Transparencia</strong> y <strong>Datos Personales</strong>.
+            Actualiza en tiempo real toda la información de cada sexenio: <strong>Quienes somos</strong> (Titular, Misión, Visión, Organigrama), <strong>Comité de Ética</strong> (Objetivos, Actas, Protocolos y videos) y sube los archivos PDF para <strong>Transparencia</strong> y <strong>Datos Personales</strong>.
           </p>
         </div>
 
@@ -260,6 +336,55 @@ export function AdminDocuments() {
           </button>
         </div>
       </div>
+
+      {activeTab === "comite_etica" && (
+        <section className="bg-[#fff8fb] rounded-2xl border border-pink-200 shadow-xs p-5 sm:p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg sm:text-xl font-black text-[#731c34]">Videos del Comité de Ética</h2>
+              <p className="text-sm text-stone-600 mt-1">
+                Sube únicamente videos, con un máximo de 4 archivos y 25 MB por archivo.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                ref={ethicsVideoInputRef}
+                type="file"
+                accept="video/*"
+                multiple
+                className="hidden"
+                onChange={(event) => handleEthicsVideoUpload(event.target.files)}
+              />
+              <button
+                type="button"
+                onClick={() => ethicsVideoInputRef.current?.click()}
+                disabled={(sexenioForm.ethicsVideos || []).length >= 4}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#731c34] hover:bg-[#591427] active:scale-95 text-white text-sm font-bold transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Upload className="w-4 h-4" />
+                Subir videos ({(sexenioForm.ethicsVideos || []).length}/4)
+              </button>
+            </div>
+          </div>
+          {(sexenioForm.ethicsVideos || []).length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
+              {(sexenioForm.ethicsVideos || []).map((video, index) => (
+                <div key={`${video}-${index}`} className="relative rounded-xl overflow-hidden border border-pink-200 bg-black">
+                  <video src={video} controls playsInline className="w-full aspect-video object-contain" />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveEthicsVideo(index)}
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 text-white hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors cursor-pointer"
+                    aria-label={`Quitar video ${index + 1}`}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Stats Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
@@ -352,7 +477,7 @@ export function AdminDocuments() {
               activeTab === "comite_etica" ? "bg-[#731c34] text-white shadow-md" : "text-stone-600 hover:bg-stone-100"
             }`}
           >
-            Comité de Ética (PDFs)
+            Comité de Ética (videos)
           </button>
 
           <button
@@ -777,21 +902,23 @@ export function AdminDocuments() {
                     </div>
 
                     {/* Actions */}
+                    {doc.category !== "comite_etica" && (
                     <div className="flex flex-wrap items-center gap-2 flex-shrink-0 self-start lg:self-center">
                       {/* Hidden File Input */}
                       <input
                         type="file"
                         accept="application/pdf"
+                        multiple
                         ref={(el) => { fileInputRefs.current[doc.id] = el; }}
                         className="hidden"
                         onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleFileUpload(doc.id, file);
+                          handleFileUpload(doc.id, e.target.files);
+                          e.currentTarget.value = "";
                         }}
                       />
 
-                      {/* Subir PDF Button */}
                       <button
+                        type="button"
                         onClick={() => fileInputRefs.current[doc.id]?.click()}
                         disabled={isUploading}
                         className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-stone-900 hover:bg-black text-white text-xs font-bold transition shadow-2xs cursor-pointer disabled:opacity-50"
@@ -801,8 +928,8 @@ export function AdminDocuments() {
                         <span>{isUploading ? "Cargando..." : "Subir PDF"}</span>
                       </button>
 
-                      {/* Link Externo Button */}
                       <button
+                        type="button"
                         onClick={() => {
                           if (isEditingUrl) {
                             setEditingUrlId(null);
@@ -818,9 +945,9 @@ export function AdminDocuments() {
                         <span>Enlace URL</span>
                       </button>
 
-                      {/* Preview PDF */}
                       {hasPdf && (
                         <button
+                          type="button"
                           onClick={() => setPreviewDoc(doc)}
                           className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition cursor-pointer"
                           title="Previsualizar PDF"
@@ -830,7 +957,6 @@ export function AdminDocuments() {
                         </button>
                       )}
 
-                      {/* Descargar PDF */}
                       {hasPdf && (
                         <a
                           href={doc.pdfUrl}
@@ -845,9 +971,9 @@ export function AdminDocuments() {
                         </a>
                       )}
 
-                      {/* Quitar PDF */}
                       {hasPdf && (
                         <button
+                          type="button"
                           onClick={() => handleRemovePdf(doc.id, doc.title)}
                           className="p-2 rounded-xl hover:bg-red-50 text-red-600 hover:text-red-700 transition cursor-pointer"
                           title="Quitar PDF"
@@ -856,6 +982,7 @@ export function AdminDocuments() {
                         </button>
                       )}
                     </div>
+                    )}
                   </div>
 
                   {/* Formulario de URL Externa Inline */}

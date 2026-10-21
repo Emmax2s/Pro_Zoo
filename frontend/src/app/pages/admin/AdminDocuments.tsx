@@ -172,14 +172,16 @@ export function AdminDocuments() {
       return;
     }
 
-    const oversizedFile = selectedFiles.find((file) => file.size > 25 * 1024 * 1024);
+    const oversizedFile = selectedFiles.find((file) => file.size > 1024 * 1024 * 1024);
     if (oversizedFile) {
-      alert(`"${oversizedFile.name}" supera el límite de 25 MB.`);
+      alert(`"${oversizedFile.name}" supera el límite de 1 GB.`);
       return;
     }
 
     try {
-      const uploadResults = await Promise.allSettled(selectedFiles.map(async (file) => {
+      const uploadResults: PromiseSettledResult<string>[] = [];
+      for (const file of selectedFiles) {
+        const [uploadResult] = await Promise.allSettled([(async () => {
         const dataUrl = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => resolve(reader.result as string);
@@ -202,7 +204,9 @@ export function AdminDocuments() {
         } catch {
           throw new Error(`No se pudo guardar "${file.name}" en el servidor.`);
         }
-      }));
+        })()]);
+        uploadResults.push(uploadResult);
+      }
 
       const uploadedVideos = uploadResults
         .filter((result): result is PromiseFulfilledResult<string> => result.status === "fulfilled")
@@ -802,7 +806,7 @@ export function AdminDocuments() {
                   <div>
                     <h3 className="text-lg font-black text-[#731c34]">Videos debajo del Código de Ética</h3>
                     <p className="text-sm text-stone-600 mt-1">
-                      Sube únicamente videos, con un máximo de 4 archivos y 25 MB por archivo.
+                      Sube únicamente videos, con un máximo de 4 archivos y 1 GB por archivo.
                     </p>
                   </div>
                   <div>

@@ -18,8 +18,12 @@ import {
   DEFAULT_SEXENIO_INFO
 } from "../../services/documentStore";
 import { DocumentModal } from "../../components/ui/DocumentModal";
+import { useAuth } from "../../context/AuthContext";
+
+const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
 
 export function AdminDocuments() {
+  const { token } = useAuth();
   const [documents, setDocuments] = useState<InstitutionalDocument[]>(loadStoredDocuments());
   const [sexenio, setSexenio] = useState<SexenioInfo>(loadSexenioInfo());
   const [activeTab, setActiveTab] = useState<
@@ -184,17 +188,20 @@ export function AdminDocuments() {
         });
 
         try {
-          const response = await fetch("/api/upload", {
+          const response = await fetch(`${API_BASE_URL}/api/upload`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token || localStorage.getItem("pro-zoo-admin-token") || ""}`,
+            },
             body: JSON.stringify({ filename: file.name, data: dataUrl }),
           });
           const result = await response.json();
           if (response.ok && result.url) return result.url as string;
+          throw new Error(result.message || "No se pudo guardar el video en el servidor.");
         } catch {
-          // Use the data URL when the optional upload endpoint is unavailable.
+          throw new Error(`No se pudo guardar "${file.name}" en el servidor.`);
         }
-        return dataUrl;
       }));
 
       const updated = saveSexenioInfo({ ethicsVideos: [...currentVideos, ...uploadedVideos] });
@@ -279,6 +286,7 @@ export function AdminDocuments() {
   };
 
   const filteredDocuments = documents.filter((doc) => {
+    if (doc.category === "comite_etica") return false;
     const matchesTab = activeTab === "all" || doc.category === activeTab;
     const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           doc.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -321,7 +329,7 @@ export function AdminDocuments() {
             Gestión Institucional de Sexenio y Documentos PDF
           </h1>
           <p className="text-sm text-stone-600 mt-1 max-w-3xl leading-relaxed">
-            Actualiza en tiempo real toda la información de cada sexenio: <strong>Quienes somos</strong> (Titular, Misión, Visión, Organigrama), <strong>Comité de Ética</strong> (Objetivos, Actas, Protocolos y videos) y sube los archivos PDF para <strong>Transparencia</strong> y <strong>Datos Personales</strong>.
+            Actualiza en tiempo real toda la información institucional y gestiona los PDFs de <strong>Transparencia</strong> y <strong>Datos Personales</strong>. El apartado de <strong>Comité de Ética</strong> se utiliza únicamente para videos.
           </p>
         </div>
 
@@ -336,55 +344,6 @@ export function AdminDocuments() {
           </button>
         </div>
       </div>
-
-      {activeTab === "comite_etica" && (
-        <section className="bg-[#fff8fb] rounded-2xl border border-pink-200 shadow-xs p-5 sm:p-6">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-lg sm:text-xl font-black text-[#731c34]">Videos del Comité de Ética</h2>
-              <p className="text-sm text-stone-600 mt-1">
-                Sube únicamente videos, con un máximo de 4 archivos y 25 MB por archivo.
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <input
-                ref={ethicsVideoInputRef}
-                type="file"
-                accept="video/*"
-                multiple
-                className="hidden"
-                onChange={(event) => handleEthicsVideoUpload(event.target.files)}
-              />
-              <button
-                type="button"
-                onClick={() => ethicsVideoInputRef.current?.click()}
-                disabled={(sexenioForm.ethicsVideos || []).length >= 4}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#731c34] hover:bg-[#591427] active:scale-95 text-white text-sm font-bold transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Upload className="w-4 h-4" />
-                Subir videos ({(sexenioForm.ethicsVideos || []).length}/4)
-              </button>
-            </div>
-          </div>
-          {(sexenioForm.ethicsVideos || []).length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-              {(sexenioForm.ethicsVideos || []).map((video, index) => (
-                <div key={`${video}-${index}`} className="relative rounded-xl overflow-hidden border border-pink-200 bg-black">
-                  <video src={video} controls playsInline className="w-full aspect-video object-contain" />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveEthicsVideo(index)}
-                    className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 text-white hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors cursor-pointer"
-                    aria-label={`Quitar video ${index + 1}`}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
 
       {/* Stats Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
@@ -434,9 +393,9 @@ export function AdminDocuments() {
           }`}
         >
           <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Comité de Ética</p>
-          <p className="text-xl sm:text-2xl font-black text-[#731c34] mt-0.5">17 Protocolos</p>
+          <p className="text-xl sm:text-2xl font-black text-[#731c34] mt-0.5">Videos</p>
           <p className="text-xs text-stone-600 mt-0.5">
-            Actas, Reglas e Informes
+            Máximo 4 archivos
           </p>
         </button>
       </div>
@@ -826,6 +785,53 @@ export function AdminDocuments() {
                 />
               </div>
 
+              <div className="bg-[#fff8fb] rounded-2xl border border-pink-200 p-5 sm:p-6 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-lg font-black text-[#731c34]">Videos debajo del Código de Ética</h3>
+                    <p className="text-sm text-stone-600 mt-1">
+                      Sube únicamente videos, con un máximo de 4 archivos y 25 MB por archivo.
+                    </p>
+                  </div>
+                  <div>
+                    <input
+                      ref={ethicsVideoInputRef}
+                      type="file"
+                      accept="video/*"
+                      multiple
+                      className="hidden"
+                      onChange={(event) => handleEthicsVideoUpload(event.target.files)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => ethicsVideoInputRef.current?.click()}
+                      disabled={(sexenioForm.ethicsVideos || []).length >= 4}
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#731c34] hover:bg-[#591427] active:scale-95 text-white text-sm font-bold transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Upload className="w-4 h-4" />
+                      Subir videos ({(sexenioForm.ethicsVideos || []).length}/4)
+                    </button>
+                  </div>
+                </div>
+                {(sexenioForm.ethicsVideos || []).length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {(sexenioForm.ethicsVideos || []).map((video, index) => (
+                      <div key={`${video}-${index}`} className="relative rounded-xl overflow-hidden border border-pink-200 bg-black">
+                        <video src={video} controls playsInline className="w-full aspect-video object-contain" />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveEthicsVideo(index)}
+                          className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 text-white hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors cursor-pointer"
+                          aria-label={`Quitar video ${index + 1}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
 
@@ -848,6 +854,7 @@ export function AdminDocuments() {
         /* ─────────────────────────────────────────────────────────────────── */
         /* LISTADO Y GESTIÓN DE DOCUMENTOS PDF                                 */
         /* ─────────────────────────────────────────────────────────────────── */
+        activeTab !== "comite_etica" ? (
         <div className="space-y-4">
           <div className="grid grid-cols-1 gap-4">
             {filteredDocuments.map((doc) => {
@@ -1025,6 +1032,7 @@ export function AdminDocuments() {
             </div>
           )}
         </div>
+        ) : null
       )}
 
       {/* Modal de Previsualización */}

@@ -7,6 +7,23 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
+html,
+body {
+  font-family: Gilroy, "Montserrat", "Segoe UI", sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-adventure,
+.font-display {
+  font-family: "Novecento Wide", "Arial Narrow", "Montserrat", sans-serif;
+  text-transform: uppercase;
+}
+
 button {
   transition-property: transform, background-color, border-color, box-shadow, color, opacity;
   transition-duration: 180ms;
@@ -24,12 +41,12 @@ select:focus-visible {
 
 /* Zoo Safari & Rustic Wood Themes */
 .font-adventure {
-  font-family: 'Lilita One', 'Montserrat', cursive, sans-serif;
+  font-family: "Novecento Wide", "Arial Narrow", "Montserrat", sans-serif;
   letter-spacing: 0.04em;
 }
 
 .font-display {
-  font-family: 'Montserrat', 'Outfit', sans-serif;
+  font-family: Gilroy, "Montserrat", "Segoe UI", sans-serif;
 }
 
 /* Wood texture background utilities */

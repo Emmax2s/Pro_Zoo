@@ -387,9 +387,9 @@ export function AdminDocuments() {
         </button>
 
         <button
-          onClick={() => setActiveTab("comite_etica")}
+          onClick={() => setActiveTab("sexenio_editor")}
           className={`p-4 rounded-2xl border text-left transition cursor-pointer ${
-            activeTab === "comite_etica" ? "bg-pink-50 border-pink-400 shadow-sm" : "bg-white border-stone-200 hover:border-stone-300"
+            activeTab === "sexenio_editor" ? "bg-pink-50 border-pink-400 shadow-sm" : "bg-white border-stone-200 hover:border-stone-300"
           }`}
         >
           <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Comité de Ética</p>
@@ -431,9 +431,9 @@ export function AdminDocuments() {
           </button>
 
           <button
-            onClick={() => setActiveTab("comite_etica")}
+            onClick={() => setActiveTab("sexenio_editor")}
             className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === "comite_etica" ? "bg-[#731c34] text-white shadow-md" : "text-stone-600 hover:bg-stone-100"
+              activeTab === "sexenio_editor" ? "bg-[#731c34] text-white shadow-md" : "text-stone-600 hover:bg-stone-100"
             }`}
           >
             Comité de Ética (videos)

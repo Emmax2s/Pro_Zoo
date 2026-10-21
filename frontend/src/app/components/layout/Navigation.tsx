@@ -179,22 +179,22 @@ export function Navigation() {
 
         {/* 2. BARRA PRINCIPAL DE NAVEGACIÓN (LOGOTIPO EN ESQUINA, TODO EN UNA SOLA LÍNEA, 20px) */}
         <div className="bg-white border-b border-stone-200 shadow-sm">
-          <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between min-h-[76px] sm:min-h-[84px] md:min-h-[92px] py-1.5 sm:py-2 gap-2 sm:gap-3">
+          <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between min-h-[72px] sm:min-h-[78px] md:min-h-[84px] py-1.5 sm:py-2 gap-2 sm:gap-4">
             
             {/* IZQUIERDA: LOGOTIPO EN LA ESQUINA DE LA FILA */}
             <Link to="/" className="flex items-center flex-shrink-0 group py-1">
               <img
                 src={logoCoordinacionZoomat}
                 alt="Coordinación Estatal para el Mejoramiento del ZooMAT - Gobierno de Chiapas"
-                className="h-12 sm:h-14 md:h-16 lg:h-[4.5rem] w-auto object-contain group-hover:opacity-95 transition-opacity"
+                className="h-12 sm:h-14 md:h-16 lg:h-[68px] w-auto object-contain group-hover:opacity-95 transition-opacity"
               />
             </Link>
 
             {/* DERECHA: ENLACES DEL MENÚ EN UNA SOLA LÍNEA (20px, SIN NEGRITA) */}
-            <nav className="hidden lg:flex items-center flex-nowrap whitespace-nowrap gap-1 sm:gap-2 md:gap-3 xl:gap-4 2xl:gap-5 text-stone-800">
+            <nav className="hidden lg:flex items-center flex-nowrap whitespace-nowrap gap-2 sm:gap-3 md:gap-4 xl:gap-5.5 2xl:gap-7 text-stone-800">
               <Link
                 to="/"
-                style={{ fontSize: "18px" }}
+                style={{ fontSize: "20px" }}
                 className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
                   isActive("/") && location.pathname === "/" ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}
@@ -204,7 +204,7 @@ export function Navigation() {
 
               <Link
                 to="/nosotros"
-                style={{ fontSize: "18px" }}
+                style={{ fontSize: "20px" }}
                 className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer ${
                   isActive("/nosotros") || isActive("/quienes-somos") ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}
@@ -214,7 +214,7 @@ export function Navigation() {
 
               <Link
                 to="/comite-de-etica"
-                style={{ fontSize: "18px" }}
+                style={{ fontSize: "20px" }}
                 className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer ${
                   isActive("/comite-de-etica") || isActive("/codigo-de-etica") ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}
@@ -231,7 +231,7 @@ export function Navigation() {
               >
                 <button
                   onClick={() => setTransparencyOpen(!transparencyOpen)}
-                  style={{ fontSize: "18px" }}
+                  style={{ fontSize: "20px" }}
                   className={`flex items-center gap-1 py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer ${
                     transparencyOpen ? "text-[#731c34] font-medium" : "text-stone-800"
                   }`}
@@ -274,7 +274,7 @@ export function Navigation() {
               >
                 <button
                   onClick={() => setDatosPersonalesOpen(!datosPersonalesOpen)}
-                  style={{ fontSize: "18px" }}
+                  style={{ fontSize: "20px" }}
                   className={`flex items-center gap-1 py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer ${
                     datosPersonalesOpen ? "text-[#731c34] font-medium" : "text-stone-800"
                   }`}
@@ -308,7 +308,7 @@ export function Navigation() {
               {/* ENLACES RESTANTES: ANIMALES, VISITA, MAPA, CONTACTO */}
               <Link
                 to="/animales"
-                style={{ fontSize: "18px" }}
+                style={{ fontSize: "20px" }}
                 className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
                   isActive("/animales") ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}
@@ -318,7 +318,7 @@ export function Navigation() {
 
               <Link
                 to="/visita"
-                style={{ fontSize: "18px" }}
+                style={{ fontSize: "20px" }}
                 className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
                   isActive("/visita") ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}
@@ -328,7 +328,7 @@ export function Navigation() {
 
               <Link
                 to="/mapa"
-                style={{ fontSize: "18px" }}
+                style={{ fontSize: "20px" }}
                 className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
                   isActive("/mapa") ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}
@@ -338,7 +338,7 @@ export function Navigation() {
 
               <Link
                 to="/contacto"
-                style={{ fontSize: "18px" }}
+                style={{ fontSize: "20px" }}
                 className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
                   isActive("/contacto") ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}

@@ -415,26 +415,6 @@ export function Home() {
                   {t("home.visit.desc")}
                 </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-10">
-                  {transparencyBanners.map((banner) => (
-                    <a
-                      key={`${banner.image}-${banner.href}`}
-                      href={banner.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group block overflow-hidden rounded-xl border border-amber-400/30 bg-black/30 transition-all duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 active:scale-[.98]"
-                    >
-                      <img
-                        src={banner.image}
-                        alt={banner.alt}
-                        loading="lazy"
-                        className="block w-full max-w-full aspect-[3.2/1] object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                      <span className="sr-only">Abrir {banner.alt}</span>
-                    </a>
-                  ))}
-                </div>
-
                 <div className="space-y-5 mb-10">
                   <div className="flex items-center gap-4 text-stone-200 bg-black/40 p-4 rounded-2xl border border-amber-900/60">
                     <Clock className="w-6 h-6 text-amber-400 flex-shrink-0" />
@@ -481,6 +461,30 @@ export function Home() {
                 />
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-10 md:py-14 bg-[#faf8f2]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {transparencyBanners.map((banner) => (
+              <a
+                key={`${banner.image}-${banner.href}`}
+                href={banner.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block overflow-hidden rounded-xl border border-amber-400/30 bg-black/30 transition-all duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 active:scale-[.98]"
+              >
+                <img
+                  src={banner.image}
+                  alt={banner.alt}
+                  loading="lazy"
+                  className="block w-full max-w-full aspect-[3.2/1] object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                <span className="sr-only">Abrir {banner.alt}</span>
+              </a>
+            ))}
           </div>
         </div>
       </section>

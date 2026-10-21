@@ -41,11 +41,12 @@ export default defineConfig({
         const outDir = path.resolve(__dirname, 'public', 'assets', 'uploads');
         fs.mkdirSync(outDir, { recursive: true });
         const safeName = filename.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-        const outPath = path.join(outDir, safeName);
+        const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safeName}`;
+        const outPath = path.join(outDir, uniqueName);
         fs.writeFileSync(outPath, Buffer.from(base64, 'base64'));
 
         res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ url: `/assets/uploads/${safeName}` }));
+        res.end(JSON.stringify({ url: `/assets/uploads/${uniqueName}` }));
       } catch (err: any) {
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json');

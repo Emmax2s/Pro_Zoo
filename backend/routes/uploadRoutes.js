@@ -32,8 +32,8 @@ router.post('/', verifyToken, async (req, res, next) => {
     }
 
     const buffer = Buffer.from(match[2], 'base64');
-    if (buffer.length > 20 * 1024 * 1024) {
-      return res.status(413).json({ message: 'El archivo no puede superar 20 MB.' });
+    if (buffer.length > 25 * 1024 * 1024) {
+      return res.status(413).json({ message: 'El archivo no puede superar 25 MB.' });
     }
 
     await fs.mkdir(uploadsDirectory, { recursive: true });

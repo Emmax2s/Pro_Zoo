@@ -179,7 +179,7 @@ export function AdminDocuments() {
     }
 
     try {
-      const uploadedVideos = await Promise.all(selectedFiles.map(async (file) => {
+      const uploadResults = await Promise.allSettled(selectedFiles.map(async (file) => {
         const dataUrl = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => resolve(reader.result as string);
@@ -204,10 +204,22 @@ export function AdminDocuments() {
         }
       }));
 
+      const uploadedVideos = uploadResults
+        .filter((result): result is PromiseFulfilledResult<string> => result.status === "fulfilled")
+        .map((result) => result.value);
+      const failedVideos = uploadResults.filter((result) => result.status === "rejected");
+
+      if (uploadedVideos.length === 0) {
+        throw new Error("No se pudo guardar ningún video. Verifica el tamaño y formato de los archivos.");
+      }
+
       const updated = saveSexenioInfo({ ethicsVideos: [...currentVideos, ...uploadedVideos] });
       setSexenio(updated);
       setSexenioForm(updated);
       showToast(`${uploadedVideos.length} video(s) del Comité de Ética cargado(s) exitosamente.`);
+      if (failedVideos.length > 0) {
+        alert(`${failedVideos.length} video(s) no se pudieron guardar. Los demás sí fueron guardados.`);
+      }
     } catch (error) {
       alert(error instanceof Error ? error.message : "No se pudieron cargar los videos.");
     } finally {

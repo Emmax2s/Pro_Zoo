@@ -27,6 +27,111 @@ export function ZooMap() {
   const { currentLang } = useZoo();
   const isEs = currentLang === "es";
   const [activeTab, setActiveTab] = useState<string>("all");
+
+  const zones = [
+    {
+      id: "felinos",
+      name: isEs ? "Zona de Felinos" : "Feline Zone",
+      icon: PawPrint,
+      color: "bg-amber-50/90 border-amber-400 text-amber-950",
+      badgeColor: "bg-amber-600 text-white",
+      animals: ["Jaguar", "Ocelote", "Tigrillo", "Puma"],
+      location: isEs ? "Entrada Norte" : "North Entrance",
+      desc: isEs
+        ? "Especies de felinos autÛctonos protegidos en recintos naturales adaptados a su entorno selv·tico."
+        : "Native feline species protected in natural enclosures adapted to their jungle environment.",
+    },
+    {
+      id: "aviario",
+      name: isEs ? "Aviario Tropical" : "Tropical Aviary",
+      icon: Feather,
+      color: "bg-sky-50/90 border-sky-400 text-sky-950",
+      badgeColor: "bg-sky-600 text-white",
+      animals: ["Guacamaya Roja", "Tuc·n Pico Iris", "¡guila ArpÌa", "Quetzal"],
+      location: isEs ? "Zona Central" : "Central Zone",
+      desc: isEs
+        ? "Gran estructura inmersiva para observar aves en vuelo libre y vegetaciÛn tropical densa."
+        : "Large immersive structure to observe free-flying birds and dense tropical flora.",
+    },
+    {
+      id: "primates",
+      name: isEs ? "Isla de Primates" : "Primate Island",
+      icon: Trees,
+      color: "bg-purple-50/90 border-purple-400 text-purple-950",
+      badgeColor: "bg-purple-600 text-white",
+      animals: ["Mono AraÒa", "Mono Aullador (Saraguato)", "Mono Capuchino"],
+      location: isEs ? "Zona Este" : "East Zone",
+      desc: isEs
+        ? "H·bitats arbolados rodeados de agua para la conservaciÛn y bienestar de primates nativos."
+        : "Wooded habitats surrounded by water for native primate welfare and conservation.",
+    },
+    {
+      id: "reptiles",
+      name: isEs ? "Herpetario & Cocodrilario" : "Reptile & Crocodile Center",
+      icon: ShieldAlert,
+      color: "bg-emerald-50/90 border-emerald-400 text-emerald-950",
+      badgeColor: "bg-emerald-700 text-white",
+      animals: ["Cocodrilo de Pantano", "Boa Constrictor", "Iguana Verde", "Tortuga Casquito"],
+      location: isEs ? "Zona Sur" : "South Zone",
+      desc: isEs
+        ? "Espacio especializado en anfibios, reptiles y conservaciÛn de caimanes de rÌos chiapanecos."
+        : "Specialized facility for amphibians, reptiles, and river crocodiles of Chiapas.",
+    },
+    {
+      id: "herbivoros",
+      name: isEs ? "Reserva de HerbÌvoros" : "Herbivore Reserve",
+      icon: Compass,
+      color: "bg-orange-50/90 border-orange-400 text-orange-950",
+      badgeColor: "bg-orange-600 text-white",
+      animals: ["Tapir Centroamericano", "Venado Cola Blanca", "PecarÌ de Collar"],
+      location: isEs ? "Zona Oeste" : "West Zone",
+      desc: isEs
+        ? "Senderos amplios para observar grandes mamÌferos herbÌvoros en semilibertad."
+        : "Spacious trails to observe large herbivorous mammals in expansive natural enclosures.",
+    },
+  ];
+
+  const facilities = [
+    {
+      name: isEs ? "Taquillas y Accesos" : "Ticket Booth & Entrance",
+      icon: Building,
+      description: isEs ? "Entrada principal y mÛdulos de informaciÛn turÌstica" : "Main entrance and visitor info desks",
+    },
+    {
+      name: isEs ? "¡rea de Alimentos" : "Cafeteria & Snacks",
+      icon: Utensils,
+      description: isEs ? "CafeterÌa con bebidas frescas y comida regional" : "Cafeteria with cold drinks and local food",
+    },
+    {
+      name: isEs ? "Servicios Sanitarios" : "Restrooms",
+      icon: Accessibility,
+      description: isEs ? "MÛdulos de sanitarios limpios distribuidos en el sendero" : "Clean restroom stations along the trails",
+    },
+    {
+      name: isEs ? "Primeros Auxilios" : "First Aid",
+      icon: Heart,
+      description: isEs ? "Puesto de atenciÛn mÈdica inmediata para visitantes" : "Medical aid station for visitor safety",
+    },
+  ];
+
+  const highlights = [
+    {
+      title: isEs ? "Sendero Interpretativo El Zapotal" : "El Zapotal Interpretive Trail",
+      description: isEs
+        ? "Recorrido empedrado de 2.5 km en plena selva baja que conecta todas las exhibiciones de fauna nativa."
+        : "A 2.5 km cobblestone path through low jungle connecting all native wildlife exhibits.",
+      icon: TreePine,
+      duration: isEs ? "90-120 minutos" : "90-120 minutes",
+    },
+    {
+      title: isEs ? "Mirador Panor·mico de Canopia" : "Canopy Panoramic Lookout",
+      description: isEs
+        ? "Vista espectacular de la vegetaciÛn nativa y el relieve de Tuxtla GutiÈrrez."
+        : "Spectacular view of native vegetation and Tuxtla GutiÈrrez landscape.",
+      icon: Camera,
+      duration: isEs ? "15-20 minutos" : "15-20 minutes",
+    },
+  ];
   const googleMapsDirectionsUrl =
     "https://www.google.com/maps/dir//Zool%C3%B3gico+Regional+Miguel+%C3%81lvarez+del+Toro,+Calz.+Cerro+Hueco+s%2Fn,+El+Zapotal,+29094+Tuxtla+Guti%C3%A9rrez,+Chis./";
 
@@ -51,7 +156,7 @@ export function ZooMap() {
               <span>ZOOL√ìGICO REGIONAL MIGUEL √ÅLVAREZ DEL TORO</span>
             </div>
 
-            <h1 className="font-adventure text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-stone-900 leading-[1.1] text-adventure-shadow">
+            <h1 className="font-adventure text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-stone-900 leading-[1.15]">
               {t("mapPage.title")}
             </h1>
 

@@ -266,7 +266,7 @@ export function Home() {
               <span>{t("home.hero.tag")}</span>
             </div>
 
-            <h1 className="font-adventure text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-stone-900 leading-[1.1] text-adventure-shadow">
+            <h1 className="font-adventure text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-stone-900 leading-[1.15]">
               {t("home.hero.title")}
             </h1>
 

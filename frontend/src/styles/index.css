@@ -22,14 +22,14 @@ select:focus-visible {
   outline-offset: 2px;
 }
 
-/* Zoo Safari & Rustic Wood Themes */
+/* Tipografía Institucional y Formal (Estilo Gobierno: Montserrat) */
 .font-adventure {
-  font-family: 'Lilita One', 'Montserrat', cursive, sans-serif;
-  letter-spacing: 0.04em;
+  font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: -0.01em;
 }
 
 .font-display {
-  font-family: 'Montserrat', 'Outfit', sans-serif;
+  font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Wood texture background utilities */
@@ -56,41 +56,28 @@ select:focus-visible {
   background: radial-gradient(circle, #25170d 0%, #150d06 100%);
 }
 
-/* Adventure 3D Text Shadows */
+/* Estilo Institucional - Sin sombras caricaturescas 3D */
 .text-adventure-shadow {
-  text-shadow: 
-    0 2px 0 #853702,
-    0 4px 0 #572200,
-    0 6px 1px rgba(0,0,0,0.5),
-    0 0 10px rgba(0,0,0,0.4);
+  text-shadow: none !important;
 }
 
 .text-adventure-orange {
-  color: #ff9900;
-  text-shadow: 
-    -2px -2px 0 #fff,
-    2px -2px 0 #fff,
-    -2px 2px 0 #fff,
-    2px 2px 0 #fff,
-    0 4px 0 #c2410c,
-    0 6px 4px rgba(0,0,0,0.6);
+  color: #c2410c;
+  text-shadow: none !important;
 }
 
 .text-wood-carved {
   color: #fffaf0;
-  text-shadow: 
-    0 2px 0 #4a2810,
-    0 3px 3px rgba(0,0,0,0.7),
-    0 -1px 1px rgba(255,255,255,0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 .wood-button-shadow {
-  box-shadow: 0 4px 0 #3d1f08, 0 6px 12px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .wood-button-shadow:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 #3d1f08, 0 3px 6px rgba(0,0,0,0.4);
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .polaroid-frame {

@@ -27,9 +27,6 @@ export function ZooMap() {
   const { currentLang } = useZoo();
   const isEs = currentLang === "es";
   const [activeTab, setActiveTab] = useState<string>("all");
-
-  c
-
   const googleMapsDirectionsUrl =
     "https://www.google.com/maps/dir//Zool%C3%B3gico+Regional+Miguel+%C3%81lvarez+del+Toro,+Calz.+Cerro+Hueco+s%2Fn,+El+Zapotal,+29094+Tuxtla+Guti%C3%A9rrez,+Chis./";
 

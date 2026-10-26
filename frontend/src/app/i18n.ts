@@ -18,7 +18,7 @@ const resources = {
       home: {
         hero: {
           tag: "Zoológico Regional Miguel Álvarez del Toro",
-          title: "Descubre la Fauna de Chiapas",
+          title: "Bienvenidos al ZOOMAT",
           desc: "El único zoológico en México dedicado exclusivamente a la conservación, exhibición e investigación de la fauna silvestre nativa del estado de Chiapas en su entorno selvático natural.",
           planVisit: "Planear Visita",
           exploreCatalog: "Explorar Catálogo",
@@ -134,7 +134,7 @@ const resources = {
       home: {
         hero: {
           tag: "Miguel Álvarez del Toro Regional Zoo",
-          title: "Discover the Wildlife of Chiapas",
+          title: "Welcome to ZOOMAT",
           desc: "The only zoo in Mexico dedicated exclusively to the conservation, exhibition, and research of native wildlife from the state of Chiapas in its natural jungle environment.",
           planVisit: "Plan Visit",
           exploreCatalog: "Explore Catalog",

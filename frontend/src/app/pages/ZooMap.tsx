@@ -38,7 +38,7 @@ export function ZooMap() {
       animals: ["Jaguar", "Ocelote", "Tigrillo", "Puma"],
       location: isEs ? "Entrada Norte" : "North Entrance",
       desc: isEs
-        ? "Especies de felinos aut�ctonos protegidos en recintos naturales adaptados a su entorno selv�tico."
+        ? "Especies de felinos autóctonos protegidos en recintos naturales adaptados a su entorno selvático."
         : "Native feline species protected in natural enclosures adapted to their jungle environment.",
     },
     {
@@ -47,10 +47,10 @@ export function ZooMap() {
       icon: Feather,
       color: "bg-sky-50/90 border-sky-400 text-sky-950",
       badgeColor: "bg-sky-600 text-white",
-      animals: ["Guacamaya Roja", "Tuc�n Pico Iris", "�guila Arp�a", "Quetzal"],
+      animals: ["Guacamaya Roja", "Tucán Pico Iris", "Águila Arpía", "Quetzal"],
       location: isEs ? "Zona Central" : "Central Zone",
       desc: isEs
-        ? "Gran estructura inmersiva para observar aves en vuelo libre y vegetaci�n tropical densa."
+        ? "Gran estructura inmersiva para observar aves en vuelo libre y vegetación tropical densa."
         : "Large immersive structure to observe free-flying birds and dense tropical flora.",
     },
     {
@@ -59,10 +59,10 @@ export function ZooMap() {
       icon: Trees,
       color: "bg-purple-50/90 border-purple-400 text-purple-950",
       badgeColor: "bg-purple-600 text-white",
-      animals: ["Mono Ara�a", "Mono Aullador (Saraguato)", "Mono Capuchino"],
+      animals: ["Mono Araña", "Mono Aullador (Saraguato)", "Mono Capuchino"],
       location: isEs ? "Zona Este" : "East Zone",
       desc: isEs
-        ? "H�bitats arbolados rodeados de agua para la conservaci�n y bienestar de primates nativos."
+        ? "Hábitats arbolados rodeados de agua para la conservación y bienestar de primates nativos."
         : "Wooded habitats surrounded by water for native primate welfare and conservation.",
     },
     {
@@ -74,19 +74,19 @@ export function ZooMap() {
       animals: ["Cocodrilo de Pantano", "Boa Constrictor", "Iguana Verde", "Tortuga Casquito"],
       location: isEs ? "Zona Sur" : "South Zone",
       desc: isEs
-        ? "Espacio especializado en anfibios, reptiles y conservaci�n de caimanes de r�os chiapanecos."
+        ? "Espacio especializado en anfibios, reptiles y conservación de caimanes de ríos chiapanecos."
         : "Specialized facility for amphibians, reptiles, and river crocodiles of Chiapas.",
     },
     {
       id: "herbivoros",
-      name: isEs ? "Reserva de Herb�voros" : "Herbivore Reserve",
+      name: isEs ? "Reserva de Herbívoros" : "Herbivore Reserve",
       icon: Compass,
       color: "bg-orange-50/90 border-orange-400 text-orange-950",
       badgeColor: "bg-orange-600 text-white",
-      animals: ["Tapir Centroamericano", "Venado Cola Blanca", "Pecar� de Collar"],
+      animals: ["Tapir Centroamericano", "Venado Cola Blanca", "Pecarí de Collar"],
       location: isEs ? "Zona Oeste" : "West Zone",
       desc: isEs
-        ? "Senderos amplios para observar grandes mam�feros herb�voros en semilibertad."
+        ? "Senderos amplios para observar grandes mamíferos herbívoros en semilibertad."
         : "Spacious trails to observe large herbivorous mammals in expansive natural enclosures.",
     },
   ];
@@ -95,22 +95,22 @@ export function ZooMap() {
     {
       name: isEs ? "Taquillas y Accesos" : "Ticket Booth & Entrance",
       icon: Building,
-      description: isEs ? "Entrada principal y m�dulos de informaci�n tur�stica" : "Main entrance and visitor info desks",
+      description: isEs ? "Entrada principal y módulos de información turística" : "Main entrance and visitor info desks",
     },
     {
-      name: isEs ? "�rea de Alimentos" : "Cafeteria & Snacks",
+      name: isEs ? "Área de Alimentos" : "Cafeteria & Snacks",
       icon: Utensils,
-      description: isEs ? "Cafeter�a con bebidas frescas y comida regional" : "Cafeteria with cold drinks and local food",
+      description: isEs ? "Cafetería con bebidas frescas y comida regional" : "Cafeteria with cold drinks and local food",
     },
     {
       name: isEs ? "Servicios Sanitarios" : "Restrooms",
       icon: Accessibility,
-      description: isEs ? "M�dulos de sanitarios limpios distribuidos en el sendero" : "Clean restroom stations along the trails",
+      description: isEs ? "Módulos de sanitarios limpios distribuidos en el sendero" : "Clean restroom stations along the trails",
     },
     {
       name: isEs ? "Primeros Auxilios" : "First Aid",
       icon: Heart,
-      description: isEs ? "Puesto de atenci�n m�dica inmediata para visitantes" : "Medical aid station for visitor safety",
+      description: isEs ? "Puesto de atención médica inmediata para visitantes" : "Medical aid station for visitor safety",
     },
   ];
 
@@ -124,10 +124,10 @@ export function ZooMap() {
       duration: isEs ? "90-120 minutos" : "90-120 minutes",
     },
     {
-      title: isEs ? "Mirador Panor�mico de Canopia" : "Canopy Panoramic Lookout",
+      title: isEs ? "Mirador Panorámico de Canopia" : "Canopy Panoramic Lookout",
       description: isEs
-        ? "Vista espectacular de la vegetaci�n nativa y el relieve de Tuxtla Guti�rrez."
-        : "Spectacular view of native vegetation and Tuxtla Guti�rrez landscape.",
+        ? "Vista espectacular de la vegetación nativa y el relieve de Tuxtla Gutiérrez."
+        : "Spectacular view of native vegetation and Tuxtla Gutiérrez landscape.",
       icon: Camera,
       duration: isEs ? "15-20 minutos" : "15-20 minutes",
     },
@@ -153,7 +153,7 @@ export function ZooMap() {
           <div className="max-w-4xl space-y-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100/90 text-amber-950 text-xs sm:text-sm font-black tracking-wide uppercase shadow-xs border border-amber-300">
               <TreePine className="w-4 h-4 text-emerald-800" />
-              <span>ZOOLÓGICO REGIONAL MIGUEL ÁLVAREZ DEL TORO</span>
+              <span>ZOOLÃGICO REGIONAL MIGUEL ÃLVAREZ DEL TORO</span>
             </div>
 
             <h1 className="font-adventure text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-stone-900 leading-[1.15]">
@@ -180,11 +180,11 @@ export function ZooMap() {
             </div>
             <div>
               <h3 className="font-adventure text-2xl sm:text-3xl text-amber-200">
-                {isEs ? "¿Vienes en camino al ZooMAT?" : "Navigating to ZooMAT?"}
+                {isEs ? "Â¿Vienes en camino al ZooMAT?" : "Navigating to ZooMAT?"}
               </h3>
               <p className="text-amber-100/90 text-base sm:text-lg font-medium">
                 {isEs
-                  ? "Abre la ruta en tiempo real directamente en tu aplicación de navegación GPS."
+                  ? "Abre la ruta en tiempo real directamente en tu aplicaciÃ³n de navegaciÃ³n GPS."
                   : "Open real-time route directly in your GPS navigation app."}
               </p>
             </div>
@@ -199,7 +199,7 @@ export function ZooMap() {
           </a>
         </div>
 
-        {/* Zonas Temáticas */}
+        {/* Zonas TemÃ¡ticas */}
         <section className="bg-white rounded-3xl shadow-xl p-8 md:p-10 border-2 border-[#e2d5bd]">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
             <div>
@@ -208,7 +208,7 @@ export function ZooMap() {
               </h2>
               <p className="text-stone-600 text-base sm:text-lg font-medium">
                 {isEs
-                  ? "Filtra y explora las distintas zonas de conservación dentro del sendero de 2.5 km."
+                  ? "Filtra y explora las distintas zonas de conservaciÃ³n dentro del sendero de 2.5 km."
                   : "Filter and explore the different conservation habitats along the 2.5 km trail."}
               </p>
             </div>
@@ -286,7 +286,7 @@ export function ZooMap() {
           </div>
         </section>
 
-        {/* Puntos de Interés */}
+        {/* Puntos de InterÃ©s */}
         <section className="bg-white rounded-3xl shadow-xl p-8 md:p-10 border-2 border-[#e2d5bd]">
           <h2 className="font-adventure text-3xl sm:text-4xl text-[#2b1810] mb-6">
             {isEs ? "Senderos y Miradores Destacados" : "Featured Trails & Lookouts"}
@@ -306,7 +306,7 @@ export function ZooMap() {
                 </div>
                 <div className="bg-black/40 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-amber-300 border border-amber-500/30 w-fit">
                   <Clock className="w-4 h-4 text-amber-300" />
-                  <span>{isEs ? "Duración aprox:" : "Approx duration:"} {highlight.duration}</span>
+                  <span>{isEs ? "DuraciÃ³n aprox:" : "Approx duration:"} {highlight.duration}</span>
                 </div>
               </div>
             ))}

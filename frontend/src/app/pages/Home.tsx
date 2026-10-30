@@ -7,6 +7,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useZoo } from "../context/ZooContext";
 import { getLocalizedAnimal } from "../services/speciesTranslator";
+import safariHeroBg from "../../assets/safari-hero-bg.jpg";
 
 const transparencyBanners = [
   {
@@ -57,7 +58,16 @@ function HeroCarousel() {
   }, [current, next, slides, total]);
 
   if (total === 0) {
-    return <div className="w-full h-full bg-stone-900" />;
+    return (
+      <div className="w-full h-full relative bg-stone-950 overflow-hidden select-none">
+        <img
+          src={safariHeroBg}
+          alt="ZooMAT"
+          className="w-full h-full object-cover opacity-60"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/60 pointer-events-none" />
+      </div>
+    );
   }
 
   const slide = slides[current];
@@ -198,35 +208,7 @@ function HeroCarousel() {
             aria-label={`Diapositiva ${i + 1}`}
           />
         ))}
-      </div>
-
-      {/* Botones solicitados en el carrusel (Imagen 2): Animales, Visita y Mapa */}
-      <div className="absolute bottom-3 sm:bottom-6 md:bottom-7 left-1/2 -translate-x-1/2 z-20 flex items-center justify-center gap-2.5 sm:gap-5 w-[94%] max-w-2xl px-2">
-        <Link
-          to="/animales"
-          className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-2.5 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/70 hover:bg-[#731c34] text-white border-2 border-amber-400/70 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-300 hover:scale-105 font-sans font-bold text-sm sm:text-base tracking-wide group"
-        >
-          <PawPrint className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-110 transition-transform" />
-          <span>Animales</span>
-        </Link>
-
-        <Link
-          to="/visita"
-          className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-2.5 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/70 hover:bg-[#731c34] text-white border-2 border-amber-400/70 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-300 hover:scale-105 font-sans font-bold text-sm sm:text-base tracking-wide group"
-        >
-          <Ticket className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-110 transition-transform" />
-          <span>Visita</span>
-        </Link>
-
-        <Link
-          to="/mapa"
-          className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-2.5 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/70 hover:bg-[#731c34] text-white border-2 border-amber-400/70 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-300 hover:scale-105 font-sans font-bold text-sm sm:text-base tracking-wide group"
-        >
-          <Map className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-110 transition-transform" />
-          <span>Mapa</span>
-        </Link>
-      </div>
-    </div>
+      </div>    </div>
   );
 }
 
@@ -266,6 +248,33 @@ export function Home() {
 
         <div className="w-full h-[450px] sm:h-[550px] md:h-[650px] lg:h-[720px] relative">
           <HeroCarousel />
+
+          {/* Botones solicitados en el carrusel (Imagen 2): Especies, Visita y Mapa */}
+          <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center justify-center gap-3 sm:gap-6 w-[94%] max-w-2xl px-2">
+            <Link
+              to="/animales"
+              className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/75 hover:bg-[#731c34] text-white border-2 border-amber-400/80 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-300 hover:scale-105 font-sans font-bold text-sm sm:text-base tracking-wide group"
+            >
+              <PawPrint className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-110 transition-transform" />
+              <span>Especies</span>
+            </Link>
+
+            <Link
+              to="/visita"
+              className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/75 hover:bg-[#731c34] text-white border-2 border-amber-400/80 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-300 hover:scale-105 font-sans font-bold text-sm sm:text-base tracking-wide group"
+            >
+              <Ticket className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-110 transition-transform" />
+              <span>Visita</span>
+            </Link>
+
+            <Link
+              to="/mapa"
+              className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/75 hover:bg-[#731c34] text-white border-2 border-amber-400/80 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-300 hover:scale-105 font-sans font-bold text-sm sm:text-base tracking-wide group"
+            >
+              <Map className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-110 transition-transform" />
+              <span>Mapa</span>
+            </Link>
+          </div>
         </div>
 
         {/* Rustic Wood Beam Framing the Carousel (Photo 1 Style) */}

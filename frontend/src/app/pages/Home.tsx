@@ -7,7 +7,6 @@ import {
 import { useTranslation } from "react-i18next";
 import { useZoo } from "../context/ZooContext";
 import { getLocalizedAnimal } from "../services/speciesTranslator";
-import safariHeroBg from "../../assets/safari-hero-bg.jpg";
 
 const transparencyBanners = [
   {
@@ -58,16 +57,7 @@ function HeroCarousel() {
   }, [current, next, slides, total]);
 
   if (total === 0) {
-    return (
-      <div className="w-full h-full relative bg-stone-950 overflow-hidden select-none">
-        <img
-          src={safariHeroBg}
-          alt="ZooMAT"
-          className="w-full h-full object-cover opacity-60"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/60 pointer-events-none" />
-      </div>
-    );
+    return <div className="w-full h-full bg-stone-950" />;
   }
 
   const slide = slides[current];

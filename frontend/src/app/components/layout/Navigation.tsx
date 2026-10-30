@@ -305,37 +305,7 @@ export function Navigation() {
                 )}
               </div>
 
-              {/* ENLACES RESTANTES: ANIMALES, VISITA, MAPA, CONTACTO */}
-              <Link
-                to="/animales"
-                style={{ fontSize: "17px" }}
-                className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
-                  isActive("/animales") ? "text-[#731c34] font-medium" : "text-stone-800"
-                }`}
-              >
-                Animales
-              </Link>
-
-              <Link
-                to="/visita"
-                style={{ fontSize: "17px" }}
-                className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
-                  isActive("/visita") ? "text-[#731c34] font-medium" : "text-stone-800"
-                }`}
-              >
-                Visita
-              </Link>
-
-              <Link
-                to="/mapa"
-                style={{ fontSize: "17px" }}
-                className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
-                  isActive("/mapa") ? "text-[#731c34] font-medium" : "text-stone-800"
-                }`}
-              >
-                Mapa
-              </Link>
-
+              {/* ENLACE RESTANTE: CONTACTO (Animales, Visita y Mapa se colocaron en el carrusel de inicio) */}
               <Link
                 to="/contacto"
                 style={{ fontSize: "17px" }}

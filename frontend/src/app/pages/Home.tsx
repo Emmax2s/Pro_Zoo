@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router";
 import { 
   ArrowRight, Users, Heart, TreePine, Calendar, MapPin, Ticket, Clock, 
-  BookOpen, ChevronLeft, ChevronRight, Play
+  BookOpen, ChevronLeft, ChevronRight, Play, PawPrint, Map
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useZoo } from "../context/ZooContext";
@@ -183,8 +183,8 @@ function HeroCarousel() {
         <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />
       </button>
 
-      {/* Dots / Indicators Bar */}
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex gap-2.5 bg-black/50 backdrop-blur-md px-4 py-2 rounded-full border border-amber-400/30 shadow-lg">
+      {/* Dots / Indicators Bar (Ubicada arriba de los botones de navegación) */}
+      <div className="absolute bottom-16 sm:bottom-20 md:bottom-22 left-1/2 -translate-x-1/2 z-20 flex gap-2 sm:gap-2.5 bg-black/50 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-amber-400/30 shadow-lg">
         {slides.map((_, i) => (
           <button
             key={i}
@@ -193,11 +193,38 @@ function HeroCarousel() {
               setPlaying(false);
             }}
             className={`rounded-full transition-all cursor-pointer ${
-              i === current ? "w-7 h-2.5 bg-amber-400" : "w-2.5 h-2.5 bg-white/60 hover:bg-white"
+              i === current ? "w-6 sm:w-7 h-2 sm:h-2.5 bg-amber-400" : "w-2 sm:w-2.5 h-2 sm:h-2.5 bg-white/60 hover:bg-white"
             }`}
             aria-label={`Diapositiva ${i + 1}`}
           />
         ))}
+      </div>
+
+      {/* Botones solicitados en el carrusel (Imagen 2): Animales, Visita y Mapa */}
+      <div className="absolute bottom-3 sm:bottom-6 md:bottom-7 left-1/2 -translate-x-1/2 z-20 flex items-center justify-center gap-2.5 sm:gap-5 w-[94%] max-w-2xl px-2">
+        <Link
+          to="/animales"
+          className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-2.5 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/70 hover:bg-[#731c34] text-white border-2 border-amber-400/70 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-300 hover:scale-105 font-sans font-bold text-sm sm:text-base tracking-wide group"
+        >
+          <PawPrint className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-110 transition-transform" />
+          <span>Animales</span>
+        </Link>
+
+        <Link
+          to="/visita"
+          className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-2.5 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/70 hover:bg-[#731c34] text-white border-2 border-amber-400/70 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-300 hover:scale-105 font-sans font-bold text-sm sm:text-base tracking-wide group"
+        >
+          <Ticket className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-110 transition-transform" />
+          <span>Visita</span>
+        </Link>
+
+        <Link
+          to="/mapa"
+          className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-2.5 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/70 hover:bg-[#731c34] text-white border-2 border-amber-400/70 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-300 hover:scale-105 font-sans font-bold text-sm sm:text-base tracking-wide group"
+        >
+          <Map className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-110 transition-transform" />
+          <span>Mapa</span>
+        </Link>
       </div>
     </div>
   );
@@ -465,22 +492,23 @@ export function Home() {
         </div>
       </section>
 
-      <section className="py-10 md:py-14 bg-[#faf8f2]">
+      {/* Sección de Banners de Transparencia: 4 cuadros en tamaño normal (Imagen 1) */}
+      <section className="pt-8 pb-5 sm:pt-10 sm:pb-6 bg-[#faf8f2]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
             {transparencyBanners.map((banner) => (
               <a
                 key={`${banner.image}-${banner.href}`}
                 href={banner.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group block overflow-hidden rounded-xl border border-amber-400/30 bg-black/30 transition-all duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 active:scale-[.98]"
+                className="group block overflow-hidden rounded-xl border border-stone-200 bg-white shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-amber-400 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 active:scale-[.98]"
               >
                 <img
                   src={banner.image}
                   alt={banner.alt}
                   loading="lazy"
-                  className="block w-full max-w-full aspect-[3.2/1] object-cover transition-transform duration-300 group-hover:scale-105"
+                  className="block w-full max-w-full h-auto aspect-[3.2/1] object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 <span className="sr-only">Abrir {banner.alt}</span>
               </a>

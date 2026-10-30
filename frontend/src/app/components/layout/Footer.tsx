@@ -69,45 +69,45 @@ export function Footer() {
   return (
     <>
       <footer className="bg-[#242629] text-stone-200 border-t border-stone-800 select-none">
-        <div className="max-w-7xl mx-auto px-6 py-12 sm:py-16">
-          <div className="flex flex-col md:flex-row items-start justify-between gap-10">
+        <div className="max-w-7xl mx-auto px-6 py-5 sm:py-6">
+          <div className="flex flex-col md:flex-row items-start justify-between gap-6 sm:gap-8">
             
             {/* ── COLUMNA IZQUIERDA: LOGOTIPOS Y ENLACES INSTITUCIONALES (FOTO 2) ── */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-4 sm:gap-5">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3.5 sm:gap-4">
                 {/* Glifo Humanismo que Transforma */}
                 <div className="flex flex-col items-center">
-                  <HumanismoGlyph className="w-12 h-10 text-emerald-400" />
-                  <span className="text-[7.5px] font-black text-[#e11d48] tracking-widest uppercase mt-0.5 text-center leading-none">
+                  <HumanismoGlyph className="w-10 h-8 sm:w-11 sm:h-9 text-emerald-400" />
+                  <span className="text-[7px] font-black text-[#e11d48] tracking-widest uppercase mt-0.5 text-center leading-none">
                     HUMANISMO QUE<br />TRANSFORMA
                   </span>
                 </div>
 
                 {/* Texto Borgoña Institucional */}
                 <div className="flex flex-col text-[#b82950] font-sans">
-                  <span className="text-[11px] sm:text-[12px] font-black uppercase tracking-wider leading-tight">
+                  <span className="text-[10.5px] sm:text-[11.5px] font-black uppercase tracking-wider leading-tight">
                     Coordinación Estatal
                   </span>
-                  <span className="text-[11px] sm:text-[12px] font-black uppercase tracking-wider leading-tight">
+                  <span className="text-[10.5px] sm:text-[11.5px] font-black uppercase tracking-wider leading-tight">
                     Para el Mejoramiento
                   </span>
-                  <span className="text-[11px] sm:text-[12px] font-black uppercase tracking-wider leading-tight">
+                  <span className="text-[10.5px] sm:text-[11.5px] font-black uppercase tracking-wider leading-tight">
                     del ZooMAT
                   </span>
-                  <span className="text-[8.5px] sm:text-[9px] font-bold text-[#b82950]/80 tracking-widest uppercase mt-0.5 leading-tight">
+                  <span className="text-[8px] sm:text-[8.5px] font-bold text-[#b82950]/80 tracking-widest uppercase mt-0.5 leading-tight">
                     Gobierno de Chiapas
                   </span>
-                  <span className="text-[8px] font-bold text-[#b82950]/70 tracking-widest leading-tight">
+                  <span className="text-[7.5px] font-bold text-[#b82950]/70 tracking-widest leading-tight">
                     2024 - 2030
                   </span>
                 </div>
               </div>
 
               {/* Enlaces con iconos (Foto 2) */}
-              <div className="space-y-2.5 pt-2">
+              <div className="flex flex-wrap sm:flex-col gap-x-5 gap-y-1.5 pt-0.5">
                 <button
                   onClick={() => openDoc("datos-personales-aviso-privacidad")}
-                  className="flex items-center gap-2.5 text-xs sm:text-sm text-stone-300 hover:text-white transition-colors cursor-pointer group"
+                  className="flex items-center gap-2 text-xs sm:text-sm text-stone-300 hover:text-white transition-colors cursor-pointer group"
                 >
                   <Lock className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
                   <span className="underline-offset-4 hover:underline">Aviso de Privacidad</span>
@@ -115,7 +115,7 @@ export function Footer() {
 
                 <button
                   onClick={() => openDoc("institucional-declara-chiapas")}
-                  className="flex items-center gap-2.5 text-xs sm:text-sm text-stone-300 hover:text-white transition-colors cursor-pointer group"
+                  className="flex items-center gap-2 text-xs sm:text-sm text-stone-300 hover:text-white transition-colors cursor-pointer group"
                 >
                   <LogIn className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
                   <span className="underline-offset-4 hover:underline">Declara Chiapas</span>
@@ -124,25 +124,24 @@ export function Footer() {
             </div>
 
             {/* ── COLUMNA DERECHA: CONTÁCTANOS (FOTO 2) ── */}
-            <div className="space-y-4 md:text-right">
-              <h3 className="text-white text-base sm:text-lg font-bold tracking-tight">
+            <div className="space-y-2 md:text-right">
+              <h3 className="text-white text-sm sm:text-base font-bold tracking-tight">
                 Contáctanos
               </h3>
 
-              <div className="space-y-3 text-xs sm:text-sm text-stone-300 max-w-sm md:ml-auto">
+              <div className="space-y-2 text-xs sm:text-sm text-stone-300 max-w-sm md:ml-auto">
                 {/* Dirección con icono de pin */}
-                <div className="flex items-start md:justify-end gap-2.5">
-                  <MapPin className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5 md:order-2" />
+                <div className="flex items-start md:justify-end gap-2">
+                  <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 flex-shrink-0 mt-0.5 md:order-2" />
                   <span className="leading-relaxed">
-                    Calzada Cerro Hueco S/N,<br />
-                    Col. El Zapotal,<br />
+                    Calzada Cerro Hueco S/N, Col. El Zapotal,<br />
                     Tuxtla Gutiérrez, Chiapas, C. P. 29094.
                   </span>
                 </div>
 
                 {/* Teléfono con icono de teléfono */}
-                <div className="flex items-center md:justify-end gap-2.5 pt-1">
-                  <Phone className="w-4 h-4 text-amber-400 flex-shrink-0 md:order-2" />
+                <div className="flex items-center md:justify-end gap-2">
+                  <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 flex-shrink-0 md:order-2" />
                   <a
                     href="tel:9615438890"
                     className="hover:text-amber-300 transition-colors font-semibold"

@@ -9,7 +9,6 @@ import {
   X,
   AlertTriangle,
   History,
-  Download,
   Printer,
   Search,
   CheckCircle2,
@@ -21,9 +20,9 @@ import { ZooUser, AdminAuditLog } from "../../data/zooStore";
 import { useAuth } from "../../context/AuthContext";
 import {
   getStoredAuditLogs,
+  getAuditLogYears,
   saveAuditLog,
-  exportAuditLogsToCSV,
-  printAuditReport,
+  exportAuditLogsToPDF,
 } from "../../services/auditService";
 
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
@@ -349,11 +348,6 @@ export function AdminUsers() {
   const { users, setUsers, enclosures, currentUser } = useZoo();
   const { token } = useAuth();
 
-  // Guard: Only Super Admin can access the administrators and audit management
-  if (currentUser.role !== "superadmin") {
-    return <Navigate to="/admin/animales" replace />;
-  }
-
   const [activeTab, setActiveTab] = useState<"users" | "audit">("users");
   const [modalState, setModalState] = useState<{ open: boolean; user: ZooUser | null }>({ open: false, user: null });
   const [deleteTarget, setDeleteTarget] = useState<ZooUser | null>(null);
@@ -363,6 +357,7 @@ export function AdminUsers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterAction, setFilterAction] = useState<string>("all");
   const [filterAdmin, setFilterAdmin] = useState<string>("all");
+  const [selectedReportYear, setSelectedReportYear] = useState<string>("all");
 
   const refreshLogs = () => {
     setAuditLogs(getStoredAuditLogs());
@@ -413,6 +408,9 @@ export function AdminUsers() {
   // Filtered audit logs
   const filteredAuditLogs = useMemo(() => {
     return auditLogs.filter((log) => {
+      const matchYear =
+        selectedReportYear === "all" ||
+        new Date(log.timestamp).getFullYear() === Number(selectedReportYear);
       const matchSearch =
         log.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         log.userEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -422,9 +420,15 @@ export function AdminUsers() {
       const matchAction = filterAction === "all" || log.actionType === filterAction;
       const matchAdmin = filterAdmin === "all" || String(log.userId) === filterAdmin;
 
-      return matchSearch && matchAction && matchAdmin;
+      return matchYear && matchSearch && matchAction && matchAdmin;
     });
-  }, [auditLogs, searchTerm, filterAction, filterAdmin]);
+  }, [auditLogs, searchTerm, filterAction, filterAdmin, selectedReportYear]);
+
+  const reportYears = useMemo(() => getAuditLogYears(auditLogs), [auditLogs]);
+
+  if (currentUser.role !== "superadmin") {
+    return <Navigate to="/admin/animales" replace />;
+  }
 
   async function handleSave(data: UserFormData) {
     const isEditing = Boolean(modalState.user);
@@ -826,22 +830,29 @@ export function AdminUsers() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2.5">
-              <button
-                onClick={() => exportAuditLogsToCSV(filteredAuditLogs)}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-2xl flex items-center gap-2 font-bold text-xs sm:text-sm transition-all shadow-md cursor-pointer hover:scale-102"
-                title="Descargar historial completo en formato compatible con Excel (.csv UTF-8)"
+              <select
+                value={selectedReportYear}
+                onChange={(event) => setSelectedReportYear(event.target.value)}
+                className="bg-white text-emerald-950 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-bold border border-emerald-300 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                aria-label="Año del reporte PDF"
               >
-                <Download size={16} className="text-amber-300" />
-                <span>Descargar Documento (CSV)</span>
-              </button>
-
+                <option value="all">Todos los años</option>
+                {reportYears.map((year) => (
+                  <option key={year} value={String(year)}>{year}</option>
+                ))}
+              </select>
               <button
-                onClick={() => printAuditReport(filteredAuditLogs)}
+                onClick={() =>
+                  exportAuditLogsToPDF(
+                    filteredAuditLogs,
+                    selectedReportYear === "all" ? undefined : Number(selectedReportYear)
+                  )
+                }
                 className="bg-amber-500 hover:bg-amber-400 text-emerald-950 px-4 py-2.5 rounded-2xl flex items-center gap-2 font-black text-xs sm:text-sm transition-all shadow-md cursor-pointer hover:scale-102"
                 title="Imprimir o guardar reporte oficial en PDF"
               >
                 <Printer size={16} />
-                <span>Reporte Imprimible / PDF</span>
+                <span>Descargar Reporte PDF</span>
               </button>
 
               <button

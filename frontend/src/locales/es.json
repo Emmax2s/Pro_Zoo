@@ -1,4 +1,57 @@
 {
+  "nav": {
+    "home": "Inicio",
+    "procedures": "Trámites",
+    "government": "Gobierno",
+    "participate": "Participa",
+    "transparency": "Transparencia",
+    "search": "Buscar",
+    "coordinationAlt": "Coordinación Estatal para el Mejoramiento del ZooMAT - Gobierno de Chiapas"
+    ,"about": "Quienes somos",
+    "ethics": "Comité de Ética",
+    "transparencyPortal": "Portal de Transparencia",
+    "pdf": "PDF",
+    "personalData": "Datos Personales",
+    "dataProtection": "Protección de Datos"
+  },
+  "footer": {
+    "humanism": "HUMANISMO QUE TRANSFORMA",
+    "coordination": "Coordinación Estatal",
+    "improvement": "Para el Mejoramiento",
+    "zoo": "del ZooMAT",
+    "government": "Gobierno de Chiapas",
+    "privacyNotice": "Aviso de Privacidad",
+    "declara": "Declara Chiapas",
+    "contactUs": "Contáctanos",
+    "address": "Calzada Cerro Hueco S/N, Col. El Zapotal, Tuxtla Gutiérrez, Chiapas, C. P. 29094.",
+    "phone": "Conmutador: 961 543 88 90 Ext. 1001"
+  },
+  "contact": {
+    "success": "Gracias por tu mensaje. Te contactaremos pronto.",
+    "phoneTitle": "Teléfono",
+    "phoneHours": "Lunes a Viernes: 9:00 AM - 5:00 PM",
+    "emailTitle": "Correo Electrónico",
+    "emailResponse": "Respondemos en 24-48 horas",
+    "addressTitle": "Dirección",
+    "addressLine1": "Calzada Cerro Hueco S/N, Col. El Zapotal",
+    "addressLine2": "Tuxtla Gutiérrez, Chiapas, México",
+    "hoursTitle": "Horario de Atención",
+    "hoursLine1": "Martes a Domingo: 8:30 AM - 4:30 PM",
+    "hoursLine2": "Lunes cerrado por mantenimiento",
+    "namePlaceholder": "Tu nombre completo",
+    "emailPlaceholder": "tu@email.com"
+  },
+  "home": {
+    "carouselImage": "Zoológico",
+    "carouselVideo": "Video",
+    "previousSlide": "Diapositiva anterior",
+    "nextSlide": "Diapositiva siguiente",
+    "slide": "Diapositiva {{count}}",
+    "highlights": {
+      "species": "50+ Especies",
+      "speciesDesc": "Fauna nativa de Chiapas"
+    }
+  },
   "speciesDetail": {
     "loading": "Cargando especie de ZooMAT...",
     "notFound": "Especie no encontrada",

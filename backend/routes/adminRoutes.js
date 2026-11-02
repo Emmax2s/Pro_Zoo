@@ -43,6 +43,26 @@ export const verifyToken = (req, res, next) => {
   }
 };
 
+export const requireSuperAdmin = async (req, res, next) => {
+  try {
+    const result = await query(
+      'SELECT role, is_active FROM admin_users WHERE id = $1',
+      [req.user?.id]
+    );
+    const user = result.rows[0];
+    if (!user || !user.is_active) {
+      return res.status(401).json({ message: 'La sesión ya no es válida.' });
+    }
+    if (user.role !== 'superadmin') {
+      return res.status(403).json({ message: 'Se requieren permisos de superadministrador.' });
+    }
+    req.user.role = user.role;
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Login Route
 router.post('/login', async (req, res, next) => {
   try {
@@ -101,7 +121,7 @@ router.get('/me', verifyToken, async (req, res, next) => {
 });
 
 // Create Admin Route
-router.post('/create', verifyToken, async (req, res, next) => {
+router.post('/create', verifyToken, requireSuperAdmin, async (req, res, next) => {
   try {
     const { username: providedUsername, email, password, name, role, enclosureId, enclosureIds } = req.body;
     const username = providedUsername || email?.split('@')[0];
@@ -143,7 +163,7 @@ router.post('/create', verifyToken, async (req, res, next) => {
 });
 
 // List Admins Route
-router.get('/list', verifyToken, async (req, res, next) => {
+router.get('/list', verifyToken, requireSuperAdmin, async (req, res, next) => {
   try {
     const result = await query(
       'SELECT id, username, email, name, role, enclosure_id, is_active, created_at, updated_at FROM admin_users ORDER BY created_at DESC'
@@ -169,7 +189,7 @@ router.get('/list', verifyToken, async (req, res, next) => {
 });
 
 // Update Admin Route
-router.put('/:id', verifyToken, async (req, res, next) => {
+router.put('/:id', verifyToken, requireSuperAdmin, async (req, res, next) => {
   try {
     const { id } = req.params;
     const { username, email, password, name, role, enclosureId, enclosureIds, is_active } = req.body;
@@ -219,7 +239,7 @@ router.put('/:id', verifyToken, async (req, res, next) => {
 });
 
 // Delete Admin Route
-router.delete('/:id', verifyToken, async (req, res, next) => {
+router.delete('/:id', verifyToken, requireSuperAdmin, async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -236,7 +256,7 @@ router.delete('/:id', verifyToken, async (req, res, next) => {
 });
 
 // Audit Logs Routes
-router.get('/audit-logs', verifyToken, async (_req, res) => {
+router.get('/audit-logs', verifyToken, requireSuperAdmin, async (_req, res) => {
   try {
     const result = await query(
       'SELECT * FROM admin_audit_logs ORDER BY created_at DESC LIMIT 200'
@@ -247,7 +267,7 @@ router.get('/audit-logs', verifyToken, async (_req, res) => {
   }
 });
 
-router.post('/audit-logs', verifyToken, async (req, res) => {
+router.post('/audit-logs', verifyToken, requireSuperAdmin, async (req, res) => {
   try {
     const { userId, userName, userEmail, userRole, assignedEnclosures, actionType, entityType, entityName, enclosureName, details } = req.body;
     const result = await query(

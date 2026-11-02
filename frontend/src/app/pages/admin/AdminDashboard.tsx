@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Download, Eye, PawPrint, Users, PieChart as PieIcon, BarChart2, QrCode, Globe } from "lucide-react";
+import { Printer, Eye, PawPrint, Users, PieChart as PieIcon, BarChart2, QrCode, Globe } from "lucide-react";
 import { Link, Navigate } from "react-router";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useZoo } from "../../context/ZooContext";
@@ -32,10 +32,6 @@ export function AdminDashboard() {
   const { animals, users, currentUser, enclosures } = useZoo();
   const { token } = useAuth();
 
-  // Guard: Only superadmin can access global dashboard
-  if (currentUser.role !== "superadmin") {
-    return <Navigate to="/admin/animales" replace />;
-  }
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodKey>("mes");
   const [visitSummary, setVisitSummary] = useState<VisitSummary[]>([]);
   const [totalVisitors, setTotalVisitors] = useState<number>(0);
@@ -145,46 +141,32 @@ export function AdminDashboard() {
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [scopedAnimals, visitsBySpecies]);
 
-  function downloadExcelReport() {
+  function printDashboardReport() {
     if (currentUser.role !== "superadmin") return;
     const rows = animals.map((a) => {
       const enclosure = enclosures.find((e) => e.id === a.enclosureId);
       const visits = visitsBySpecies.get(a.id)?.totalVisits ?? 0;
-      return [
-        a.id,
-        a.name,
-        a.scientificName,
-        a.category,
-        enclosure?.name ?? "Sin recinto",
-        visits,
-      ];
-    });
-
-    const header = [
-      "ID",
-      "Animal",
-      "Nombre Cientifico",
-      "Categoria",
-      "Recinto",
-      "Escaneos QR / visitas",
-    ];
-
-    const csv = [header, ...rows]
-      .map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(","))
-      .join("\n");
-
-    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `reporte-visitas-animales-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+      return `<tr><td>${a.id}</td><td>${a.name}</td><td>${a.scientificName}</td><td>${a.category}</td><td>${enclosure?.name ?? "Sin recinto"}</td><td>${visits}</td></tr>`;
+    }).join("");
+    const reportWindow = window.open("", "_blank");
+    if (!reportWindow) return;
+    reportWindow.document.write(`
+      <html><head><title>Reporte de visitas ZooMAT</title>
+      <style>body{font-family:Arial;margin:30px;color:#002B20}h1{color:#006B49}table{width:100%;border-collapse:collapse}th{background:#006B49;color:#fff}th,td{padding:8px;border:1px solid #d1d5db;text-align:left}</style>
+      </head><body><h1>Reporte de visitas ZooMAT</h1><p>Periodo: ${periodMeta.label} | Emitido: ${new Date().toLocaleString("es-MX")}</p>
+      <table><thead><tr><th>ID</th><th>Animal</th><th>Nombre científico</th><th>Categoría</th><th>Recinto</th><th>Visitas</th></tr></thead><tbody>${rows}</tbody></table>
+      <script>window.onload=()=>setTimeout(()=>window.print(),300)</script></body></html>
+    `);
+    reportWindow.document.close();
   }
 
-  const enclosureAdmins = users.filter((u) => u.role === "enclosure_admin");
+  const administratorCount = users.filter(
+    (u) => u.role === "superadmin" || u.role === "enclosure_admin"
+  ).length;
+
+  if (currentUser.role !== "superadmin") {
+    return <Navigate to="/admin/animales" replace />;
+  }
 
   return (
     <div className="space-y-8">
@@ -200,10 +182,10 @@ export function AdminDashboard() {
         </div>
         {currentUser.role === "superadmin" && (
           <button
-            onClick={downloadExcelReport}
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-800 text-white text-sm font-bold hover:bg-emerald-900 transition-all shadow-md hover:scale-105"
+            onClick={printDashboardReport}
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-800 text-white text-sm font-bold hover:bg-emerald-900 transition-all duration-200 shadow-md hover:shadow-xl hover:-translate-y-0.5 hover:scale-105 active:scale-95 cursor-pointer will-change-transform"
           >
-            <Download size={18} /> Descargar Reporte (.csv)
+            <Printer size={18} /> Descargar Reporte PDF
           </button>
         )}
       </div>
@@ -215,8 +197,8 @@ export function AdminDashboard() {
           <button
             key={p.key}
             onClick={() => setSelectedPeriod(p.key)}
-            className={`px-5 py-2.5 rounded-xl text-sm font-black transition-all ${
-              selectedPeriod === p.key ? "bg-emerald-800 text-white shadow-md" : "bg-emerald-50 text-emerald-900 hover:bg-emerald-100"
+            className={`px-5 py-2.5 rounded-xl text-sm font-black transition-all duration-200 cursor-pointer will-change-transform hover:-translate-y-0.5 active:translate-y-0.5 active:scale-95 ${
+              selectedPeriod === p.key ? "bg-emerald-800 text-white shadow-md scale-102" : "bg-emerald-50 text-emerald-900 hover:bg-emerald-100 hover:shadow-xs"
             }`}
           >
             {p.label}
@@ -226,7 +208,7 @@ export function AdminDashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border-2 border-emerald-100 flex items-center gap-5">
+        <div className="interactive-card bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl hover:border-emerald-300 hover:-translate-y-1.5 transition-all duration-300 border-2 border-emerald-100 flex items-center gap-5 will-change-transform">
           <div className="w-14 h-14 bg-emerald-100 text-emerald-800 rounded-2xl flex items-center justify-center shrink-0">
             <PawPrint size={28} />
           </div>
@@ -236,7 +218,7 @@ export function AdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border-2 border-emerald-100 flex items-center gap-5">
+        <div className="interactive-card bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl hover:border-amber-300 hover:-translate-y-1.5 transition-all duration-300 border-2 border-emerald-100 flex items-center gap-5 will-change-transform">
           <div className="w-14 h-14 bg-amber-100 text-amber-800 rounded-2xl flex items-center justify-center shrink-0">
             <Globe size={28} />
           </div>
@@ -249,7 +231,7 @@ export function AdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border-2 border-emerald-100 flex items-center gap-5">
+        <div className="interactive-card bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl hover:border-purple-300 hover:-translate-y-1.5 transition-all duration-300 border-2 border-emerald-100 flex items-center gap-5 will-change-transform">
           <div className="w-14 h-14 bg-purple-100 text-purple-800 rounded-2xl flex items-center justify-center shrink-0">
             <QrCode size={28} />
           </div>
@@ -262,13 +244,13 @@ export function AdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border-2 border-emerald-100 flex items-center gap-5">
+        <div className="interactive-card bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl hover:border-sky-300 hover:-translate-y-1.5 transition-all duration-300 border-2 border-emerald-100 flex items-center gap-5 will-change-transform">
           <div className="w-14 h-14 bg-sky-100 text-sky-800 rounded-2xl flex items-center justify-center shrink-0">
             <Users size={28} />
           </div>
           <div>
             <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Administradores</p>
-            <p className="text-3xl font-black text-sky-950 mt-0.5">{currentUser.role === "superadmin" ? enclosureAdmins.length : 1}</p>
+            <p className="text-3xl font-black text-sky-950 mt-0.5">{administratorCount}</p>
           </div>
         </div>
       </div>
@@ -282,7 +264,7 @@ export function AdminDashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Gráfica 1: Distribución de Especies por Categoría */}
-          <div className="bg-white rounded-3xl p-6 shadow-md border-2 border-emerald-100 flex flex-col justify-between">
+          <div className="interactive-card bg-white rounded-3xl p-6 shadow-md border-2 border-emerald-100 hover:border-emerald-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between will-change-transform">
             <div>
               <h3 className="text-xl font-black text-emerald-950 mb-1">Especies por Categoría</h3>
               <p className="text-xs text-gray-500 font-medium mb-4">Proporción de fauna por grupo taxonómico (Mamíferos, Aves, Reptiles, Anfibios)</p>
@@ -312,7 +294,7 @@ export function AdminDashboard() {
           </div>
 
           {/* Gráfica 2: Distribución por Estado de Conservación */}
-          <div className="bg-white rounded-3xl p-6 shadow-md border-2 border-emerald-100 flex flex-col justify-between">
+          <div className="interactive-card bg-white rounded-3xl p-6 shadow-md border-2 border-emerald-100 hover:border-emerald-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between will-change-transform">
             <div>
               <h3 className="text-xl font-black text-emerald-950 mb-1">Estado de Conservación</h3>
               <p className="text-xs text-gray-500 font-medium mb-4">Distribución por estatus de riesgo y protección (NOM-059)</p>
@@ -342,7 +324,7 @@ export function AdminDashboard() {
           </div>
 
           {/* Gráfica 3: Distribución por Recintos */}
-          <div className="bg-white rounded-3xl p-6 shadow-md border-2 border-emerald-100 flex flex-col justify-between">
+          <div className="interactive-card bg-white rounded-3xl p-6 shadow-md border-2 border-emerald-100 hover:border-emerald-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between will-change-transform">
             <div>
               <h3 className="text-xl font-black text-emerald-950 mb-1">Especies por Recinto / Zona</h3>
               <p className="text-xs text-gray-500 font-medium mb-4">Proporción de animales albergados en cada recinto del parque</p>
@@ -372,7 +354,7 @@ export function AdminDashboard() {
           </div>
 
           {/* Gráfica 4: Porcentaje de Visitantes por Categoría */}
-          <div className="bg-white rounded-3xl p-6 shadow-md border-2 border-emerald-100 flex flex-col justify-between">
+          <div className="interactive-card bg-white rounded-3xl p-6 shadow-md border-2 border-emerald-100 hover:border-emerald-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between will-change-transform">
             <div>
               <h3 className="text-xl font-black text-emerald-950 mb-1">Afluencia Estimada por Categoría ({periodMeta.label})</h3>
               <p className="text-xs text-gray-500 font-medium mb-4">Interés y volumen de interacción del público según tipo de fauna</p>
@@ -405,7 +387,7 @@ export function AdminDashboard() {
 
       {/* Rankings de Visitas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl shadow-sm border border-emerald-100 p-6">
+        <div className="interactive-card bg-white rounded-2xl shadow-sm hover:shadow-lg hover:border-emerald-200 transition-all duration-200 border border-emerald-100 p-6 will-change-transform">
           <h2 className="text-lg font-black text-emerald-950 mb-4 flex items-center gap-2">
             <span>🔥 Especies más visitadas</span> ({periodMeta.label})
           </h2>

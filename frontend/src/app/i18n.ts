@@ -14,6 +14,18 @@ const resources = {
         map: "Mapa",
         contact: "Contacto",
         admin: "Admin",
+        procedures: "Trámites",
+        government: "Gobierno",
+        participate: "Participa",
+        transparency: "Transparencia",
+        search: "Buscar",
+        coordinationAlt: "Coordinación Estatal para el Mejoramiento del ZooMAT - Gobierno de Chiapas",
+        about: "Quienes somos",
+        ethics: "Comité de Ética",
+        transparencyPortal: "Portal de Transparencia",
+        pdf: "PDF",
+        personalData: "Datos Personales",
+        dataProtection: "Protección de Datos",
       },
       home: {
         hero: {
@@ -30,6 +42,8 @@ const resources = {
           educationDesc: "Programas educativos para concientizar sobre la importancia de nuestra biodiversidad.",
           research: "Investigación",
           researchDesc: "Estudios científicos para entender mejor a las especies y sus ecosistemas.",
+          species: "50+ Especies",
+          speciesDesc: "Fauna nativa de Chiapas",
         },
         featured: {
           title: "Especies",
@@ -52,6 +66,11 @@ const resources = {
           title: "Comprometidos con la Vida",
           desc: "El ZooMAT es más que un lugar de exhibición; es un centro de conservación enfocado en proteger nuestra biodiversidad a través de programas de reproducción, rehabilitación y educación ambiental.",
           support: "Descubre cómo apoyar la causa",
+          carouselImage: "Zoológico",
+          carouselVideo: "Video",
+          previousSlide: "Diapositiva anterior",
+          nextSlide: "Diapositiva siguiente",
+          slide: "Diapositiva {{count}}",
         }
       },
       contact: {
@@ -91,6 +110,11 @@ const resources = {
         supportTitle: "Apoya al ZooMAT",
         supportDesc: "Tu apoyo es fundamental para continuar nuestra labor de conservación y educación. Puedes contribuir mediante donaciones, adopciones simbólicas de animales o siendo voluntario.",
         supportBtn: "Conoce Cómo Ayudar",
+        success: "Gracias por tu mensaje. Te contactaremos pronto.",
+        addressLine1: "Calzada Cerro Hueco S/N, Col. El Zapotal",
+        addressLine2: "Tuxtla Gutiérrez, Chiapas, México",
+        namePlaceholder: "Tu nombre completo",
+        emailPlaceholder: "tu@email.com",
       },
       mapPage: {
         title: "Mapa Interactivo del ZooMAT",
@@ -116,7 +140,17 @@ const resources = {
         privacy: "Privacidad",
         terms: "Términos",
         adminPortal: "Portal Admin",
-        rights: "Todos los derechos reservados."
+        rights: "Todos los derechos reservados.",
+        humanism: "HUMANISMO QUE TRANSFORMA",
+        coordination: "Coordinación Estatal",
+        improvement: "Para el Mejoramiento",
+        zoo: "del ZooMAT",
+        government: "Gobierno de Chiapas",
+        privacyNotice: "Aviso de Privacidad",
+        declara: "Declara Chiapas",
+        contactUs: "Contáctanos",
+        address: "Calzada Cerro Hueco S/N, Col. El Zapotal, Tuxtla Gutiérrez, Chiapas, C. P. 29094.",
+        phone: "Conmutador: 961 543 88 90 Ext. 1001"
       }
     }
   },
@@ -130,6 +164,18 @@ const resources = {
         map: "Map",
         contact: "Contact",
         admin: "Admin",
+        procedures: "Procedures",
+        government: "Government",
+        participate: "Participate",
+        transparency: "Transparency",
+        search: "Search",
+        coordinationAlt: "State Coordination for ZooMAT Improvement - Government of Chiapas",
+        about: "About us",
+        ethics: "Ethics Committee",
+        transparencyPortal: "Transparency Portal",
+        pdf: "PDF",
+        personalData: "Personal Data",
+        dataProtection: "Data Protection",
       },
       home: {
         hero: {
@@ -146,6 +192,8 @@ const resources = {
           educationDesc: "Educational programs to raise awareness about the importance of our biodiversity.",
           research: "Research",
           researchDesc: "Scientific studies to better understand species and their ecosystems.",
+          species: "50+ Species",
+          speciesDesc: "Native wildlife of Chiapas",
         },
         featured: {
           title: "Species",
@@ -168,6 +216,11 @@ const resources = {
           title: "Committed to Life",
           desc: "ZooMAT is more than just an exhibition place; it's a conservation center focused on protecting our biodiversity through breeding, rehabilitation, and environmental education programs.",
           support: "Discover how to support the cause",
+          carouselImage: "Zoo",
+          carouselVideo: "Video",
+          previousSlide: "Previous slide",
+          nextSlide: "Next slide",
+          slide: "Slide {{count}}",
         }
       },
       contact: {
@@ -207,6 +260,11 @@ const resources = {
         supportTitle: "Support ZooMAT",
         supportDesc: "Your support is essential to continue our conservation and education work. You can contribute through donations, symbolic animal adoptions, or volunteering.",
         supportBtn: "Learn How to Help",
+        success: "Thank you for your message. We will contact you soon.",
+        addressLine1: "Cerro Hueco Road S/N, El Zapotal",
+        addressLine2: "Tuxtla Gutiérrez, Chiapas, Mexico",
+        namePlaceholder: "Your full name",
+        emailPlaceholder: "you@email.com",
       },
       mapPage: {
         title: "ZooMAT Interactive Map",
@@ -232,7 +290,17 @@ const resources = {
         privacy: "Privacy",
         terms: "Terms",
         adminPortal: "Admin Portal",
-        rights: "All rights reserved."
+        rights: "All rights reserved.",
+        humanism: "HUMANISM THAT TRANSFORMS",
+        coordination: "State Coordination",
+        improvement: "For the Improvement",
+        zoo: "of ZooMAT",
+        government: "Government of Chiapas",
+        privacyNotice: "Privacy Notice",
+        declara: "Declara Chiapas",
+        contactUs: "Contact us",
+        address: "Cerro Hueco Road S/N, El Zapotal, Tuxtla Gutiérrez, ZIP 29094.",
+        phone: "Switchboard: 961 543 88 90 Ext. 1001"
       }
     }
   }

@@ -4,9 +4,8 @@ import {
   ArrowRight, Users, Heart, TreePine, Calendar, MapPin, Ticket, Clock, 
   BookOpen, ChevronLeft, ChevronRight, Play, PawPrint, Map
 } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { useZoo } from "../context/ZooContext";
-import { getLocalizedAnimal } from "../services/speciesTranslator";
+import { useTranslation } from "react-i18next";
 
 const transparencyBanners = [
   {
@@ -34,6 +33,7 @@ const transparencyBanners = [
 // ── Hero Carousel (Clean & Beautiful with Wooden Controls) ───────────────────
 function HeroCarousel() {
   const { slides } = useZoo();
+  const { t, i18n } = useTranslation();
   const [current, setCurrent] = useState(0);
   const [playing, setPlaying] = useState(false);
   const total = slides.length;
@@ -87,7 +87,7 @@ function HeroCarousel() {
               {/* Cleanly fitted foreground photo */}
               <img
                 src={s.src}
-                alt={s.alt || "Zoológico"}
+                alt={s.alt || t("home.carouselImage")}
                 className="relative z-10 max-h-full max-w-full w-auto h-auto object-contain object-center select-none transition-transform duration-700"
               />
             </div>
@@ -100,7 +100,7 @@ function HeroCarousel() {
                   return (
                     <iframe
                       src={`https://www.youtube.com/embed/${ytMatch[1]}?autoplay=${playing ? 1 : 0}&enablejsapi=1&rel=0`}
-                      title={s.alt || "Video"}
+                      title={s.alt || t("home.carouselVideo")}
                       className="w-full h-full border-0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
@@ -169,16 +169,16 @@ function HeroCarousel() {
       {/* Round Wooden Navigation Arrows (Photo 1 Signature Style) */}
       <button
         onClick={prev}
-        className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-14 sm:h-14 rounded-full wood-texture-dark border-2 border-amber-500 text-amber-300 flex items-center justify-center shadow-2xl hover:scale-110 hover:border-amber-300 transition-all cursor-pointer wood-button-shadow"
-        aria-label="Anterior diapositiva"
+        className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-14 sm:h-14 rounded-full wood-texture-dark border-2 border-amber-500 text-amber-300 flex items-center justify-center shadow-2xl hover:scale-110 active:scale-90 hover:border-amber-300 transition-all duration-200 cursor-pointer wood-button-shadow will-change-transform"
+        aria-label={t("home.previousSlide")}
       >
         <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8" />
       </button>
 
       <button
         onClick={next}
-        className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-14 sm:h-14 rounded-full wood-texture-dark border-2 border-amber-500 text-amber-300 flex items-center justify-center shadow-2xl hover:scale-110 hover:border-amber-300 transition-all cursor-pointer wood-button-shadow"
-        aria-label="Siguiente diapositiva"
+        className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-14 sm:h-14 rounded-full wood-texture-dark border-2 border-amber-500 text-amber-300 flex items-center justify-center shadow-2xl hover:scale-110 active:scale-90 hover:border-amber-300 transition-all duration-200 cursor-pointer wood-button-shadow will-change-transform"
+        aria-label={t("home.nextSlide")}
       >
         <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />
       </button>
@@ -192,10 +192,10 @@ function HeroCarousel() {
               setCurrent(i);
               setPlaying(false);
             }}
-            className={`rounded-full transition-all cursor-pointer ${
-              i === current ? "w-6 sm:w-7 h-2 sm:h-2.5 bg-amber-400" : "w-2 sm:w-2.5 h-2 sm:h-2.5 bg-white/60 hover:bg-white"
+            className={`rounded-full transition-all duration-200 hover:scale-125 cursor-pointer ${
+              i === current ? "w-6 sm:w-7 h-2 sm:h-2.5 bg-amber-400 scale-105" : "w-2 sm:w-2.5 h-2 sm:h-2.5 bg-white/60 hover:bg-white"
             }`}
-            aria-label={`Diapositiva ${i + 1}`}
+            aria-label={t("home.slide", { count: i + 1 })}
           />
         ))}
       </div>    </div>
@@ -204,15 +204,14 @@ function HeroCarousel() {
 
 // ── Main Home Page ────────────────────────────────────────────────────────────
 export function Home() {
-  const { t } = useTranslation();
-  const { animals, currentLang } = useZoo();
-  const isEs = currentLang === "es";
+  const { animals } = useZoo();
+  const { t, i18n } = useTranslation();
 
   const highlights = [
     {
       icon: Users,
-      title: isEs ? "50+ Especies" : "50+ Species",
-      description: isEs ? "Fauna nativa de Chiapas" : "Native wildlife of Chiapas",
+      title: t("home.highlights.species"),
+      description: t("home.highlights.speciesDesc"),
     },
     {
       icon: TreePine,
@@ -229,7 +228,7 @@ export function Home() {
   return (
     <div className="bg-[#faf8f2] text-stone-900">
       {/* 1. Full-bleed Edge-to-Edge Hero Carousel with Top & Bottom Wood Beams */}
-      <section className="relative w-full overflow-hidden bg-stone-950">
+      <section className="relative w-full overflow-hidden bg-stone-950 no-reveal">
         {/* Barra café rústica superior (arriba de la imagen del carrusel) */}
         <div className="wood-texture-bg h-7 sm:h-9 w-full border-t-2 border-b-4 border-[#2b1706] shadow-2xl relative z-30">
           <div className="absolute inset-x-0 top-0 h-0.5 bg-amber-200/25" />
@@ -243,26 +242,26 @@ export function Home() {
           <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center justify-center gap-3 sm:gap-6 w-[94%] max-w-2xl px-2">
             <Link
               to="/animales"
-              className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/75 hover:bg-[#731c34] text-white border-2 border-amber-400/80 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-300 hover:scale-105 font-sans font-bold text-sm sm:text-base tracking-wide group"
+              className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/75 hover:bg-[#731c34] text-white border-2 border-amber-400/80 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-200 hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 font-sans font-bold text-sm sm:text-base tracking-wide group will-change-transform"
             >
-              <PawPrint className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-110 transition-transform" />
-              <span>Especies</span>
+              <PawPrint className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-115 transition-transform duration-200" />
+              <span>{t("nav.animals")}</span>
             </Link>
 
             <Link
               to="/visita"
-              className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/75 hover:bg-[#731c34] text-white border-2 border-amber-400/80 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-300 hover:scale-105 font-sans font-bold text-sm sm:text-base tracking-wide group"
+              className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/75 hover:bg-[#731c34] text-white border-2 border-amber-400/80 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-200 hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 font-sans font-bold text-sm sm:text-base tracking-wide group will-change-transform"
             >
-              <Ticket className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-110 transition-transform" />
-              <span>Visita</span>
+              <Ticket className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-115 transition-transform duration-200" />
+              <span>{t("nav.visit")}</span>
             </Link>
 
             <Link
               to="/mapa"
-              className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/75 hover:bg-[#731c34] text-white border-2 border-amber-400/80 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-300 hover:scale-105 font-sans font-bold text-sm sm:text-base tracking-wide group"
+              className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/75 hover:bg-[#731c34] text-white border-2 border-amber-400/80 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-200 hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 font-sans font-bold text-sm sm:text-base tracking-wide group will-change-transform"
             >
-              <Map className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-110 transition-transform" />
-              <span>Mapa</span>
+              <Map className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-115 transition-transform duration-200" />
+              <span>{t("nav.map")}</span>
             </Link>
           </div>
         </div>
@@ -275,7 +274,7 @@ export function Home() {
       </section>
 
       {/* 2. Sección de Introducción de Cabecera */}
-      <section className="relative bg-[#f7f3e8] border-b border-[#e2d5bd] py-14 md:py-20 overflow-hidden">
+      <section className="reveal-on-scroll relative bg-[#f7f3e8] border-b border-[#e2d5bd] py-14 md:py-20 overflow-hidden">
         {/* Subtle decorative background pattern */}
         <div
           className="absolute inset-0 opacity-20 pointer-events-none"
@@ -303,16 +302,16 @@ export function Home() {
             <div className="flex flex-wrap gap-4 pt-2">
               <Link
                 to="/visita"
-                className="inline-flex items-center gap-3 wood-texture-bg text-amber-200 hover:text-white border-2 border-amber-600/80 px-8 py-4 rounded-2xl text-lg font-adventure shadow-lg hover:shadow-xl hover:scale-105 transition-all wood-button-shadow"
+                className="inline-flex items-center gap-3 wood-texture-bg text-amber-200 hover:text-white border-2 border-amber-600/80 px-8 py-4 rounded-2xl text-lg font-adventure shadow-lg hover:shadow-2xl hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 transition-all duration-200 wood-button-shadow will-change-transform"
               >
                 <Ticket className="w-5 h-5 text-amber-400" />
                 <span>{t("home.hero.planVisit")}</span>
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" />
               </Link>
 
               <Link
                 to="/animales"
-                className="inline-flex items-center gap-3 bg-white hover:bg-amber-50 text-stone-900 border-2 border-amber-800/30 px-8 py-4 rounded-2xl text-lg font-adventure shadow-md hover:shadow-lg hover:scale-105 transition-all"
+                className="inline-flex items-center gap-3 bg-white hover:bg-amber-50 text-stone-900 border-2 border-amber-800/30 px-8 py-4 rounded-2xl text-lg font-adventure shadow-md hover:shadow-xl hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 transition-all duration-200 will-change-transform"
               >
                 <BookOpen className="w-5 h-5 text-emerald-800" />
                 <span>{t("home.hero.exploreCatalog")}</span>
@@ -323,18 +322,18 @@ export function Home() {
       </section>
 
       {/* 3. Highlights Section */}
-      <section className="py-20 md:py-24 bg-white border-b border-[#e8dfcf]">
+      <section className="reveal-on-scroll py-20 md:py-24 bg-white border-b border-[#e8dfcf]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
             {highlights.map((item, index) => (
               <div
                 key={index}
-                className="flex flex-col items-start p-8 rounded-3xl bg-[#faf7ef] border-2 border-[#e6dbc7] hover:border-amber-400 hover:bg-[#fffdf7] transition-all shadow-sm hover:shadow-xl group"
+                className={`interactive-card flex flex-col items-start p-8 rounded-3xl bg-[#faf7ef] border-2 border-[#e6dbc7] hover:border-amber-400 hover:bg-[#fffdf7] hover:-translate-y-2 hover:shadow-xl transition-all duration-300 ease-out shadow-sm group will-change-transform stagger-${index + 1}`}
               >
-                <div className="wood-texture-bg p-4 rounded-2xl mb-6 text-amber-300 border border-amber-600 shadow-md group-hover:scale-105 transition-transform">
+                <div className="wood-texture-bg p-4 rounded-2xl mb-6 text-amber-300 border border-amber-600 shadow-md group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300 ease-out will-change-transform">
                   <item.icon className="w-8 h-8" />
                 </div>
-                <h3 className="font-adventure text-2xl text-stone-900 mb-3 tracking-wide">
+                <h3 className="font-adventure text-2xl text-stone-900 mb-3 tracking-wide group-hover:text-amber-900 transition-colors duration-200">
                   {item.title}
                 </h3>
                 <p className="text-stone-600 leading-relaxed font-medium text-lg">
@@ -347,27 +346,27 @@ export function Home() {
       </section>
 
       {/* 4. Featured Animals (Real Animals from ZooContext / Admin) */}
-      <section className="py-20 md:py-24 bg-[#faf6ee] border-b border-[#e2d5bd]">
+      <section className="reveal-on-scroll py-20 md:py-24 bg-[#faf6ee] border-b border-[#e2d5bd]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-14 gap-6">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 text-xs font-bold uppercase tracking-wider mb-2">
                 <TreePine className="w-3.5 h-3.5 text-emerald-700" />
-                <span>Biodiversidad Protegida</span>
+                <span>{t("home.featured.title")}</span>
               </div>
               <h2 className="font-adventure text-3xl sm:text-5xl text-stone-900 tracking-wide text-adventure-shadow">
-                {t("home.featured.title")}
+                Especies
               </h2>
               <p className="text-stone-600 max-w-2xl font-semibold text-lg md:text-xl mt-2">
-                {t("home.featured.desc")}
+                Conoce algunos de nuestros habitantes más emblemáticos que protegemos en el zoológico.
               </p>
             </div>
             <Link
               to="/animales"
-              className="font-adventure text-base text-amber-950 bg-amber-300 hover:bg-amber-400 border-2 border-amber-500 px-6 py-3 rounded-2xl shadow-sm hover:scale-105 transition-all flex items-center gap-2"
+              className="font-adventure text-base text-amber-950 bg-amber-300 hover:bg-amber-400 border-2 border-amber-500 px-6 py-3 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2 will-change-transform"
             >
               <span>{t("home.featured.viewAll")}</span>
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" />
             </Link>
           </div>
 
@@ -375,41 +374,38 @@ export function Home() {
             {animals.length === 0 ? (
               <div className="col-span-full text-center py-12 bg-white rounded-3xl border-2 border-dashed border-amber-300">
                 <p className="text-stone-800 font-bold text-lg">
-                  {isEs ? "No hay especies registradas actualmente." : "No species currently registered."}
+                  No hay especies registradas actualmente.
                 </p>
                 <p className="text-stone-500 text-sm mt-1">
-                  {isEs
-                    ? "Las especies agregadas desde el panel de administración aparecerán aquí."
-                    : "Species added from the admin panel will appear here."}
+                  Las especies agregadas desde el panel de administración aparecerán aquí.
                 </p>
               </div>
             ) : (
-              animals.slice(0, 3).map((animal) => {
-                const loc = getLocalizedAnimal(animal, isEs);
+              animals.slice(0, 3).map((animal, idx) => {
                 return (
                   <div
                     key={animal.id}
-                    className="bg-white rounded-3xl overflow-hidden border-2 border-[#e6dbc7] shadow-md hover:shadow-2xl transition-all duration-300 group flex flex-col"
+                    className={`interactive-card bg-white rounded-3xl overflow-hidden border-2 border-[#e6dbc7] shadow-md hover:shadow-2xl hover:border-amber-400/80 hover:-translate-y-2.5 transition-all duration-300 ease-out group flex flex-col will-change-transform stagger-${idx + 1}`}
                   >
                     <div className="relative h-72 overflow-hidden bg-stone-900">
                       <img
                         src={animal.image}
-                        alt={loc.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
+                        alt={animal.name}
+                        className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out will-change-transform"
                       />
-                      <div className="absolute top-4 left-4 bg-stone-950/80 backdrop-blur-md text-amber-300 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider shadow-md border border-amber-400/30">
-                        {loc.status}
+                      <div className="card-badge absolute top-4 left-4 bg-stone-950/80 backdrop-blur-md text-amber-300 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider shadow-md border border-amber-400/30 transition-transform duration-300 group-hover:scale-105">
+                        {animal.status}
                       </div>
                     </div>
                     <div className="p-7 flex items-center justify-between gap-3 flex-1 bg-white">
-                      <h3 className="font-adventure text-2xl text-stone-900">
-                        {loc.name}
+                      <h3 className="font-adventure text-2xl text-stone-900 group-hover:text-amber-900 transition-colors duration-200">
+                        {animal.name}
                       </h3>
                       <Link
                         to={`/animales?id=${animal.id}`}
-                        className="text-emerald-900 hover:text-emerald-950 font-adventure text-sm bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-xl border border-emerald-300 shadow-xs transition-colors"
+                        className="text-emerald-900 hover:text-emerald-950 font-adventure text-sm bg-emerald-50 hover:bg-emerald-100 hover:scale-105 active:scale-95 px-4 py-2 rounded-xl border border-emerald-300 shadow-xs transition-all duration-200 will-change-transform"
                       >
-                        {isEs ? "Ver más →" : "View more →"}
+                        Ver más →
                       </Link>
                     </div>
                   </div>
@@ -421,9 +417,9 @@ export function Home() {
       </section>
 
       {/* 5. Visit Info (Real Hours, Admission & Google Maps) */}
-      <section className="py-20 md:py-24 bg-white">
+      <section className="reveal-on-scroll py-20 md:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="wood-texture-dark rounded-[2.5rem] p-8 md:p-16 text-white overflow-hidden relative shadow-2xl border-4 border-amber-700/60">
+          <div className="wood-texture-dark rounded-[2.5rem] p-8 md:p-16 text-white overflow-hidden relative shadow-2xl border-4 border-amber-700/60 hover:border-amber-600 transition-colors duration-300">
             {/* Elegant wood glow overlay */}
             <div className="absolute inset-0 bg-stone-950/80 pointer-events-none" />
             <div className="absolute top-0 right-0 -mr-32 -mt-32 w-96 h-96 rounded-full bg-amber-600 opacity-20 blur-3xl pointer-events-none" />
@@ -435,14 +431,14 @@ export function Home() {
                   <span>{t("home.visit.tag")}</span>
                 </div>
                 <h2 className="font-adventure text-3xl md:text-5xl mb-6 tracking-wide text-white text-adventure-shadow">
-                  {t("home.visit.title")}
+                  Planifica tu recorrido
                 </h2>
                 <p className="text-stone-300 text-lg mb-10 leading-relaxed font-medium">
-                  {t("home.visit.desc")}
+                  Estamos abiertos de martes a domingo. Ven y vive una experiencia educativa inmersiva para toda la familia en el corazón de la selva.
                 </p>
 
                 <div className="space-y-5 mb-10">
-                  <div className="flex items-center gap-4 text-stone-200 bg-black/40 p-4 rounded-2xl border border-amber-900/60">
+                  <div className="flex items-center gap-4 text-stone-200 bg-black/40 hover:bg-black/55 p-4 rounded-2xl border border-amber-900/60 hover:border-amber-700/70 hover:-translate-y-0.5 transition-all duration-200 will-change-transform">
                     <Clock className="w-6 h-6 text-amber-400 flex-shrink-0" />
                     <div>
                       <p className="font-bold text-white">{t("home.visit.hoursTitle")}</p>
@@ -450,7 +446,7 @@ export function Home() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 text-stone-200 bg-black/40 p-4 rounded-2xl border border-amber-900/60">
+                  <div className="flex items-center gap-4 text-stone-200 bg-black/40 hover:bg-black/55 p-4 rounded-2xl border border-amber-900/60 hover:border-amber-700/70 hover:-translate-y-0.5 transition-all duration-200 will-change-transform">
                     <MapPin className="w-6 h-6 text-amber-400 flex-shrink-0" />
                     <div>
                       <p className="font-bold text-white">{t("home.visit.locationTitle")}</p>
@@ -458,7 +454,7 @@ export function Home() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 text-stone-200 bg-black/40 p-4 rounded-2xl border border-amber-900/60">
+                  <div className="flex items-center gap-4 text-stone-200 bg-black/40 hover:bg-black/55 p-4 rounded-2xl border border-amber-900/60 hover:border-amber-700/70 hover:-translate-y-0.5 transition-all duration-200 will-change-transform">
                     <Ticket className="w-6 h-6 text-amber-400 flex-shrink-0" />
                     <div>
                       <p className="font-bold text-white">{t("home.visit.admissionTitle")}</p>
@@ -469,14 +465,14 @@ export function Home() {
 
                 <Link
                   to="/visita"
-                  className="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-stone-950 px-8 py-4 rounded-2xl font-adventure text-lg transition-all shadow-lg hover:scale-105 wood-button-shadow"
+                  className="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-stone-950 px-8 py-4 rounded-2xl font-adventure text-lg transition-all duration-200 shadow-lg hover:shadow-2xl hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 wood-button-shadow will-change-transform"
                 >
                   <span>{t("home.visit.moreDetails")}</span>
                   <ArrowRight className="w-5 h-5" />
                 </Link>
               </div>
 
-              <div className="relative h-[30rem] rounded-3xl overflow-hidden bg-stone-900 border-4 border-amber-600/60 shadow-2xl">
+              <div className="relative h-[30rem] rounded-3xl overflow-hidden bg-stone-900 border-4 border-amber-600/60 shadow-2xl hover:border-amber-500 transition-colors duration-300">
                 <iframe
                   title="Google Maps ZooMAT"
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3820.612711003444!2d-93.0975618!3d16.7460298!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85ed272bc9776d63%3A0xc3f6a2c2622fbb95!2sZool%C3%B3gico%20Regional%20Miguel%20%C3%81lvarez%20del%20Toro!5e0!3m2!1ses!2smx!45"
@@ -492,22 +488,22 @@ export function Home() {
       </section>
 
       {/* Sección de Banners de Transparencia: 4 cuadros en tamaño normal (Imagen 1) */}
-      <section className="pt-8 pb-5 sm:pt-10 sm:pb-6 bg-[#faf8f2]">
+      <section className="reveal-on-scroll pt-8 pb-5 sm:pt-10 sm:pb-6 bg-[#faf8f2]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
-            {transparencyBanners.map((banner) => (
+            {transparencyBanners.map((banner, idx) => (
               <a
                 key={`${banner.image}-${banner.href}`}
                 href={banner.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group block overflow-hidden rounded-xl border border-stone-200 bg-white shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-amber-400 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 active:scale-[.98]"
+                className={`interactive-card group block overflow-hidden rounded-xl border border-stone-200 bg-white shadow-xs transition-all duration-300 hover:-translate-y-1.5 hover:border-amber-400 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 active:scale-[.97] will-change-transform stagger-${idx + 1}`}
               >
                 <img
                   src={banner.image}
                   alt={banner.alt}
                   loading="lazy"
-                  className="block w-full max-w-full h-auto aspect-[3.2/1] object-cover transition-transform duration-300 group-hover:scale-105"
+                  className="block w-full max-w-full h-auto aspect-[3.2/1] object-cover transition-transform duration-500 group-hover:scale-106 will-change-transform"
                 />
                 <span className="sr-only">Abrir {banner.alt}</span>
               </a>

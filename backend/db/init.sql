@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS species (
   species_name VARCHAR(100),
   category VARCHAR(50),
   enclosure_id VARCHAR(100),
+  is_visible_to_public BOOLEAN NOT NULL DEFAULT TRUE,
   translation_cache JSONB,
   description TEXT,
   image_url VARCHAR(500),

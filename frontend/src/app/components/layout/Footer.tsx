@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Lock, LogIn, MapPin, Phone } from "lucide-react";
 import { 
   loadStoredDocuments, 
@@ -36,6 +37,7 @@ function HumanismoGlyph({ className = "w-10 h-10" }: { className?: string }) {
 }
 
 export function Footer() {
+  const { t, i18n } = useTranslation();
   const [documents, setDocuments] = useState<InstitutionalDocument[]>(loadStoredDocuments());
   const [selectedDoc, setSelectedDoc] = useState<InstitutionalDocument | null>(null);
 
@@ -79,23 +81,23 @@ export function Footer() {
                 <div className="flex flex-col items-center">
                   <HumanismoGlyph className="w-10 h-8 sm:w-11 sm:h-9 text-emerald-400" />
                   <span className="text-[7px] font-black text-[#e11d48] tracking-widest uppercase mt-0.5 text-center leading-none">
-                    HUMANISMO QUE<br />TRANSFORMA
+                    {t("footer.humanism")}
                   </span>
                 </div>
 
                 {/* Texto Borgoña Institucional */}
                 <div className="flex flex-col text-[#b82950] font-sans">
                   <span className="text-[10.5px] sm:text-[11.5px] font-black uppercase tracking-wider leading-tight">
-                    Coordinación Estatal
+                    {t("footer.coordination")}
                   </span>
                   <span className="text-[10.5px] sm:text-[11.5px] font-black uppercase tracking-wider leading-tight">
-                    Para el Mejoramiento
+                    {t("footer.improvement")}
                   </span>
                   <span className="text-[10.5px] sm:text-[11.5px] font-black uppercase tracking-wider leading-tight">
-                    del ZooMAT
+                    {t("footer.zoo")}
                   </span>
                   <span className="text-[8px] sm:text-[8.5px] font-bold text-[#b82950]/80 tracking-widest uppercase mt-0.5 leading-tight">
-                    Gobierno de Chiapas
+                    {t("footer.government")}
                   </span>
                   <span className="text-[7.5px] font-bold text-[#b82950]/70 tracking-widest leading-tight">
                     2024 - 2030
@@ -110,7 +112,7 @@ export function Footer() {
                   className="flex items-center gap-2 text-xs sm:text-sm text-stone-300 hover:text-white transition-colors cursor-pointer group"
                 >
                   <Lock className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
-                  <span className="underline-offset-4 hover:underline">Aviso de Privacidad</span>
+                  <span className="underline-offset-4 hover:underline">{t("footer.privacyNotice")}</span>
                 </button>
 
                 <button
@@ -118,7 +120,7 @@ export function Footer() {
                   className="flex items-center gap-2 text-xs sm:text-sm text-stone-300 hover:text-white transition-colors cursor-pointer group"
                 >
                   <LogIn className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
-                  <span className="underline-offset-4 hover:underline">Declara Chiapas</span>
+                  <span className="underline-offset-4 hover:underline">{t("footer.declara")}</span>
                 </button>
               </div>
             </div>
@@ -126,7 +128,7 @@ export function Footer() {
             {/* ── COLUMNA DERECHA: CONTÁCTANOS (FOTO 2) ── */}
             <div className="space-y-2 md:text-right">
               <h3 className="text-white text-sm sm:text-base font-bold tracking-tight">
-                Contáctanos
+                {t("footer.contactUs")}
               </h3>
 
               <div className="space-y-2 text-xs sm:text-sm text-stone-300 max-w-sm md:ml-auto">
@@ -134,8 +136,7 @@ export function Footer() {
                 <div className="flex items-start md:justify-end gap-2">
                   <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 flex-shrink-0 mt-0.5 md:order-2" />
                   <span className="leading-relaxed">
-                    Calzada Cerro Hueco S/N, Col. El Zapotal,<br />
-                    Tuxtla Gutiérrez, Chiapas, C. P. 29094.
+                    {t("footer.address")}
                   </span>
                 </div>
 
@@ -146,7 +147,7 @@ export function Footer() {
                     href="tel:9615438890"
                     className="hover:text-amber-300 transition-colors font-semibold"
                   >
-                    Conmutador: 961 543 88 90 Ext. 1001
+                    {t("footer.phone")}
                   </a>
                 </div>
               </div>

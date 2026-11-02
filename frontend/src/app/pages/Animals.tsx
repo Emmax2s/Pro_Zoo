@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router";
 import { Search, Filter, Volume2, MapPin, X, Info, Lightbulb, Globe, VolumeX, Mic, TreePine, Sparkles } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { AnimalCard } from "../components/AnimalCard";
 import { useZoo } from "../context/ZooContext";
 import { recordSpeciesVisit } from "../services/analytics";
 import { getLocalizedAnimal } from "../services/speciesTranslator";
 import { playChime, speakNarration, stopAllAudio } from "../services/audioPlayer";
+import { useTranslation } from "react-i18next";
 
 export function Animals() {
   const { animals, currentLang, toggleLanguage, setLanguage } = useZoo();
+  const { t, i18n } = useTranslation();
   const isEs = currentLang === "es";
   const { id: pathId } = useParams<{ id?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -107,13 +108,9 @@ export function Animals() {
     );
   };
 
-  const categories = isEs
-    ? ["Todos", "Mamífero", "Ave", "Reptil", "Anfibio"]
-    : ["All", "Mammal", "Bird", "Reptile", "Amphibian"];
+  const categories = ["Todos", "Mamífero", "Ave", "Reptil", "Anfibio"];
 
-  const statuses = isEs
-    ? ["Todos", "En Peligro de Extinción", "Amenazada", "Protegida Especial"]
-    : ["All", "Endangered", "Threatened", "Special Protection"];
+  const statuses = ["Todos", "En Peligro de Extinción", "Amenazada", "Protegida Especial"];
 
   const isCategorySelected = (cat: string) => {
     if (cat === "Todos" || cat === "All") {
@@ -176,7 +173,7 @@ export function Animals() {
   return (
     <div className="min-h-screen bg-[#faf8f2] text-stone-900 pb-20">
       {/* 1. Header Banner matching photo 1 style */}
-      <section className="relative bg-[#f7f3e8] border-b-4 border-[#2b1706] py-14 md:py-20 overflow-hidden">
+      <section className="reveal-on-scroll relative bg-[#f7f3e8] border-b-4 border-[#2b1706] py-14 md:py-20 overflow-hidden">
         <div
           className="absolute inset-0 opacity-20 pointer-events-none"
           style={{
@@ -193,13 +190,11 @@ export function Animals() {
             </div>
 
             <h1 className="font-adventure text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-stone-900 leading-[1.1] text-adventure-shadow">
-              {isEs ? "Catálogo de Fauna Nativa" : "Native Wildlife Catalog"}
+              Catálogo de Fauna Nativa
             </h1>
 
             <p className="text-xl md:text-2xl text-stone-700 leading-relaxed font-semibold">
-              {isEs
-                ? "Explora la increíble diversidad de fauna protegida en el ZooMAT a través de nuestro catálogo interactivo y audioguías oficiales."
-                : "Explore the incredible diversity of protected wildlife at ZooMAT through our interactive catalog and official audio guides."}
+              Explora la increíble diversidad de fauna protegida en el ZooMAT a través de nuestro catálogo interactivo y audioguías oficiales.
             </p>
           </div>
         </div>
@@ -209,22 +204,18 @@ export function Animals() {
       </section>
 
       {/* 2. Filters Box with Adventure Styling */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-        <div className="bg-white border-2 border-[#e2d5bd] rounded-3xl shadow-xl p-6 md:p-8">
+      <section className="reveal-on-scroll max-w-7xl mx-auto px-4 sm:px-6 py-10">
+        <div className="bg-white border-2 border-[#e2d5bd] rounded-3xl shadow-xl p-6 md:p-8 hover:border-amber-600/30 transition-colors duration-300">
           {/* Search Input */}
           <div className="mb-8">
             <div className="relative max-w-2xl">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-amber-700" />
               <input
                 type="text"
-                placeholder={
-                  isEs
-                    ? "Buscar especie por nombre común o científico..."
-                    : "Search species by common or scientific name..."
-                }
+                placeholder="Buscar especie por nombre común o científico..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-14 pr-4 py-4 bg-[#fcfaf5] border-2 border-amber-900/20 rounded-2xl text-stone-900 placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:bg-white transition-all text-base font-semibold"
+                className="w-full pl-14 pr-4 py-4 bg-[#fcfaf5] border-2 border-amber-900/20 rounded-2xl text-stone-900 placeholder-stone-500 focus:outline-none focus:ring-3 focus:ring-amber-500 focus:border-amber-700 focus:bg-white transition-all duration-200 text-base font-semibold shadow-xs"
               />
             </div>
           </div>
@@ -235,17 +226,17 @@ export function Animals() {
             <div className="flex-1">
               <label className="flex items-center text-sm font-black text-amber-900 uppercase tracking-widest mb-4">
                 <Filter className="w-4 h-4 mr-2 text-amber-700" />
-                {isEs ? "Categoría" : "Category"}
+                Categoría
               </label>
               <div className="flex flex-wrap gap-2.5">
                 {categories.map((category) => (
                   <button
                     key={category}
                     onClick={() => setSelectedCategory(category)}
-                    className={`px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all cursor-pointer ${
+                    className={`px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all duration-200 cursor-pointer will-change-transform hover:-translate-y-0.5 active:translate-y-0.5 active:scale-95 ${
                       isCategorySelected(category)
                         ? "wood-texture-bg text-amber-200 border-2 border-amber-600 shadow-md wood-button-shadow scale-105"
-                        : "bg-[#fcfaf5] text-stone-800 hover:bg-amber-100/60 border border-amber-900/20"
+                        : "bg-[#fcfaf5] text-stone-800 hover:bg-amber-100/60 hover:shadow-sm border border-amber-900/20"
                     }`}
                   >
                     {category}
@@ -258,17 +249,17 @@ export function Animals() {
             <div className="flex-1">
               <label className="flex items-center text-sm font-black text-amber-900 uppercase tracking-widest mb-4">
                 <Filter className="w-4 h-4 mr-2 text-amber-700" />
-                {isEs ? "Estado de Conservación" : "Conservation Status"}
+                Estado de Conservación
               </label>
               <div className="flex flex-wrap gap-2.5">
                 {statuses.map((status) => (
                   <button
                     key={status}
                     onClick={() => setSelectedStatus(status)}
-                    className={`px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all cursor-pointer ${
+                    className={`px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all duration-200 cursor-pointer will-change-transform hover:-translate-y-0.5 active:translate-y-0.5 active:scale-95 ${
                       isStatusSelected(status)
                         ? "wood-texture-bg text-amber-200 border-2 border-amber-600 shadow-md wood-button-shadow scale-105"
-                        : "bg-[#fcfaf5] text-stone-800 hover:bg-amber-100/60 border border-amber-900/20"
+                        : "bg-[#fcfaf5] text-stone-800 hover:bg-amber-100/60 hover:shadow-sm border border-amber-900/20"
                     }`}
                   >
                     {status}
@@ -281,26 +272,26 @@ export function Animals() {
 
         <div className="mt-6 flex items-center justify-between text-base text-stone-700 font-bold px-2">
           <p>
-            {isEs ? "Mostrando " : "Showing "}
+            Mostrando{" "}
             <span className="font-adventure text-lg text-amber-950 bg-amber-200/80 px-3 py-1 rounded-lg border border-amber-400">
               {filteredAnimals.length}
             </span>
-            {isEs ? " especies nativas encontradas" : " native species found"}
+            {" "}especies nativas encontradas
           </p>
         </div>
       </section>
 
       {/* 3. Animals Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-24">
+      <section className="reveal-on-scroll max-w-7xl mx-auto px-4 sm:px-6 pb-24">
         {filteredAnimals.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid min-w-0 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {filteredAnimals.map((animal) => {
               const loc = getLocalizedAnimal(animal, isEs);
               return (
                 <div
                   key={animal.id}
                   onClick={() => setSelectedAnimal(animal)}
-                  className="cursor-pointer transform transition-transform duration-300 hover:-translate-y-2"
+                  className="cursor-pointer transform transition-all duration-300 hover:-translate-y-2.5 active:scale-[0.98] will-change-transform"
                 >
                   <AnimalCard
                     name={loc.name}
@@ -325,9 +316,7 @@ export function Animals() {
         ) : (
           <div className="border-2 border-dashed border-amber-300 bg-white rounded-3xl p-16 text-center shadow-lg">
             <p className="text-stone-800 font-bold mb-6 text-xl">
-              {isEs
-                ? "No se encontraron animales con los filtros seleccionados."
-                : "No animals found with the selected filters."}
+              No se encontraron animales con los filtros seleccionados.
             </p>
             <button
               onClick={() => {
@@ -337,7 +326,7 @@ export function Animals() {
               }}
               className="wood-texture-bg text-amber-200 hover:text-white px-8 py-3.5 rounded-2xl text-base font-adventure border-2 border-amber-600 shadow-md hover:scale-105 transition-all wood-button-shadow"
             >
-              {isEs ? "Limpiar Filtros" : "Clear Filters"}
+              Limpiar Filtros
             </button>
           </div>
         )}
@@ -350,7 +339,7 @@ export function Animals() {
           onClick={closeModal}
         >
           <div
-            className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col border-4 border-[#2b1706]"
+            className="relative w-full max-w-4xl min-w-0 bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col border-4 border-[#2b1706]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header del Modal con Textura Madera */}
@@ -367,7 +356,7 @@ export function Animals() {
                 {/* Botón de Cambio de Idioma */}
                 <button
                   onClick={handleToggleModalLanguage}
-                  className="bg-white/90 hover:bg-white text-stone-950 font-black px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-md border-2 border-amber-400 transition-transform hover:scale-105 cursor-pointer"
+                  className="bg-white/90 hover:bg-white text-stone-950 font-black px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-md border-2 border-amber-400 transition-all duration-200 hover:scale-105 active:scale-95 hover:-translate-y-0.5 cursor-pointer will-change-transform"
                   title="Cambiar idioma del modal / Switch modal language"
                 >
                   <Globe className="w-4 h-4 text-emerald-800" />
@@ -380,7 +369,7 @@ export function Animals() {
 
                 <button
                   onClick={closeModal}
-                  className="p-2 rounded-full bg-black/40 hover:bg-black/60 text-amber-200 transition-colors cursor-pointer border border-amber-500/40"
+                  className="p-2 rounded-full bg-black/40 hover:bg-black/60 text-amber-200 transition-all duration-200 hover:scale-110 active:scale-90 cursor-pointer border border-amber-500/40 will-change-transform"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -423,10 +412,10 @@ export function Animals() {
                     </div>
                     <button
                       onClick={handleSpeakInfo}
-                      className={`px-5 py-3 rounded-xl font-black text-sm flex items-center gap-2 transition-all cursor-pointer shadow-md ${
+                      className={`px-5 py-3 rounded-xl font-black text-sm flex items-center gap-2 transition-all duration-200 cursor-pointer shadow-md will-change-transform ${
                         isSpeaking
                           ? "bg-rose-600 hover:bg-rose-700 text-white animate-pulse"
-                          : "bg-amber-400 hover:bg-amber-300 text-stone-950 hover:scale-105"
+                          : "bg-amber-400 hover:bg-amber-300 text-stone-950 hover:scale-105 active:scale-95 hover:-translate-y-0.5"
                       }`}
                     >
                       {isSpeaking ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}

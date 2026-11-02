@@ -201,16 +201,15 @@ export function AdminHome() {
   const { slides, setSlides, currentUser } = useZoo();
   const { token } = useAuth();
 
-  // Guard: Only superadmin can manage the homepage carousel
-  if (currentUser.role !== "superadmin") {
-    return <Navigate to="/admin/animales" replace />;
-  }
-
   const [showAdd, setShowAdd] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [dragging, setDragging] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
+
+  if (currentUser.role !== "superadmin") {
+    return <Navigate to="/admin/animales" replace />;
+  }
 
   async function persistSlides(nextSlides: SlideItem[]) {
     if (!API_BASE_URL || !token) {

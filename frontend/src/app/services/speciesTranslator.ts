@@ -30,7 +30,7 @@ export function getLocalizedAnimal(animal: Record<string, unknown> | null | unde
     name: String(animal.name || ""),
     scientificName: String(animal.scientificName || animal.species || ""),
     category: String(animal.category || ""),
-    status: String(animal.status || animal.conservation || ""),
+    status: String(animal.translatedStatus || animal.status || animal.conservation || ""),
     habitat: String(animal.habitat || ""),
     diet: String(animal.diet || ""),
     funFact: String(animal.funFact || animal.description || ""),

@@ -147,7 +147,7 @@ export function Redes() {
               <Link
                 key={idx}
                 to={link.href}
-                className="group flex items-center bg-white border border-emerald-100 rounded-3xl p-3 shadow-md hover:shadow-xl hover:shadow-emerald-950/20 hover:-translate-y-0.5 transition-all duration-300 w-full"
+                className="group flex items-center bg-white border border-emerald-100 rounded-3xl p-3 shadow-md hover:shadow-xl hover:shadow-emerald-950/20 hover:-translate-y-1 active:translate-y-0.5 active:scale-98 transition-all duration-200 w-full will-change-transform"
               >
                 {content}
               </Link>
@@ -157,7 +157,7 @@ export function Redes() {
                 href={link.href}
                 target={isSpecialProtocol ? undefined : "_blank"}
                 rel={isSpecialProtocol ? undefined : "noopener noreferrer"}
-                className="group flex items-center bg-white border border-emerald-100 rounded-3xl p-3 shadow-md hover:shadow-xl hover:shadow-emerald-950/20 hover:-translate-y-0.5 transition-all duration-300 w-full"
+                className="group flex items-center bg-white border border-emerald-100 rounded-3xl p-3 shadow-md hover:shadow-xl hover:shadow-emerald-950/20 hover:-translate-y-1 active:translate-y-0.5 active:scale-98 transition-all duration-200 w-full will-change-transform"
               >
                 {content}
               </a>
@@ -169,7 +169,7 @@ export function Redes() {
         <div className="mt-8 flex justify-center gap-4">
           <button
             onClick={handleShare}
-            className="flex items-center gap-2 bg-emerald-800/40 border border-emerald-500/20 hover:bg-emerald-800/60 text-emerald-200 px-6 py-3.5 rounded-full font-bold transition-all text-sm backdrop-blur-sm cursor-pointer shadow-lg active:scale-95"
+            className="flex items-center gap-2 bg-emerald-800/40 border border-emerald-500/20 hover:bg-emerald-800/60 hover:-translate-y-0.5 text-emerald-200 px-6 py-3.5 rounded-full font-bold transition-all duration-200 text-sm backdrop-blur-sm cursor-pointer shadow-lg active:scale-95 will-change-transform"
           >
             {copied ? (
               <>

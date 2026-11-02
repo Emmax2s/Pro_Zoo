@@ -168,11 +168,6 @@ export function AdminEnclosures() {
   const { enclosures, setEnclosures, animals, setAnimals, users, setUsers, currentUser } = useZoo();
   const { token } = useAuth();
 
-  // Guard: Only superadmin can manage enclosures
-  if (currentUser.role !== "superadmin") {
-    return <Navigate to="/admin/animales" replace />;
-  }
-
   const [modalState, setModalState] = useState<{ open: boolean; enclosure: Enclosure | null }>({ open: false, enclosure: null });
   const [deleteTarget, setDeleteTarget] = useState<Enclosure | null>(null);
   const [nextId, setNextId] = useState(10);
@@ -188,6 +183,10 @@ export function AdminEnclosures() {
       .then((data) => setEnclosures(data))
       .catch((error) => window.alert(error instanceof Error ? error.message : "No se pudieron cargar los recintos."));
   }, [setEnclosures, token]);
+
+  if (currentUser.role !== "superadmin") {
+    return <Navigate to="/admin/animales" replace />;
+  }
 
   async function handleSave(data: Omit<Enclosure, "id">) {
     if (!API_BASE_URL || !token) return window.alert("Tu sesión administrativa no está disponible.");

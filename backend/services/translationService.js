@@ -4,7 +4,7 @@ const cache = new Map();
 
 async function translateText(text) {
   const value = typeof text === 'string' ? text.trim() : '';
-  if (!value || env.translationLanguage === 'es') return text || '';
+  if (!value || env.translationSourceLanguage === env.translationTargetLanguage) return text || '';
 
   const cacheKey = `${env.translationSourceLanguage}:${env.translationTargetLanguage}:${value}`;
   if (cache.has(cacheKey)) return cache.get(cacheKey);

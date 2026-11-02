@@ -36,22 +36,22 @@ export function PasswordRecovery() {
 
   return (
     <main className="min-h-screen bg-emerald-50 flex items-center justify-center p-4">
-      <form onSubmit={submit} className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-5">
+      <form onSubmit={submit} className="interactive-card w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-5 border border-emerald-100 will-change-transform">
         <h1 className="text-2xl font-black text-emerald-900">{requested ? "Verificar identidad" : "Recuperar cuenta"}</h1>
-        <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Correo de la cuenta" className="w-full border rounded-xl px-4 py-3" />
+        <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Correo de la cuenta" className="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-600 transition-all duration-200" />
         {requested && <>
-          <input required inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} placeholder="Código de 6 dígitos (10 min)" className="w-full border rounded-xl px-4 py-3" />
+          <input required inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} placeholder="Código de 6 dígitos (10 min)" className="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-600 transition-all duration-200" />
           <div className="relative">
-            <input required minLength={10} type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Nueva contraseña (mínimo 10 caracteres)" className="w-full border rounded-xl px-4 py-3 pr-12" />
-            <button type="button" onClick={() => setShowPassword((visible) => !visible)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}>
+            <input required minLength={10} type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Nueva contraseña (mínimo 10 caracteres)" className="w-full border rounded-xl px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-emerald-600 transition-all duration-200" />
+            <button type="button" onClick={() => setShowPassword((visible) => !visible)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors cursor-pointer" aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}>
               {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
             </button>
           </div>
         </>}
         {message && <p className="rounded-lg bg-green-50 text-green-700 p-3 text-sm">{message}</p>}
         {error && <p role="alert" className="rounded-lg bg-red-50 text-red-700 p-3 text-sm">{error}</p>}
-        <button className="w-full rounded-xl bg-emerald-700 text-white py-3 font-bold">{requested ? "Cambiar contraseña" : "Enviar código"}</button>
-        <Link to="/login" className="block text-center text-sm text-emerald-700 hover:underline">Volver al acceso</Link>
+        <button className="w-full rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white py-3 font-bold hover:-translate-y-0.5 active:translate-y-0.5 active:scale-[0.98] transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg will-change-transform">{requested ? "Cambiar contraseña" : "Enviar código"}</button>
+        <Link to="/login" className="block text-center text-sm text-emerald-700 hover:underline transition-colors">Volver al acceso</Link>
       </form>
       <PublicChatButton />
     </main>

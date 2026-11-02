@@ -5,12 +5,20 @@ import { LayoutDashboard, Users, PawPrint, LogOut, Building2, ChevronDown, Home,
 import { useZoo } from "../../context/ZooContext";
 import { useAuth } from "../../context/AuthContext";
 import logoZoomat from "../../../assets/logo-zoomat.png";
+import { initGlobalScrollReveal } from "../../components/ui/RevealOnScroll";
 
 export function AdminLayout() {
   const location = useLocation();
   const { user: authUser, loading: authLoading, logout } = useAuth();
   const { currentUser, setCurrentUser, users, enclosures } = useZoo();
   const [showUserPicker, setShowUserPicker] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      initGlobalScrollReveal();
+    }, 60);
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (authUser) {
@@ -68,7 +76,7 @@ export function AdminLayout() {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col md:flex-row">
       {/* Sidebar */}
-      <aside className="w-full md:w-72 bg-emerald-950 text-white flex flex-col border-r-2 border-emerald-900 shadow-xl">
+      <aside className="w-full md:fixed md:inset-y-0 md:left-0 md:z-40 md:h-screen md:w-72 bg-emerald-950 text-white flex flex-col border-r-2 border-emerald-900 shadow-xl">
         {/* Brand */}
         <div className="p-6 border-b border-emerald-900 flex items-center gap-4">
           <img
@@ -219,7 +227,7 @@ export function AdminLayout() {
       </aside>
 
       {/* Main */}
-      <main className="flex-1 overflow-auto p-4 md:p-8">
+      <main className="min-h-screen flex-1 overflow-y-auto p-4 md:ml-72 md:p-8">
         <Outlet />
       </main>
     </div>

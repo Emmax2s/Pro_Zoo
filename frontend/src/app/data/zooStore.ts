@@ -22,12 +22,14 @@ export interface Animal {
   scientificName: string;
   category: AnimalCategory;
   status: ConservationStatus;
+  translatedStatus?: string;
   habitat: string;
   diet: string;
   funFact: string;
   image: string;
   audioUrl?: string;
   enclosureId: string | null;
+  isVisibleToPublic: boolean;
 }
 
 export type UserRole = "superadmin" | "enclosure_admin";
@@ -79,6 +81,7 @@ export const DEFAULT_ENCLOSURES: Enclosure[] = [
   { id: "nocturnario", name: "Nocturnario", description: "Especies de hábitos nocturnos", color: "bg-indigo-600", icon: "🦇" },
   { id: "herpetario", name: "Herpetario", description: "Colección herpetológica", color: "bg-teal-600", icon: "🦎" },
   { id: "acuario", name: "Acuario", description: "Fauna acuática dulceacuícola", color: "bg-blue-600", icon: "🐟" },
+  { id: "mariposario", name: "Mariposario", description: "Mariposas nativas de Chiapas", color: "bg-pink-600", icon: "🦋" },
 ];
 
 // ── Animals ─────────────────────────────────────────────────────────────────

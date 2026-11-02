@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router";
 import { Search, ChevronDown, Menu, X, Shield, FileText, Lock } from "lucide-react";
 import { 
@@ -47,6 +48,7 @@ export function ChiapasGlyph({ className = "w-7 h-7" }: { className?: string }) 
 }
 
 export function Navigation() {
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [transparencyOpen, setTransparencyOpen] = useState(false);
@@ -125,7 +127,7 @@ export function Navigation() {
             >
               <img
                 src={logoChiapasGob}
-                alt="chiapas.gob.mx"
+                alt="Chiapas.gob.mx"
                 className="h-8 sm:h-9 md:h-10 w-auto object-contain group-hover:opacity-90 transition-opacity"
               />
             </a>
@@ -139,7 +141,7 @@ export function Navigation() {
                 style={{ fontSize: "18px" }}
                 className="text-stone-300 hover:text-white transition-colors font-normal hidden sm:inline"
               >
-                Trámites
+                {t("nav.procedures")}
               </a>
               <a
                 href="https://www.chiapas.gob.mx/gobierno"
@@ -148,7 +150,7 @@ export function Navigation() {
                 style={{ fontSize: "18px" }}
                 className="text-stone-300 hover:text-white transition-colors font-normal hidden sm:inline"
               >
-                Gobierno
+                {t("nav.government")}
               </a>
               <a
                 href="https://www.chiapas.gob.mx/participa"
@@ -157,19 +159,19 @@ export function Navigation() {
                 style={{ fontSize: "18px" }}
                 className="text-stone-300 hover:text-white transition-colors font-normal hidden md:inline"
               >
-                Participa
+                {t("nav.participate")}
               </a>
               <button
                 onClick={() => openDocById("transparencia-portal")}
                 style={{ fontSize: "18px" }}
                 className="text-stone-300 hover:text-white transition-colors font-normal cursor-pointer"
               >
-                Transparencia
+                {t("nav.transparency")}
               </button>
               <button
                 onClick={() => alert("Búsqueda institucional en línea")}
                 className="p-1 hover:text-white transition-colors cursor-pointer"
-                aria-label="Buscar"
+                aria-label={t("nav.search")}
               >
                 <Search className="w-5 h-5 text-stone-300 hover:text-white" />
               </button>
@@ -185,7 +187,7 @@ export function Navigation() {
             <Link to="/" className="flex items-center flex-shrink-0 group h-full py-0.5">
               <img
                 src={logoCoordinacionZoomat}
-                alt="Coordinación Estatal para el Mejoramiento del ZooMAT - Gobierno de Chiapas"
+                alt={t("nav.coordinationAlt")}
                 className="h-full max-h-[48px] sm:max-h-[52px] w-auto object-contain group-hover:opacity-95 transition-opacity"
               />
             </Link>
@@ -199,7 +201,7 @@ export function Navigation() {
                   isActive("/") && location.pathname === "/" ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}
               >
-                Inicio
+                {t("nav.home")}
               </Link>
 
               <Link
@@ -209,7 +211,7 @@ export function Navigation() {
                   isActive("/nosotros") || isActive("/quienes-somos") ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}
               >
-                Quienes somos
+                {t("nav.about")}
               </Link>
 
               <Link
@@ -219,7 +221,7 @@ export function Navigation() {
                   isActive("/comite-de-etica") || isActive("/codigo-de-etica") ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}
               >
-                Comité de Ética
+                {t("nav.ethics")}
               </Link>
 
               {/* DROPDOWN TRANSPARENCIA (FOTO 4 - 14 ELEMENTOS) */}
@@ -236,14 +238,14 @@ export function Navigation() {
                     transparencyOpen ? "text-[#731c34] font-medium" : "text-stone-800"
                   }`}
                 >
-                  <span>Transparencia</span>
+                  <span>{t("nav.transparency")}</span>
                   <ChevronDown className="w-4 h-4 opacity-60" />
                 </button>
 
                 {transparencyOpen && (
                   <div className="absolute left-0 top-full mt-1 w-80 bg-white rounded-xl shadow-2xl border border-stone-200 py-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 font-sans">
                     <div className="px-4 py-1.5 mb-1 border-b border-stone-100 flex items-center justify-between text-xs font-bold text-stone-500 uppercase tracking-wider">
-                      <span>Portal de Transparencia</span>
+                      <span>{t("nav.transparencyPortal")}</span>
                       <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[11px]">14</span>
                     </div>
                     <div className="max-h-[420px] overflow-y-auto divide-y divide-stone-50">
@@ -256,7 +258,7 @@ export function Navigation() {
                         >
                           <span className="group-hover:text-[#731c34]">{item.title}</span>
                           {item.pdfUrl ? (
-                            <span className="text-[10px] bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded">PDF</span>
+                            <span className="text-[10px] bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded">{t("nav.pdf")}</span>
                           ) : null}
                         </button>
                       ))}
@@ -279,14 +281,14 @@ export function Navigation() {
                     datosPersonalesOpen ? "text-[#731c34] font-medium" : "text-stone-800"
                   }`}
                 >
-                  <span>Datos Personales</span>
+                  <span>{t("nav.personalData")}</span>
                   <ChevronDown className="w-4 h-4 opacity-60" />
                 </button>
 
                 {datosPersonalesOpen && (
                   <div className="absolute left-0 top-full mt-1 w-72 bg-white rounded-xl shadow-2xl border border-stone-200 py-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 font-sans">
                     <div className="px-4 py-1.5 mb-1 border-b border-stone-100 text-xs font-bold text-stone-500 uppercase tracking-wider">
-                      Protección de Datos
+                      {t("nav.dataProtection")}
                     </div>
                     {datosPersonalesDocs.map((item) => (
                       <button
@@ -297,7 +299,7 @@ export function Navigation() {
                       >
                         <span className="group-hover:text-[#731c34]">{item.title}</span>
                         {item.pdfUrl ? (
-                          <span className="text-[10px] bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded">PDF</span>
+                          <span className="text-[10px] bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded">{t("nav.pdf")}</span>
                         ) : null}
                       </button>
                     ))}

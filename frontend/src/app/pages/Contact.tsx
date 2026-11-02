@@ -1,7 +1,6 @@
 import { Mail, Phone, MapPin, Clock, Send, Facebook, Instagram, TreePine, Navigation } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useZoo } from "../context/ZooContext";
 
 function Tiktok({ className }: { className?: string }) {
   return (
@@ -21,10 +20,7 @@ function Tiktok({ className }: { className?: string }) {
 }
 
 export function Contact() {
-  const { t } = useTranslation();
-  const { currentLang } = useZoo();
-  const isEs = currentLang === "es";
-
+  const { t, i18n } = useTranslation();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -34,7 +30,7 @@ export function Contact() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert(isEs ? "Gracias por tu mensaje. Te contactaremos pronto." : "Thank you for your message. We will contact you soon.");
+    alert(t("contact.success"));
     setFormData({ name: "", email: "", subject: "", message: "" });
   };
 
@@ -54,13 +50,13 @@ export function Contact() {
     {
       icon: MapPin,
       title: t("contact.addressTitle"),
-      details: ["Calzada Cerro Hueco S/N, Col. El Zapotal", "Tuxtla Gutiérrez, Chiapas, México"],
+      details: [t("contact.addressLine1"), t("contact.addressLine2")],
       links: [null, null],
     },
     {
       icon: Clock,
       title: t("contact.hoursTitle"),
-      details: ["Martes a Domingo: 8:30 AM - 4:30 PM", isEs ? "Lunes cerrado por mantenimiento" : "Closed on Mondays"],
+      details: [t("contact.hoursLine1"), t("contact.hoursLine2")],
       links: [null, null],
     },
   ];
@@ -68,7 +64,7 @@ export function Contact() {
   return (
     <div className="min-h-screen bg-[#faf8f2] text-stone-900 pb-20">
       {/* 1. Header Banner matching photo 1 style */}
-      <section className="relative bg-[#f7f3e8] border-b-4 border-[#2b1706] py-14 md:py-20 overflow-hidden">
+      <section className="reveal-on-scroll relative bg-[#f7f3e8] border-b-4 border-[#2b1706] py-14 md:py-20 overflow-hidden">
         <div
           className="absolute inset-0 opacity-20 pointer-events-none"
           style={{
@@ -81,7 +77,7 @@ export function Contact() {
           <div className="max-w-4xl space-y-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100/90 text-amber-950 text-xs sm:text-sm font-black tracking-wide uppercase shadow-xs border border-amber-300">
               <TreePine className="w-4 h-4 text-emerald-800" />
-              <span>ZOOLÓGICO REGIONAL MIGUEL ÁLVAREZ DEL TORO</span>
+              <span>{t("home.hero.tag")}</span>
             </div>
 
             <h1 className="font-adventure text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-stone-900 leading-[1.1] text-adventure-shadow">
@@ -99,11 +95,11 @@ export function Contact() {
       </section>
 
       {/* 2. Form & Contact Details */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+      <div className="reveal-on-scroll max-w-7xl mx-auto px-4 sm:px-6 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Formulario */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-3xl shadow-xl p-8 md:p-10 border-2 border-[#e2d5bd]">
+            <div className="interactive-card bg-white rounded-3xl shadow-xl p-8 md:p-10 border-2 border-[#e2d5bd] hover:border-amber-600/30 transition-colors duration-300 will-change-transform">
               <h2 className="font-adventure text-3xl sm:text-4xl text-[#2b1810] mb-8">
                 {t("contact.sendMessage")}
               </h2>
@@ -118,8 +114,8 @@ export function Contact() {
                       required
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-5 py-4 border-2 border-amber-900/20 rounded-2xl focus:ring-4 focus:ring-amber-500 focus:border-amber-700 text-base font-semibold bg-[#fcfaf5]"
-                      placeholder={isEs ? "Tu nombre completo" : "Your full name"}
+                      className="w-full px-5 py-4 border-2 border-amber-900/20 rounded-2xl focus:ring-4 focus:ring-amber-500 focus:border-amber-700 text-base font-semibold bg-[#fcfaf5] transition-all duration-200"
+                      placeholder={t("contact.namePlaceholder")}
                     />
                   </div>
                   <div>
@@ -131,8 +127,8 @@ export function Contact() {
                       required
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-5 py-4 border-2 border-amber-900/20 rounded-2xl focus:ring-4 focus:ring-amber-500 focus:border-amber-700 text-base font-semibold bg-[#fcfaf5]"
-                      placeholder="tu@email.com"
+                      className="w-full px-5 py-4 border-2 border-amber-900/20 rounded-2xl focus:ring-4 focus:ring-amber-500 focus:border-amber-700 text-base font-semibold bg-[#fcfaf5] transition-all duration-200"
+                      placeholder={t("contact.emailPlaceholder")}
                     />
                   </div>
                 </div>
@@ -145,7 +141,7 @@ export function Contact() {
                     required
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="w-full px-5 py-4 border-2 border-amber-900/20 rounded-2xl focus:ring-4 focus:ring-amber-500 focus:border-amber-700 text-base font-semibold bg-[#fcfaf5]"
+                    className="w-full px-5 py-4 border-2 border-amber-900/20 rounded-2xl focus:ring-4 focus:ring-amber-500 focus:border-amber-700 text-base font-semibold bg-[#fcfaf5] transition-all duration-200"
                   >
                     <option value="">{t("contact.selectSubject")}</option>
                     <option value="informacion">{t("contact.optGeneral")}</option>
@@ -166,16 +162,16 @@ export function Contact() {
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     rows={6}
-                    className="w-full px-5 py-4 border-2 border-amber-900/20 rounded-2xl focus:ring-4 focus:ring-amber-500 focus:border-amber-700 resize-none text-base font-medium bg-[#fcfaf5]"
+                    className="w-full px-5 py-4 border-2 border-amber-900/20 rounded-2xl focus:ring-4 focus:ring-amber-500 focus:border-amber-700 resize-none text-base font-medium bg-[#fcfaf5] transition-all duration-200"
                     placeholder={t("contact.messagePlaceholder")}
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full wood-texture-bg text-amber-200 hover:text-white py-4.5 rounded-2xl font-adventure text-lg border-2 border-amber-600 shadow-xl hover:scale-102 transition-all flex items-center justify-center gap-3 wood-button-shadow cursor-pointer"
+                  className="w-full wood-texture-bg text-amber-200 hover:text-white py-4.5 rounded-2xl font-adventure text-lg border-2 border-amber-600 shadow-xl hover:shadow-2xl hover:-translate-y-1 hover:scale-102 active:translate-y-0.5 active:scale-98 transition-all duration-200 flex items-center justify-center gap-3 wood-button-shadow cursor-pointer will-change-transform"
                 >
-                  <Send className="w-5 h-5 text-amber-400" />
+                  <Send className="w-5 h-5 text-amber-400 group-hover:translate-x-1 transition-transform" />
                   <span>{t("contact.sendButton")}</span>
                 </button>
               </form>
@@ -185,9 +181,12 @@ export function Contact() {
           {/* Contact Cards & Social */}
           <div className="space-y-6">
             {contactInfo.map((info, index) => (
-              <div key={index} className="bg-white rounded-3xl shadow-lg p-6 border-2 border-[#e2d5bd]">
+              <div
+                key={index}
+                className="interactive-card bg-white rounded-3xl shadow-lg p-6 border-2 border-[#e2d5bd] hover:-translate-y-1.5 hover:shadow-xl hover:border-amber-500/40 transition-all duration-200 will-change-transform group"
+              >
                 <div className="flex items-start gap-4">
-                  <div className="wood-texture-bg p-3.5 rounded-2xl text-amber-200 border border-amber-600 shadow-sm shrink-0">
+                  <div className="wood-texture-bg p-3.5 rounded-2xl text-amber-200 border border-amber-600 shadow-sm shrink-0 group-hover:scale-110 transition-transform duration-200">
                     <info.icon className="w-6 h-6" />
                   </div>
                   <div>
@@ -209,10 +208,10 @@ export function Contact() {
             ))}
 
             {/* Redes Oficiales */}
-            <div className="wood-texture-bg rounded-3xl shadow-2xl p-7 text-amber-100 border-2 border-amber-600">
+            <div className="wood-texture-bg rounded-3xl shadow-2xl p-7 text-amber-100 border-2 border-amber-600 hover:border-amber-500 transition-colors duration-300">
               <h3 className="font-adventure text-2xl text-amber-200 mb-2">{t("contact.followUs")}</h3>
               <p className="text-amber-100/90 text-sm mb-5 font-medium">
-                {isEs ? "Sigue las redes oficiales de ZooMAT" : "Follow ZooMAT official social media"}
+                Sigue las redes oficiales de ZooMAT
               </p>
               <div className="flex gap-4">
                 <a
@@ -220,7 +219,7 @@ export function Contact() {
                   target="_blank"
                   rel="noopener noreferrer"
                   title="TikTok Oficial"
-                  className="bg-black/40 hover:bg-black/60 p-3.5 rounded-2xl border border-amber-500/40 text-amber-200 hover:text-white transition-all hover:scale-110 shadow-md"
+                  className="bg-black/40 hover:bg-black/60 p-3.5 rounded-2xl border border-amber-500/40 text-amber-200 hover:text-white transition-all duration-200 hover:scale-115 hover:-translate-y-1 active:scale-90 shadow-md will-change-transform"
                 >
                   <Tiktok className="w-6 h-6" />
                 </a>
@@ -229,7 +228,7 @@ export function Contact() {
                   target="_blank"
                   rel="noopener noreferrer"
                   title="Facebook Oficial"
-                  className="bg-black/40 hover:bg-black/60 p-3.5 rounded-2xl border border-amber-500/40 text-amber-200 hover:text-white transition-all hover:scale-110 shadow-md"
+                  className="bg-black/40 hover:bg-black/60 p-3.5 rounded-2xl border border-amber-500/40 text-amber-200 hover:text-white transition-all duration-200 hover:scale-115 hover:-translate-y-1 active:scale-90 shadow-md will-change-transform"
                 >
                   <Facebook className="w-6 h-6" />
                 </a>
@@ -238,13 +237,13 @@ export function Contact() {
                   target="_blank"
                   rel="noopener noreferrer"
                   title="Instagram Oficial"
-                  className="bg-black/40 hover:bg-black/60 p-3.5 rounded-2xl border border-amber-500/40 text-amber-200 hover:text-white transition-all hover:scale-110 shadow-md"
+                  className="bg-black/40 hover:bg-black/60 p-3.5 rounded-2xl border border-amber-500/40 text-amber-200 hover:text-white transition-all duration-200 hover:scale-115 hover:-translate-y-1 active:scale-90 shadow-md will-change-transform"
                 >
                   <Instagram className="w-6 h-6" />
                 </a>
               </div>
               <p className="text-amber-200/90 text-xs mt-5 font-medium">
-                {t("contact.shareHashtag")}
+                Comparte tus fotos con #ZooMAT
               </p>
             </div>
           </div>

@@ -47,6 +47,24 @@ export function stopAllAudio() {
   }
 }
 
+export function pauseAllAudio() {
+  if (currentAudio) {
+    currentAudio.pause();
+  }
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    window.speechSynthesis.pause();
+  }
+}
+
+export function resumeAllAudio() {
+  if (currentAudio) {
+    void currentAudio.play().catch(() => undefined);
+  }
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    window.speechSynthesis.resume();
+  }
+}
+
 /**
  * Speak animal narration via SpeechSynthesis with voice matching and Chrome fix
  */
@@ -81,7 +99,13 @@ export function speakNarration(
       const voices = window.speechSynthesis.getVoices();
       if (voices && voices.length > 0) {
         const langPrefix = isEs ? "es" : "en";
-        const matched = voices.find((v) => v.lang.toLowerCase().startsWith(langPrefix));
+        const matched = voices
+          .filter((v) => v.lang.toLowerCase().startsWith(langPrefix))
+          .sort((a, b) => {
+            const score = (voice: SpeechSynthesisVoice) =>
+              /microsoft|online|google/i.test(`${voice.name} ${voice.voiceURI}`) ? 1 : 0;
+            return score(b) - score(a);
+          })[0];
         if (matched) {
           utterance.voice = matched;
         }
@@ -97,7 +121,6 @@ export function speakNarration(
         if (onEnd) onEnd();
       };
 
-      if (onStart) onStart();
       window.speechSynthesis.speak(utterance);
     } catch (e) {
       console.warn("Speech synthesis error:", e);

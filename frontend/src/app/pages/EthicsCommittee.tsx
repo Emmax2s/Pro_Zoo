@@ -32,7 +32,7 @@ export function EthicsCommittee() {
         </div>
 
         {/* Tarjeta de Objetivos del Comité de Ética (FOTO DEL USUARIO) */}
-        <div className="bg-white rounded-2xl border border-stone-200/90 shadow-sm p-6 sm:p-10 space-y-6">
+        <div className="reveal-on-scroll interactive-card bg-white rounded-2xl border border-stone-200/90 shadow-sm hover:shadow-xl hover:border-[#e08aa3]/50 transition-all duration-300 p-6 sm:p-10 space-y-6 will-change-transform">
           <div className="space-y-3">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
               {sexenio.ethicsTitle || "Objetivos del Comité de Ética"}
@@ -56,7 +56,7 @@ export function EthicsCommittee() {
         </div>
 
         {sexenio.ethicsVideos?.length > 0 && (
-          <div className="bg-white rounded-2xl border border-stone-200/90 shadow-sm p-6 sm:p-10 space-y-5">
+          <div className="reveal-on-scroll interactive-card bg-white rounded-2xl border border-stone-200/90 shadow-sm hover:shadow-xl hover:border-amber-400/40 transition-all duration-300 p-6 sm:p-10 space-y-5 will-change-transform">
             <div>
               <h2 className="text-xl sm:text-2xl font-bold text-stone-900">Videos del Comité de Ética</h2>
               <p className="text-sm text-stone-500 mt-1">Material audiovisual institucional.</p>
@@ -69,7 +69,7 @@ export function EthicsCommittee() {
                   controls
                   playsInline
                   preload="metadata"
-                  className="w-full max-w-full aspect-video rounded-xl bg-black object-contain shadow-sm"
+                  className="w-full max-w-full aspect-video rounded-xl bg-black object-contain shadow-sm hover:shadow-md transition-shadow duration-200"
                   aria-label={`Video del Comité de Ética ${index + 1}`}
                 />
               ))}

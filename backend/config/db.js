@@ -36,6 +36,9 @@ export const ensureDatabaseSchema = async () => {
       ADD COLUMN IF NOT EXISTS enclosure_id VARCHAR(100),
       ADD COLUMN IF NOT EXISTS translation_cache JSONB;
 
+    ALTER TABLE species
+      ADD COLUMN IF NOT EXISTS is_visible_to_public BOOLEAN NOT NULL DEFAULT TRUE;
+
     ALTER TABLE admin_users
       ADD COLUMN IF NOT EXISTS name VARCHAR(150),
       ADD COLUMN IF NOT EXISTS role VARCHAR(30) NOT NULL DEFAULT 'superadmin',
@@ -62,6 +65,16 @@ export const ensureDatabaseSchema = async () => {
       used_at TIMESTAMP,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
+
+    INSERT INTO enclosures (id, name, description, color, icon) VALUES
+      ('felinos', 'Felinos', 'Hábitat de grandes felinos chiapanecos', 'bg-orange-500', '🐆'),
+      ('vivario', 'Vivario', 'Reptiles y anfibios de la región', 'bg-emerald-600', '🐍'),
+      ('aviario', 'Aviario', 'Aves tropicales y rapaces', 'bg-sky-500', '🦜'),
+      ('nocturnario', 'Nocturnario', 'Especies de hábitos nocturnos', 'bg-indigo-600', '🦇'),
+      ('herpetario', 'Herpetario', 'Colección herpetológica', 'bg-teal-600', '🦎'),
+      ('acuario', 'Acuario', 'Fauna acuática dulceacuícola', 'bg-blue-600', '🐟'),
+      ('mariposario', 'Mariposario', 'Mariposas nativas de Chiapas', 'bg-pink-600', '🦋')
+    ON CONFLICT (id) DO NOTHING;
   `);
 };
 

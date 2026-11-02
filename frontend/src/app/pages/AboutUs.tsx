@@ -67,21 +67,21 @@ export function AboutUs() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* ── COLUMNA IZQUIERDA: TITULAR, DATOS DE CONTACTO Y NORMATIVIDAD (4 COLS) ── */}
-          <aside className="lg:col-span-4 space-y-6">
-            <div className="bg-white rounded-2xl border border-stone-200/90 shadow-sm p-6 overflow-hidden">
+          <aside className="reveal-on-scroll lg:col-span-4 space-y-6">
+            <div className="interactive-card bg-white rounded-2xl border border-stone-200/90 shadow-sm hover:shadow-xl hover:border-emerald-700/40 p-6 overflow-hidden transition-all duration-300 will-change-transform">
               {/* Foto y Nombre del Director General */}
               <div className="text-center">
-                <div className="relative inline-block mx-auto mb-4">
+                <div className="relative inline-block mx-auto mb-4 group">
                   <img
                     src={sexenio.directorPhoto || "/assets/images/DirZoo.jpg"}
                     alt={sexenio.directorName}
-                    className="w-48 h-56 sm:w-52 sm:h-60 object-cover object-top rounded-xl border-4 border-stone-100 shadow-md mx-auto"
+                    className="w-48 h-56 sm:w-52 sm:h-60 object-cover object-top rounded-xl border-4 border-stone-100 shadow-md mx-auto group-hover:scale-102 transition-transform duration-500 ease-out will-change-transform"
                     onError={(e) => {
                       // Fallback if image fails
                       (e.target as HTMLImageElement).src = "/assets/images/DirZoo.jpg";
                     }}
                   />
-                  <div className="absolute -bottom-2 -right-2 bg-[#731c34] text-white p-2 rounded-xl shadow-md">
+                  <div className="absolute -bottom-2 -right-2 bg-[#731c34] text-white p-2 rounded-xl shadow-md group-hover:scale-110 transition-transform duration-200">
                     <Building2 className="w-4 h-4" />
                   </div>
                 </div>
@@ -102,22 +102,22 @@ export function AboutUs() {
                   Ubicación
                 </h4>
                 
-                <div className="flex items-start gap-3 text-sm">
-                  <div className="p-2 rounded-lg bg-stone-100 text-[#731c34] flex-shrink-0 mt-0.5">
+                <div className="flex items-start gap-3 text-sm group hover:translate-x-1 transition-transform duration-200">
+                  <div className="p-2 rounded-lg bg-stone-100 text-[#731c34] flex-shrink-0 mt-0.5 group-hover:bg-[#731c34] group-hover:text-white transition-colors duration-200">
                     <MapPin className="w-4 h-4" />
                   </div>
                   <p className="leading-relaxed text-stone-700">{sexenio.location}</p>
                 </div>
 
-                <div className="flex items-start gap-3 text-sm">
-                  <div className="p-2 rounded-lg bg-stone-100 text-[#731c34] flex-shrink-0 mt-0.5">
+                <div className="flex items-start gap-3 text-sm group hover:translate-x-1 transition-transform duration-200">
+                  <div className="p-2 rounded-lg bg-stone-100 text-[#731c34] flex-shrink-0 mt-0.5 group-hover:bg-[#731c34] group-hover:text-white transition-colors duration-200">
                     <Phone className="w-4 h-4" />
                   </div>
                   <p className="leading-relaxed text-stone-700">{sexenio.phone}</p>
                 </div>
 
-                <div className="flex items-start gap-3 text-sm">
-                  <div className="p-2 rounded-lg bg-stone-100 text-[#731c34] flex-shrink-0 mt-0.5">
+                <div className="flex items-start gap-3 text-sm group hover:translate-x-1 transition-transform duration-200">
+                  <div className="p-2 rounded-lg bg-stone-100 text-[#731c34] flex-shrink-0 mt-0.5 group-hover:bg-[#731c34] group-hover:text-white transition-colors duration-200">
                     <Globe className="w-4 h-4" />
                   </div>
                   <a
@@ -177,7 +177,7 @@ export function AboutUs() {
                       <button
                         key={norma.id}
                         onClick={() => handleDocClick(norma.id, norma.label, doc?.pdfUrl)}
-                        className="w-full text-left px-3.5 py-2.5 text-xs sm:text-sm font-medium text-stone-700 hover:bg-[#731c34] hover:text-white transition-all flex items-center justify-between group cursor-pointer"
+                        className="w-full text-left px-3.5 py-2.5 text-xs sm:text-sm font-medium text-stone-700 hover:bg-[#731c34] hover:text-white hover:translate-x-1 transition-all duration-200 flex items-center justify-between group cursor-pointer will-change-transform"
                       >
                         <span className="truncate pr-2">{norma.label}</span>
                         {doc?.pdfUrl ? (
@@ -192,7 +192,7 @@ export function AboutUs() {
                   })}
                   <Link
                     to="/comite-de-etica"
-                    className="w-full text-left px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-700 hover:text-white transition-all flex items-center justify-between group"
+                    className="w-full text-left px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-700 hover:text-white hover:translate-x-1 transition-all duration-200 flex items-center justify-between group will-change-transform"
                   >
                     <span>Código de Ética y Conducta</span>
                     <ChevronRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
@@ -203,7 +203,7 @@ export function AboutUs() {
               <hr className="my-5 border-emerald-700/60 border-t-2" />
 
               {/* Enlace al Directorio Oficial de Funcionarios */}
-              <div className="bg-stone-50 rounded-xl p-4 border border-stone-200">
+              <div className="bg-stone-50 rounded-xl p-4 border border-stone-200 hover:border-stone-300 transition-colors duration-200">
                 <h4 className="text-sm font-bold text-stone-900 mb-1">Directorio</h4>
                 <p className="text-xs text-stone-600 leading-relaxed mb-3">
                   Conoce el directorio de funcionarios de la Coordinación Estatal para el Mejoramiento del ZooMAT.
@@ -222,11 +222,11 @@ export function AboutUs() {
           </aside>
 
           {/* ── COLUMNA DERECHA: BIENVENIDOS, MISIÓN, VISIÓN, ORGANIGRAMA Y CÓDIGO (8 COLS) ── */}
-          <main className="lg:col-span-8 space-y-6">
-            <div className="bg-white rounded-2xl border border-stone-200/90 shadow-sm p-6 sm:p-8 space-y-8">
+          <main className="reveal-on-scroll lg:col-span-8 space-y-6">
+            <div className="interactive-card bg-white rounded-2xl border border-stone-200/90 shadow-sm p-6 sm:p-8 space-y-8 hover:border-emerald-700/30 transition-colors duration-300">
               
               {/* Sección Bienvenidos */}
-              <section>
+              <section className="reveal-on-scroll">
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
                   Bienvenidos al ZooMAT
                 </h2>
@@ -238,7 +238,7 @@ export function AboutUs() {
               </section>
 
               {/* Sección Nuestra Misión */}
-              <section>
+              <section className="reveal-on-scroll">
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
                   Nuestra Misión
                 </h2>
@@ -249,7 +249,7 @@ export function AboutUs() {
               </section>
 
               {/* Sección Nuestra Visión */}
-              <section>
+              <section className="reveal-on-scroll">
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
                   Nuestra Visión
                 </h2>
@@ -260,7 +260,7 @@ export function AboutUs() {
               </section>
 
               {/* Sección Organigrama */}
-              <section>
+              <section className="reveal-on-scroll">
                 <h2 className="text-xl sm:text-2xl font-extrabold text-stone-900 tracking-tight">
                   Organigrama de la Coordinación Estatal para el Mejoramiento del ZooMAT
                 </h2>
@@ -270,7 +270,7 @@ export function AboutUs() {
                   <img
                     src={sexenio.organigramaImage || "/assets/images/OrgZoomat_23.jpg"}
                     alt="Organigrama ZooMAT"
-                    className="max-h-[500px] w-auto mx-auto object-contain rounded-lg shadow-sm border border-stone-200"
+                    className="max-h-[500px] w-auto mx-auto object-contain rounded-lg shadow-sm border border-stone-200 hover:scale-[1.01] transition-transform duration-300"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = "/assets/images/OrgZoomat_23.jpg";
                     }}
@@ -280,7 +280,7 @@ export function AboutUs() {
                 <div className="flex flex-wrap items-center gap-3 pt-2">
                   <button
                     onClick={() => handleDocClick("qs-organigrama-pdf", "Organigrama Institucional ZooMAT", organigramaDoc?.pdfUrl)}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#731c34] hover:bg-[#591427] text-white text-xs sm:text-sm font-bold shadow-sm transition-all cursor-pointer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#731c34] hover:bg-[#591427] text-white text-xs sm:text-sm font-bold shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0.5 active:scale-97 transition-all duration-200 cursor-pointer will-change-transform"
                   >
                     <Download className="w-4 h-4 text-amber-300" />
                     <span>Descargar Organigrama (PDF {organigramaDoc?.fileSize || "115 KB"})</span>
@@ -289,7 +289,7 @@ export function AboutUs() {
                   {organigramaDoc?.pdfUrl && (
                     <button
                       onClick={() => setSelectedDoc(organigramaDoc)}
-                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-700 text-xs sm:text-sm font-bold transition-all cursor-pointer"
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-700 text-xs sm:text-sm font-bold shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0.5 active:scale-97 transition-all duration-200 cursor-pointer will-change-transform"
                     >
                       <Eye className="w-4 h-4 text-stone-500" />
                       <span>Ver en línea</span>
@@ -299,7 +299,7 @@ export function AboutUs() {
               </section>
 
               {/* Sección Código de Ética */}
-              <section>
+              <section className="reveal-on-scroll">
                 <h2 className="text-xl sm:text-2xl font-extrabold text-stone-900 tracking-tight">
                   Código de Ética
                 </h2>
@@ -312,7 +312,7 @@ export function AboutUs() {
                 <div className="flex flex-wrap items-center gap-3">
                   <button
                     onClick={() => handleDocClick("qs-codigo-etica-pdf", "Código de Ética y Conducta", codigoEticaDoc?.pdfUrl)}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-xs sm:text-sm font-bold shadow-sm transition-all cursor-pointer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-xs sm:text-sm font-bold shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0.5 active:scale-97 transition-all duration-200 cursor-pointer will-change-transform"
                   >
                     <Download className="w-4 h-4 text-emerald-200" />
                     <span>Descargar Código de Ética (PDF {codigoEticaDoc?.fileSize || "2.29 MB"})</span>
@@ -320,7 +320,7 @@ export function AboutUs() {
 
                   <Link
                     to="/comite-de-etica"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#731c34] text-[#731c34] hover:bg-[#731c34] hover:text-white text-xs sm:text-sm font-bold transition-all"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#731c34] text-[#731c34] hover:bg-[#731c34] hover:text-white text-xs sm:text-sm font-bold shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0.5 active:scale-97 transition-all duration-200 will-change-transform"
                   >
                     <ShieldCheck className="w-4 h-4" />
                     <span>Ir a la sección Comité de Ética</span>

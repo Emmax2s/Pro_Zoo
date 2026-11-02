@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
 import {
   Animal,
   Enclosure,
@@ -58,6 +58,7 @@ type ApiSpecies = {
   conservation?: string;
   category?: Animal["category"];
   enclosureId?: string | null;
+  isVisibleToPublic?: boolean;
 };
 
 const mapConservationStatus = (value: string | undefined): Animal["status"] => {
@@ -78,12 +79,14 @@ const mapSpecies = (species: ApiSpecies): Animal => {
     scientificName: species.species || "",
     category: species.category || "Mamífero",
     status: mapConservationStatus(species.conservation),
+    translatedStatus: species.conservation,
     habitat: species.habitat || "",
     diet: species.diet || "",
     funFact: species.description || "",
     image: species.imageUrl || "",
     audioUrl: cleanAudio,
     enclosureId: species.enclosureId ?? null,
+    isVisibleToPublic: species.isVisibleToPublic !== false,
   };
 };
 
@@ -120,26 +123,25 @@ export function ZooProvider({ children }: { children: ReactNode }) {
     return "es";
   });
 
-  const setLanguage = (lang: "es" | "en") => {
+  useEffect(() => {
+    try {
+      document.documentElement.lang = currentLang;
+    } catch {}
+  }, [currentLang]);
+
+  const setLanguage = useCallback((lang: "es" | "en") => {
     setCurrentLangState(lang);
     try {
       localStorage.setItem("zoomat_lang", lang);
       document.documentElement.lang = lang;
     } catch {}
     void i18n.changeLanguage(lang);
-  };
+  }, []);
 
-  const toggleLanguage = () => {
+  const toggleLanguage = useCallback(() => {
     const next = currentLang === "es" ? "en" : "es";
     setLanguage(next);
-  };
-
-  useEffect(() => {
-    try {
-      document.documentElement.lang = currentLang;
-      void i18n.changeLanguage(currentLang);
-    } catch {}
-  }, [currentLang]);
+  }, [currentLang, setLanguage]);
 
   useEffect(() => {
     if (!API_BASE_URL) return;

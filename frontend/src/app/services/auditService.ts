@@ -1,4 +1,5 @@
 import { AdminAuditLog, AuditActionType } from "../data/zooStore";
+import { jsPDF } from "jspdf";
 
 const STORAGE_KEY = "zoomat_admin_audit_logs_v1";
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
@@ -139,70 +140,13 @@ export function saveAuditLog(entry: Omit<AdminAuditLog, "id" | "timestamp"> & { 
   return newLog;
 }
 
-export function exportAuditLogsToCSV(logs: AdminAuditLog[], filename = "historial_actualizaciones_zoomat.csv") {
-  const headers = [
-    "ID",
-    "Fecha y Hora",
-    "Administrador",
-    "Correo Electrónico",
-    "Rol",
-    "Recintos Asignados",
-    "Acción Realizada",
-    "Tipo de Entidad",
-    "Elemento Afectado",
-    "Recinto Asociado",
-    "Detalle de la Actualización",
-  ];
-
-  const escapeCSV = (val: string | number | undefined | null) => {
-    if (val === undefined || val === null) return '""';
-    const str = String(val).replace(/"/g, '""');
-    return `"${str}"`;
-  };
-
-  const rows = logs.map((log) => {
-    const formattedDate = new Date(log.timestamp).toLocaleString("es-MX", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-
-    const enclosuresStr = Array.isArray(log.assignedEnclosures)
-      ? log.assignedEnclosures.join(" | ")
-      : log.assignedEnclosures || "Sin recintos";
-
-    return [
-      escapeCSV(log.id),
-      escapeCSV(formattedDate),
-      escapeCSV(log.userName),
-      escapeCSV(log.userEmail),
-      escapeCSV(log.userRole === "superadmin" ? "Super Administrador" : "Administrador de Recinto"),
-      escapeCSV(enclosuresStr),
-      escapeCSV(log.actionType),
-      escapeCSV(log.entityType),
-      escapeCSV(log.entityName),
-      escapeCSV(log.enclosureName || "General"),
-      escapeCSV(log.details),
-    ].join(",");
-  });
-
-  // UTF-8 BOM so Excel opens accented characters like ñ and tildes properly
-  const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\r\n");
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", filename);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+export function getAuditLogYears(logs: AdminAuditLog[]): number[] {
+  return Array.from(new Set(logs.map((log) => new Date(log.timestamp).getFullYear())))
+    .filter((year) => Number.isFinite(year))
+    .sort((a, b) => b - a);
 }
 
-export function printAuditReport(logs: AdminAuditLog[]) {
+export function printAuditReport(logs: AdminAuditLog[], year?: number) {
   const printWindow = window.open("", "_blank");
   if (!printWindow) {
     alert("Por favor permite las ventanas emergentes para generar el reporte imprimible.");
@@ -286,6 +230,7 @@ export function printAuditReport(logs: AdminAuditLog[]) {
         </div>
         <div class="meta">
           <div><strong>Fecha de emisión:</strong> ${currentDate}</div>
+          <div><strong>Año del reporte:</strong> ${year ?? "Todos"}</div>
           <div><strong>Total de registros:</strong> ${logs.length} movimientos</div>
         </div>
       </div>
@@ -343,3 +288,41 @@ export function printAuditReport(logs: AdminAuditLog[]) {
   printWindow.document.write(html);
   printWindow.document.close();
 }
+
+export function exportAuditLogsToPDF(logs: AdminAuditLog[], year?: number) {
+    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const margin = 12;
+    let y = 16;
+    pdf.setTextColor("#002B20");
+    pdf.setFontSize(16);
+    pdf.text("Reporte de auditoría ZooMAT", margin, y);
+    y += 7;
+    pdf.setFontSize(9);
+    pdf.text(`Año: ${year ?? "Todos"} | Registros: ${logs.length}`, margin, y);
+    y += 8;
+    pdf.setFillColor("#006B49");
+    pdf.setTextColor("#FFFFFF");
+    pdf.rect(margin, y - 5, 273, 8, "F");
+    pdf.text("Fecha", margin + 2, y);
+    pdf.text("Administrador", margin + 30, y);
+    pdf.text("Acción", margin + 93, y);
+    pdf.text("Elemento", margin + 125, y);
+    pdf.text("Detalle", margin + 185, y);
+    y += 8;
+    pdf.setTextColor("#002B20");
+    pdf.setFontSize(8);
+    logs.forEach((log) => {
+      if (y > 190) {
+        pdf.addPage();
+        y = 16;
+      }
+      const detail = pdf.splitTextToSize(log.details, 82);
+      pdf.text(new Date(log.timestamp).toLocaleDateString("es-MX"), margin + 2, y);
+      pdf.text(pdf.splitTextToSize(log.userName, 55), margin + 30, y);
+      pdf.text(log.actionType, margin + 93, y);
+      pdf.text(pdf.splitTextToSize(log.entityName, 55), margin + 125, y);
+      pdf.text(detail, margin + 185, y);
+      y += Math.max(detail.length, 1) * 4.5 + 2;
+    });
+    pdf.save(`reporte-auditoria-${year ?? "todos"}.pdf`);
+  }

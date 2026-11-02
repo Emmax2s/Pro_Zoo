@@ -1,9 +1,58 @@
 import { Router } from 'express';
 import { query } from '../config/db.js';
-import { verifyToken } from './adminRoutes.js';
+import { verifyToken, requireSuperAdmin } from './adminRoutes.js';
 import { translateSpecies } from '../services/translationService.js';
 
 const router = Router();
+
+const getAssignedEnclosures = (value) =>
+  String(value || '').split(',').map((id) => id.trim()).filter(Boolean);
+
+const requireSpeciesMutationPermission = async (req, res, next) => {
+  try {
+    const userResult = await query(
+      'SELECT role, enclosure_id, is_active FROM admin_users WHERE id = $1',
+      [req.user?.id]
+    );
+    const user = userResult.rows[0];
+    if (!user || !user.is_active) {
+      return res.status(401).json({ message: 'La sesión ya no es válida.' });
+    }
+    if (user.role === 'superadmin') {
+      req.user.role = user.role;
+      return next();
+    }
+    if (user.role !== 'enclosure_admin') {
+      return res.status(403).json({ message: 'No tienes permisos para modificar especies.' });
+    }
+
+    const assigned = getAssignedEnclosures(user.enclosure_id);
+    if (req.method === 'POST') {
+      if (!req.body.enclosureId || !assigned.includes(String(req.body.enclosureId))) {
+        return res.status(403).json({ message: 'La especie debe pertenecer a un recinto asignado.' });
+      }
+    } else {
+      const current = await query('SELECT enclosure_id FROM species WHERE id = $1', [req.params.id]);
+      if (!current.rows[0]) return res.status(404).json({ message: 'Species not found' });
+      if (!assigned.includes(String(current.rows[0].enclosure_id))) {
+        return res.status(403).json({ message: 'No tienes acceso a este recinto.' });
+      }
+      if (
+        req.body.enclosureId !== undefined &&
+        String(req.body.enclosureId) !== String(current.rows[0].enclosure_id)
+      ) {
+        return res.status(403).json({ message: 'Solo un superadministrador puede reasignar recintos.' });
+      }
+      if (req.body.isVisibleToPublic !== undefined) {
+        return res.status(403).json({ message: 'Solo un superadministrador puede cambiar la visibilidad pública.' });
+      }
+    }
+    req.user.role = user.role;
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
 
 // Helper function to format species response
 const formatSpeciesResponse = (row) => ({
@@ -14,6 +63,7 @@ const formatSpeciesResponse = (row) => ({
   habitat: row.habitat,
   category: row.category,
   enclosureId: row.enclosure_id,
+  isVisibleToPublic: row.is_visible_to_public !== false,
   imageUrl: row.image_url,
   conservation: row.conservation_status,
   conservationIucn: row.conservation_iucn,
@@ -32,9 +82,18 @@ const formatSpeciesResponse = (row) => ({
 });
 
 // GET all species
-router.get('/', async (req, res, next) => {
+router.get('/manage/all', verifyToken, requireSuperAdmin, async (req, res, next) => {
   try {
     const result = await query('SELECT * FROM species ORDER BY created_at DESC');
+    res.json(result.rows.map(formatSpeciesResponse));
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/', async (req, res, next) => {
+  try {
+    const result = await query('SELECT * FROM species WHERE is_visible_to_public = TRUE ORDER BY created_at DESC');
     const language = req.query.lang === 'en' ? 'en' : 'es';
     const species = await Promise.all(
       result.rows.map((row) => translateSpecies(formatSpeciesResponse(row), language))
@@ -53,9 +112,9 @@ router.get('/:idOrSlug', async (req, res, next) => {
 
     let result;
     if (isId) {
-      result = await query('SELECT * FROM species WHERE id = $1', [idOrSlug]);
+      result = await query('SELECT * FROM species WHERE id = $1 AND is_visible_to_public = TRUE', [idOrSlug]);
     } else {
-      result = await query('SELECT * FROM species WHERE slug = $1', [idOrSlug]);
+      result = await query('SELECT * FROM species WHERE slug = $1 AND is_visible_to_public = TRUE', [idOrSlug]);
     }
 
     if (result.rows.length === 0) {
@@ -71,7 +130,7 @@ router.get('/:idOrSlug', async (req, res, next) => {
 });
 
 // POST create species
-router.post('/', verifyToken, async (req, res, next) => {
+router.post('/', verifyToken, requireSpeciesMutationPermission, async (req, res, next) => {
   try {
     const {
       slug,
@@ -94,6 +153,7 @@ router.post('/', verifyToken, async (req, res, next) => {
       conservationIucn,
       threats,
       ecosystemRole,
+      isVisibleToPublic = true,
     } = req.body;
 
     if (!slug || !name || !speciesName) {
@@ -102,10 +162,10 @@ router.post('/', verifyToken, async (req, res, next) => {
 
     const result = await query(
       `INSERT INTO species
-       (slug, name, species_name, category, enclosure_id, habitat, image_url, conservation_status, description, diet, lifespan, activity, size, weight, distribution, audio_description_url, scientific_classification, conservation_iucn, threats, ecosystem_role)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+       (slug, name, species_name, category, enclosure_id, habitat, image_url, conservation_status, description, diet, lifespan, activity, size, weight, distribution, audio_description_url, scientific_classification, conservation_iucn, threats, ecosystem_role, is_visible_to_public)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
        RETURNING *`,
-      [slug, name, speciesName, category, enclosureId, habitat, imageUrl, conservation, description, diet, lifespan, activity, size, weight, distribution, audioDescriptionUrl, scientificClassification, conservationIucn, threats, ecosystemRole]
+      [slug, name, speciesName, category, enclosureId, habitat, imageUrl, conservation, description, diet, lifespan, activity, size, weight, distribution, audioDescriptionUrl, scientificClassification, conservationIucn, threats, ecosystemRole, isVisibleToPublic]
     );
 
     const newSpecies = formatSpeciesResponse(result.rows[0]);
@@ -119,7 +179,7 @@ router.post('/', verifyToken, async (req, res, next) => {
 });
 
 // PUT update species
-router.put('/:id', verifyToken, async (req, res, next) => {
+router.put('/:id', verifyToken, requireSpeciesMutationPermission, async (req, res, next) => {
   try {
     const { id } = req.params;
     const {
@@ -143,6 +203,7 @@ router.put('/:id', verifyToken, async (req, res, next) => {
       conservationIucn,
       threats,
       ecosystemRole,
+      isVisibleToPublic,
     } = req.body;
 
     const result = await query(
@@ -167,10 +228,11 @@ router.put('/:id', verifyToken, async (req, res, next) => {
            conservation_iucn = COALESCE($18, conservation_iucn),
            threats = COALESCE($19, threats),
            ecosystem_role = COALESCE($20, ecosystem_role),
+           is_visible_to_public = COALESCE($21, is_visible_to_public),
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $21
+       WHERE id = $22
        RETURNING *`,
-      [slug, name, speciesName, category, enclosureId, habitat, imageUrl, conservation, description, diet, lifespan, activity, size, weight, distribution, audioDescriptionUrl, scientificClassification, conservationIucn, threats, ecosystemRole, id]
+      [slug, name, speciesName, category, enclosureId, habitat, imageUrl, conservation, description, diet, lifespan, activity, size, weight, distribution, audioDescriptionUrl, scientificClassification, conservationIucn, threats, ecosystemRole, isVisibleToPublic, id]
     );
 
     if (result.rows.length === 0) {
@@ -188,7 +250,7 @@ router.put('/:id', verifyToken, async (req, res, next) => {
 });
 
 // DELETE species
-router.delete('/:id', verifyToken, async (req, res, next) => {
+router.delete('/:id', verifyToken, requireSpeciesMutationPermission, async (req, res, next) => {
   try {
     const { id } = req.params;
 

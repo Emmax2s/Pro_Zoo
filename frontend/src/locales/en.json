@@ -1,4 +1,57 @@
 {
+  "nav": {
+    "home": "Home",
+    "procedures": "Procedures",
+    "government": "Government",
+    "participate": "Participate",
+    "transparency": "Transparency",
+    "search": "Search",
+    "coordinationAlt": "State Coordination for ZooMAT Improvement - Government of Chiapas"
+    ,"about": "About us",
+    "ethics": "Ethics Committee",
+    "transparencyPortal": "Transparency Portal",
+    "pdf": "PDF",
+    "personalData": "Personal Data",
+    "dataProtection": "Data Protection"
+  },
+  "footer": {
+    "humanism": "HUMANISM THAT TRANSFORMS",
+    "coordination": "State Coordination",
+    "improvement": "For the Improvement",
+    "zoo": "of ZooMAT",
+    "government": "Government of Chiapas",
+    "privacyNotice": "Privacy Notice",
+    "declara": "Declara Chiapas",
+    "contactUs": "Contact us",
+    "address": "Cerro Hueco Road S/N, El Zapotal, Tuxtla Gutiérrez, Chiapas, ZIP 29094.",
+    "phone": "Switchboard: 961 543 88 90 Ext. 1001"
+  },
+  "contact": {
+    "success": "Thank you for your message. We will contact you soon.",
+    "phoneTitle": "Phone",
+    "phoneHours": "Monday to Friday: 9:00 AM - 5:00 PM",
+    "emailTitle": "Email",
+    "emailResponse": "We reply within 24-48 hours",
+    "addressTitle": "Address",
+    "addressLine1": "Cerro Hueco Road S/N, El Zapotal",
+    "addressLine2": "Tuxtla Gutiérrez, Chiapas, Mexico",
+    "hoursTitle": "Opening hours",
+    "hoursLine1": "Tuesday to Sunday: 8:30 AM - 4:30 PM",
+    "hoursLine2": "Closed Mondays for maintenance",
+    "namePlaceholder": "Your full name",
+    "emailPlaceholder": "you@email.com"
+  },
+  "home": {
+    "carouselImage": "Zoo",
+    "carouselVideo": "Video",
+    "previousSlide": "Previous slide",
+    "nextSlide": "Next slide",
+    "slide": "Slide {{count}}",
+    "highlights": {
+      "species": "50+ Species",
+      "speciesDesc": "Native wildlife of Chiapas"
+    }
+  },
   "speciesDetail": {
     "loading": "Loading ZooMAT species...",
     "notFound": "Species not found",

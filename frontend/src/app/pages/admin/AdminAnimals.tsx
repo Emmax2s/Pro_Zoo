@@ -22,6 +22,7 @@ const emptyForm: Omit<Animal, "id"> = {
   image: "",
   audioUrl: "",
   enclosureId: null,
+  isVisibleToPublic: true,
 };
 
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || '').replace(/\/$/, '');
@@ -120,6 +121,7 @@ function AnimalModal({
     image: animal.image,
     audioUrl: animal.audioUrl || "",
     enclosureId: animal.enclosureId,
+    isVisibleToPublic: animal.isVisibleToPublic !== false,
   });
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -133,7 +135,7 @@ function AnimalModal({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${sessionStorage.getItem("pro-zoo-admin-token") || ""}`,
+            Authorization: "Bearer " + (sessionStorage.getItem("pro-zoo-admin-token") || ""),
           },
           body: JSON.stringify({ filename: file.name, data: dataURL }),
         });
@@ -168,7 +170,7 @@ function AnimalModal({
       : [];
 
     const saved = currentUser.role === "enclosure_admin"
-      ? { ...form, enclosureId: form.enclosureId || userEnclosureIds[0] || null }
+      ? { ...form, enclosureId: animal.enclosureId || userEnclosureIds[0] || null, isVisibleToPublic: animal.isVisibleToPublic !== false }
       : form;
     onSave(saved);
   }
@@ -255,6 +257,7 @@ function AnimalModal({
                 name="enclosureId"
                 value={form.enclosureId ?? ""}
                 onChange={handle}
+                disabled={currentUser.role !== "superadmin"}
                 className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
               >
                 <option value="">Sin recinto asignado</option>
@@ -262,6 +265,18 @@ function AnimalModal({
                   <option key={enc.id} value={enc.id}>{enc.icon} {enc.name}</option>
                 ))}
               </select>
+            )}
+            {currentUser.role === "superadmin" && (
+              <label className="mt-3 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-bold text-emerald-950">
+                <input
+                  type="checkbox"
+                  name="isVisibleToPublic"
+                  checked={form.isVisibleToPublic}
+                  onChange={(event) => setForm((previous) => ({ ...previous, isVisibleToPublic: event.target.checked }))}
+                  className="h-4 w-4 accent-emerald-700"
+                />
+                Visible en el sitio público
+              </label>
             )}
           </div>
 
@@ -371,6 +386,37 @@ export function AdminAnimals() {
   const [deleteTarget, setDeleteTarget] = useState<Animal | null>(null);
   const [nextId, setNextId] = useState(100);
 
+  useEffect(() => {
+    if (!API_BASE_URL || !token || currentUser.role !== "superadmin") return;
+    fetch(`${API_BASE_URL}/api/species/manage/all`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    })
+      .then(async (response) => {
+        const data = await response.json().catch(() => []);
+        if (!response.ok) throw new Error(data.message || "No se pudieron cargar las especies.");
+        return data;
+      })
+      .then((data) => {
+        if (!Array.isArray(data)) return;
+        setAnimals(data.map((species) => ({
+          id: Number(species.id),
+          name: String(species.name || ""),
+          scientificName: String(species.species || ""),
+          category: species.category || "Mamífero",
+          status: species.conservation || "Preocupación Menor",
+          habitat: String(species.habitat || ""),
+          diet: String(species.diet || ""),
+          funFact: String(species.description || ""),
+          image: String(species.imageUrl || ""),
+          audioUrl: species.audioDescriptionUrl || "",
+          enclosureId: species.enclosureId ?? null,
+          isVisibleToPublic: species.isVisibleToPublic !== false,
+        })));
+      })
+      .catch((error) => console.error("Unable to load managed species:", error));
+  }, [currentUser.role, setAnimals, token]);
+
   const userEnclosureIds = currentUser.enclosureIds && currentUser.enclosureIds.length > 0
     ? currentUser.enclosureIds
     : currentUser.enclosureId
@@ -400,6 +446,7 @@ export function AdminAnimals() {
         species: data.scientificName,
         category: data.category,
         enclosureId: data.enclosureId,
+        isVisibleToPublic: data.isVisibleToPublic,
         habitat: data.habitat,
         imageUrl: data.image,
         conservation: data.status,
@@ -424,7 +471,7 @@ export function AdminAnimals() {
           window.alert(result.message || `No se pudo ${isEditing ? "actualizar" : "guardar"} la especie.`);
           return;
         }
-        const savedAnimal: Animal = { ...data, id: Number(result.id) };
+        const savedAnimal: Animal = { ...data, id: Number(result.id), isVisibleToPublic: result.isVisibleToPublic !== false };
         setAnimals(isEditing
           ? animals.map((animal) => (animal.id === savedAnimal.id ? savedAnimal : animal))
           : [...animals, savedAnimal]);

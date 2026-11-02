@@ -5,7 +5,7 @@ import { Volume2, VolumeX, Globe, TreePine, MapPin, Sparkles, ShieldCheck, Play,
 import { useZoo } from "../context/ZooContext";
 import { recordSpeciesVisit } from "../services/analytics";
 import { getLocalizedAnimal } from "../services/speciesTranslator";
-import { playChime, speakNarration, stopAllAudio } from "../services/audioPlayer";
+import { pauseAllAudio, playChime, resumeAllAudio, speakNarration, stopAllAudio } from "../services/audioPlayer";
 import { Animal } from "../data/zooStore";
 
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
@@ -14,12 +14,13 @@ export function SpeciesDetail() {
   const { idOrSlug } = useParams<{ idOrSlug: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { animals, currentLang, setLanguage } = useZoo();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [species, setSpecies] = useState<Animal | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [isPausedAudio, setIsPausedAudio] = useState(false);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -122,25 +123,34 @@ export function SpeciesDetail() {
 
       audio.onplay = () => {
         setIsPlayingAudio(true);
+        setIsPausedAudio(false);
         setAutoplayBlocked(false);
       };
       audio.onpause = () => setIsPlayingAudio(false);
       audio.onended = () => setIsPlayingAudio(false);
       audio.onerror = () => {
+        audioRef.current = null;
         speakNarration(
           `${targetLoc.name}. ${targetLoc.scientificName ? `(${targetLoc.scientificName}).` : ""} ${targetLoc.funFact}. ${targetLoc.habitat}. ${targetLoc.diet}.`,
           !isEnglish,
           () => setIsPlayingAudio(true),
-          () => setIsPlayingAudio(false)
+          () => {
+            setIsPlayingAudio(false);
+            setIsPausedAudio(false);
+          }
         );
       };
 
       audio.play().catch(() => {
+        audioRef.current = null;
         speakNarration(
           `${targetLoc.name}. ${targetLoc.scientificName ? `(${targetLoc.scientificName}).` : ""} ${targetLoc.funFact}. ${targetLoc.habitat}. ${targetLoc.diet}.`,
           !isEnglish,
           () => setIsPlayingAudio(true),
-          () => setIsPlayingAudio(false)
+          () => {
+            setIsPlayingAudio(false);
+            setIsPausedAudio(false);
+          }
         );
       });
     } else {
@@ -148,19 +158,35 @@ export function SpeciesDetail() {
         `${targetLoc.name}. ${targetLoc.scientificName ? `(${targetLoc.scientificName}).` : ""} ${targetLoc.funFact}. ${targetLoc.habitat}. ${targetLoc.diet}.`,
         !isEnglish,
         () => setIsPlayingAudio(true),
-        () => setIsPlayingAudio(false)
+        () => {
+          setIsPlayingAudio(false);
+          setIsPausedAudio(false);
+        }
       );
     }
   }, [loc, isEnglish]);
 
   const toggleAudio = useCallback(() => {
     if (isPlayingAudio) {
-      stopAllAudio();
+      if (audioRef.current) {
+        audioRef.current.pause();
+      } else {
+        pauseAllAudio();
+      }
       setIsPlayingAudio(false);
+      setIsPausedAudio(true);
+    } else if (isPausedAudio) {
+      if (audioRef.current) {
+        void audioRef.current.play().catch(() => setIsPausedAudio(false));
+      } else {
+        resumeAllAudio();
+      }
+      setIsPlayingAudio(true);
+      setIsPausedAudio(false);
     } else {
       startAudio();
     }
-  }, [isPlayingAudio, startAudio]);
+  }, [isPausedAudio, isPlayingAudio, startAudio]);
 
   // 5. Auto-play audio once when scanned via QR
   const hasAutoPlayedRef = useRef(false);
@@ -183,6 +209,8 @@ export function SpeciesDetail() {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      audioRef.current?.pause();
+      audioRef.current = null;
       stopAllAudio();
     };
   }, []);
@@ -190,6 +218,7 @@ export function SpeciesDetail() {
   const toggleLanguage = () => {
     stopAllAudio();
     setIsPlayingAudio(false);
+    setIsPausedAudio(false);
     const nextLang = isEnglish ? "es" : "en";
     setLanguage(nextLang);
     const newParams = new URLSearchParams(searchParams);
@@ -236,7 +265,7 @@ export function SpeciesDetail() {
   return (
     <div className="min-h-screen bg-[#faf8f2] text-stone-900 pb-20">
       {/* 1. Header Banner matching the photo 1 style */}
-      <section className="relative bg-[#f7f3e8] border-b-4 border-[#2b1706] py-12 md:py-16 overflow-hidden">
+      <section className="reveal-on-scroll relative bg-[#f7f3e8] border-b-4 border-[#2b1706] py-12 md:py-16 overflow-hidden">
         <div
           className="absolute inset-0 opacity-20 pointer-events-none"
           style={{
@@ -249,16 +278,16 @@ export function SpeciesDetail() {
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
             <Link
               to="/animales"
-              className="inline-flex items-center gap-2 text-stone-700 hover:text-amber-900 font-bold text-base transition-colors bg-white/80 px-4 py-2 rounded-xl border border-amber-800/20 shadow-xs"
+              className="inline-flex items-center gap-2 text-stone-700 hover:text-amber-900 font-bold text-base transition-all duration-200 hover:scale-105 active:scale-95 hover:-translate-y-0.5 bg-white/80 hover:bg-white px-4 py-2 rounded-xl border border-amber-800/20 shadow-xs will-change-transform"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-5 h-5 transition-transform duration-200 group-hover:-translate-x-1" />
               <span>{t("speciesDetail.backToWildlifeCatalog")}</span>
             </Link>
 
             {/* Language Switch Button */}
             <button
               onClick={toggleLanguage}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-amber-50 text-stone-900 font-bold border-2 border-amber-700/30 shadow-md transition-all hover:scale-105 text-sm cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-amber-50 text-stone-900 font-bold border-2 border-amber-700/30 shadow-md transition-all duration-200 hover:scale-105 active:scale-95 hover:-translate-y-0.5 text-sm cursor-pointer will-change-transform"
               title={t("speciesDetail.switchToEnglish")}
             >
               <Globe className="w-4 h-4 text-emerald-700" />
@@ -289,14 +318,14 @@ export function SpeciesDetail() {
       </section>
 
       {/* 2. Main Content Card */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 mt-8 space-y-8">
+      <main className="reveal-on-scroll max-w-5xl mx-auto px-4 sm:px-6 mt-8 space-y-8">
         {/* Prominent Audio Guide Bar / Mobile Autoplay Prompt */}
-        <div className="bg-gradient-to-r from-amber-900 via-[#8B5A2B] to-[#5C3A1E] text-white p-5 sm:p-6 rounded-3xl shadow-xl border-2 border-amber-500/60 relative overflow-hidden">
+        <div className="bg-gradient-to-r from-amber-900 via-[#8B5A2B] to-[#5C3A1E] text-white p-5 sm:p-6 rounded-3xl shadow-xl border-2 border-amber-500/60 relative overflow-hidden hover:border-amber-400 transition-colors duration-300">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4 text-center sm:text-left">
               <button
                 onClick={toggleAudio}
-                className="w-14 h-14 rounded-2xl bg-amber-400 hover:bg-amber-300 text-stone-950 flex items-center justify-center shadow-lg transition-transform hover:scale-105 flex-shrink-0 cursor-pointer"
+                className="w-14 h-14 rounded-2xl bg-amber-400 hover:bg-amber-300 text-stone-950 flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 active:scale-90 flex-shrink-0 cursor-pointer will-change-transform"
               >
                 {isPlayingAudio ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-0.5" />}
               </button>
@@ -314,7 +343,7 @@ export function SpeciesDetail() {
 
             <button
               onClick={toggleAudio}
-              className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-white hover:bg-amber-100 text-stone-950 font-adventure text-base tracking-wide shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-white hover:bg-amber-100 text-stone-950 font-adventure text-base tracking-wide shadow-md transition-all duration-200 hover:scale-105 active:scale-95 hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer will-change-transform"
             >
               <Volume2 className="w-5 h-5 text-emerald-800" />
               <span>{isPlayingAudio ? t("speciesDetail.pauseAudio") : t("speciesDetail.playAudio")}</span>
@@ -329,7 +358,7 @@ export function SpeciesDetail() {
         </div>
 
         {/* Species Photo with ambient frame */}
-        <div className="bg-white rounded-3xl overflow-hidden shadow-2xl border-2 border-[#e2d5bd]">
+        <div className="interactive-card bg-white rounded-3xl overflow-hidden shadow-2xl border-2 border-[#e2d5bd] hover:border-amber-600/40 transition-colors duration-300 will-change-transform">
           {species.image && (
             <div className="relative w-full h-[320px] sm:h-[420px] md:h-[480px] bg-stone-950 flex items-center justify-center overflow-hidden">
               <img
@@ -371,7 +400,7 @@ export function SpeciesDetail() {
 
             {/* Grid Attributes */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-amber-900/10">
-              <div className="bg-[#fcfaf5] p-6 rounded-2xl border border-amber-900/10 shadow-xs">
+              <div className="interactive-card bg-[#fcfaf5] p-6 rounded-2xl border border-amber-900/10 shadow-xs hover:-translate-y-1 hover:shadow-md hover:border-amber-500/40 transition-all duration-200 will-change-transform">
                 <h3 className="font-adventure text-xl text-amber-950 mb-2 flex items-center gap-2">
                   <MapPin className="w-5 h-5 text-emerald-700" />
                   <span>{t("speciesDetail.habitatRange")}</span>
@@ -381,7 +410,7 @@ export function SpeciesDetail() {
                 </p>
               </div>
 
-              <div className="bg-[#fcfaf5] p-6 rounded-2xl border border-amber-900/10 shadow-xs">
+              <div className="interactive-card bg-[#fcfaf5] p-6 rounded-2xl border border-amber-900/10 shadow-xs hover:-translate-y-1 hover:shadow-md hover:border-amber-500/40 transition-all duration-200 will-change-transform">
                 <h3 className="font-adventure text-xl text-amber-950 mb-2 flex items-center gap-2">
                   <ShieldCheck className="w-5 h-5 text-amber-700" />
                   <span>{t("speciesDetail.dietHabits")}</span>

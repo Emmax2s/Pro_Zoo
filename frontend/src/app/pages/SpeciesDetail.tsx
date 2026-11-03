@@ -4,7 +4,7 @@ import { Link, useParams, useSearchParams } from "react-router";
 import { Volume2, VolumeX, Globe, TreePine, MapPin, Sparkles, ShieldCheck, Play, Pause, ArrowLeft } from "lucide-react";
 import { useZoo } from "../context/ZooContext";
 import { recordSpeciesVisit } from "../services/analytics";
-import { getLocalizedAnimal } from "../services/speciesTranslator";
+import { getLocalizedAnimal, useLocalizedAnimal } from "../services/speciesTranslator";
 import { pauseAllAudio, playChime, resumeAllAudio, speakNarration, stopAllAudio } from "../services/audioPlayer";
 import { generateServerNarration } from "../services/ttsService";
 import { Animal } from "../data/zooStore";
@@ -118,7 +118,7 @@ export function SpeciesDetail() {
   }, [species, searchParams, sheetLang]);
 
   // Propiedades localizadas exclusivamente para esta ficha
-  const loc = species ? getLocalizedAnimal(species, !isEnglish) : null;
+  const loc = useLocalizedAnimal(species, !isEnglish);
 
   // Reproducción de audio en el idioma de la ficha
   const startAudio = useCallback((targetLoc = loc) => {

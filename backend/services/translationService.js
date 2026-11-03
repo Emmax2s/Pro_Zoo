@@ -9,23 +9,40 @@ async function translateText(text) {
   const cacheKey = `${env.translationSourceLanguage}:${env.translationTargetLanguage}:${value}`;
   if (cache.has(cacheKey)) return cache.get(cacheKey);
 
-  const url = new URL(env.translationApiUrl);
-  url.searchParams.set('q', value);
-  url.searchParams.set('langpair', `${env.translationSourceLanguage}|${env.translationTargetLanguage}`);
+  // 1. Intentar Google Translate GTX API
+  try {
+    const gtxUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${env.translationSourceLanguage}&tl=${env.translationTargetLanguage}&dt=t&q=${encodeURIComponent(value)}`;
+    const gtxRes = await fetch(gtxUrl);
+    if (gtxRes.ok) {
+      const gtxData = await gtxRes.json();
+      if (Array.isArray(gtxData) && Array.isArray(gtxData[0])) {
+        const translated = gtxData[0].map((item) => item[0]).join('');
+        if (translated && translated.trim()) {
+          cache.set(cacheKey, translated);
+          return translated;
+        }
+      }
+    }
+  } catch {}
 
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Translation service responded with status ${response.status}`);
-  }
+  // 2. Fallback a MyMemory API
+  try {
+    const url = new URL(env.translationApiUrl);
+    url.searchParams.set('q', value);
+    url.searchParams.set('langpair', `${env.translationSourceLanguage}|${env.translationTargetLanguage}`);
 
-  const data = await response.json();
-  const translated = data.responseData?.translatedText;
-  if (typeof translated !== 'string' || !translated.trim()) {
-    throw new Error('Translation service returned an invalid translation');
-  }
+    const response = await fetch(url);
+    if (response.ok) {
+      const data = await response.json();
+      const translated = data.responseData?.translatedText;
+      if (typeof translated === 'string' && translated.trim()) {
+        cache.set(cacheKey, translated);
+        return translated;
+      }
+    }
+  } catch {}
 
-  cache.set(cacheKey, translated);
-  return translated;
+  return text || '';
 }
 
 export async function translateSpecies(species, language) {

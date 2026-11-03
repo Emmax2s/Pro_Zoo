@@ -8,7 +8,6 @@ import { initGlobalScrollReveal } from "../ui/RevealOnScroll";
 
 export function RootLayout() {
   const location = useLocation();
-  const isExhibitView = location.pathname.startsWith("/especie");
 
   useEffect(() => {
     recordGeneralVisit();
@@ -21,15 +20,6 @@ export function RootLayout() {
     }, 60);
     return () => clearTimeout(timer);
   }, [location.pathname]);
-
-  if (isExhibitView) {
-    return (
-      <main className="min-h-screen">
-        <Outlet />
-        <PublicChatButton />
-      </main>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col">

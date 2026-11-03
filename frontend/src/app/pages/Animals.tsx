@@ -4,7 +4,7 @@ import { Search, Filter, Volume2, MapPin, X, Info, Lightbulb, Globe, VolumeX, Mi
 import { AnimalCard } from "../components/AnimalCard";
 import { useZoo } from "../context/ZooContext";
 import { recordSpeciesVisit } from "../services/analytics";
-import { getLocalizedAnimal } from "../services/speciesTranslator";
+import { getLocalizedAnimal, useLocalizedAnimal } from "../services/speciesTranslator";
 import { playChime, speakNarration, stopAllAudio } from "../services/audioPlayer";
 import { useTranslation } from "react-i18next";
 
@@ -84,7 +84,7 @@ export function Animals() {
 
     if (!selectedAnimal) return;
 
-    const loc = getLocalizedAnimal(selectedAnimal, isModalEs);
+    const loc = selectedLoc || getLocalizedAnimal(selectedAnimal, isModalEs);
     playChime();
 
     const name = loc.name;
@@ -166,7 +166,7 @@ export function Animals() {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  const selectedLoc = selectedAnimal ? getLocalizedAnimal(selectedAnimal, isModalEs) : null;
+  const selectedLoc = useLocalizedAnimal(selectedAnimal, isModalEs);
 
   return (
     <div className="min-h-screen bg-[#faf8f2] text-stone-900 pb-20">

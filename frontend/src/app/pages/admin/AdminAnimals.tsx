@@ -127,6 +127,7 @@ function AnimalModal({
     enclosureId: animal.enclosureId,
     isVisibleToPublic: animal.isVisibleToPublic !== false,
   });
+  const [videoUrl, setVideoUrl] = useState("");
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -196,6 +197,60 @@ function AnimalModal({
   }
 
   const isEditing = "id" in animal;
+
+  async function uploadMediaFiles(files: FileList | null, kind: "image" | "video") {
+    if (!files?.length) return;
+    const selected = Array.from(files);
+    const current = kind === "image" ? form.mediaImages : form.mediaVideos;
+    const limit = kind === "image" ? 4 : 2;
+    if (current.length + selected.length > limit) {
+      window.alert(`Puedes registrar máximo ${limit} ${kind === "image" ? "imágenes" : "videos"}.`);
+      return;
+    }
+    try {
+      const urls: string[] = [];
+      for (const file of selected) {
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const fileReader = new FileReader();
+          fileReader.onload = () => resolve(String(fileReader.result));
+          fileReader.onerror = () => reject(new Error("No se pudo leer el archivo."));
+          fileReader.readAsDataURL(file);
+        });
+        const response = await fetch(`${API_BASE_URL}/api/upload`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${sessionStorage.getItem("pro-zoo-admin-token") || ""}`,
+          },
+          body: JSON.stringify({ filename: file.name, data: dataUrl }),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || typeof result.url !== "string") {
+          throw new Error(result.message || "No se pudo subir el archivo.");
+        }
+        urls.push(result.url);
+      }
+      setForm((previous) => ({
+        ...previous,
+        ...(kind === "image"
+          ? { mediaImages: [...previous.mediaImages, ...urls], image: previous.image || urls[0] }
+          : { mediaVideos: [...previous.mediaVideos, ...urls] }),
+      }));
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "No se pudo subir el archivo.");
+    }
+  }
+
+  function addVideoUrl() {
+    const url = videoUrl.trim();
+    if (!url || form.mediaVideos.length >= 2) return;
+    if (!/^https?:\/\/\S+$/i.test(url)) {
+      window.alert("Ingresa una URL válida para el video.");
+      return;
+    }
+    setForm((previous) => ({ ...previous, mediaVideos: [...previous.mediaVideos, url] }));
+    setVideoUrl("");
+  }
 
   function handle(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const { name, value } = e.target;
@@ -276,6 +331,22 @@ function AnimalModal({
                   onChange={(event) => void uploadMediaFiles(event.target.files, "video")}
                   className="mt-1 block w-full text-sm" />
               </label>
+              <div className="flex gap-2">
+                <input
+                  value={videoUrl}
+                  onChange={(event) => setVideoUrl(event.target.value)}
+                  placeholder="https://sitio.com/video.mp4"
+                  className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={addVideoUrl}
+                  disabled={form.mediaVideos.length >= 2}
+                  className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-bold text-white disabled:opacity-50"
+                >
+                  Agregar URL
+                </button>
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {form.mediaImages.map((url, index) => (
                   <div key={url} className="relative aspect-square overflow-hidden rounded-lg bg-gray-200">
@@ -345,18 +416,6 @@ function AnimalModal({
                   <option key={enc.id} value={enc.id}>{enc.icon} {enc.name}</option>
                 ))}
               </select>
-            )}
-            {currentUser.role === "superadmin" && (
-              <label className="mt-3 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-bold text-emerald-950">
-                <input
-                  type="checkbox"
-                  name="isVisibleToPublic"
-                  checked={form.isVisibleToPublic}
-                  onChange={(event) => setForm((previous) => ({ ...previous, isVisibleToPublic: event.target.checked }))}
-                  className="h-4 w-4 accent-emerald-700"
-                />
-                Visible en el sitio público
-              </label>
             )}
           </div>
 
@@ -642,6 +701,14 @@ export function AdminAnimals() {
     setDeleteTarget(null);
   }
 
+  async function togglePublicVisibility(animal: Animal) {
+    if (!isSuperAdmin) return;
+    await handleSave({
+      ...animal,
+      isVisibleToPublic: animal.isVisibleToPublic === false,
+    });
+  }
+
   const getEnclosure = (id: string | null) => enclosures.find((e) => e.id === id);
 
   const isSuperAdmin = currentUser.role === "superadmin";
@@ -765,6 +832,19 @@ export function AdminAnimals() {
                         className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Editar">
                         <Edit2 size={16} />
                       </button>
+                      {isSuperAdmin && (
+                        <button
+                          onClick={() => void togglePublicVisibility(animal)}
+                          className={`rounded-lg px-2 py-1 text-xs font-bold transition-colors ${
+                            animal.isVisibleToPublic === false
+                              ? "bg-gray-100 text-gray-600 hover:bg-emerald-100 hover:text-emerald-700"
+                              : "bg-emerald-50 text-emerald-700 hover:bg-amber-100 hover:text-amber-800"
+                          }`}
+                          title={animal.isVisibleToPublic === false ? "Mostrar al público" : "Ocultar del público"}
+                        >
+                          {animal.isVisibleToPublic === false ? "Oculta" : "Visible"}
+                        </button>
+                      )}
                       <button onClick={() => setDeleteTarget(animal)}
                         className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
                         <Trash2 size={16} />

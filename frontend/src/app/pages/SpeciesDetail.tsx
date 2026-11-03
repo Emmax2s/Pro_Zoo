@@ -14,8 +14,14 @@ const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) 
 export function SpeciesDetail() {
   const { idOrSlug } = useParams<{ idOrSlug: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { animals, currentLang, setLanguage } = useZoo();
-  const { t, i18n } = useTranslation();
+  const { animals } = useZoo();
+  const { t } = useTranslation();
+
+  // El idioma de la ficha se maneja de forma local para no alterar el idioma del resto de la página (navbar, pie de página, etc.)
+  const [sheetLang, setSheetLang] = useState<"es" | "en">(() => {
+    const urlLang = searchParams.get("lang");
+    return urlLang === "en" || urlLang === "es" ? urlLang : "es";
+  });
 
   const [species, setSpecies] = useState<Animal | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,20 +33,20 @@ export function SpeciesDetail() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const visitLoggedRef = useRef(false);
 
-  // 1. Language detection: if ?lang is present, use it
+  // Sincronizar parámetro ?lang en URL si cambia externamente, sin alterar el idioma global del sitio
   useEffect(() => {
     const urlLang = searchParams.get("lang");
-    if (urlLang === "en" || urlLang === "es") {
-      setLanguage(urlLang);
+    if ((urlLang === "en" || urlLang === "es") && urlLang !== sheetLang) {
+      setSheetLang(urlLang);
     }
-  }, [searchParams, setLanguage]);
+  }, [searchParams, sheetLang]);
 
-  const isEnglish = currentLang === "en";
+  const isEnglish = sheetLang === "en";
 
-  // 2. Load only species registered in the API
+  // Carga de la especie (en el idioma específico de la ficha)
   useEffect(() => {
     if (!idOrSlug) {
-      setError(t("speciesDetail.notFound"));
+      setError(t("speciesDetail.notFound", { lng: sheetLang }));
       setLoading(false);
       return;
     }
@@ -59,16 +65,16 @@ export function SpeciesDetail() {
       if (match) {
         setSpecies(match);
       } else {
-        setError(t("speciesDetail.catalogNotFound"));
+        setError(t("speciesDetail.catalogNotFound", { lng: sheetLang }));
       }
       setLoading(false);
       return;
     }
 
     let active = true;
-    fetch(`${API_BASE_URL}/api/species/${encodeURIComponent(idOrSlug)}?lang=${currentLang}`, { cache: "no-store" })
+    fetch(`${API_BASE_URL}/api/species/${encodeURIComponent(idOrSlug)}?lang=${sheetLang}`, { cache: "no-store" })
       .then(async (res) => {
-        if (!res.ok) throw new Error(t("speciesDetail.apiUnavailable"));
+        if (!res.ok) throw new Error(t("speciesDetail.apiUnavailable", { lng: sheetLang }));
         const data = await res.json();
         if (active) {
           setSpecies({
@@ -90,7 +96,7 @@ export function SpeciesDetail() {
       })
       .catch(() => {
         if (active) {
-          setError(t("speciesDetail.notFound"));
+          setError(t("speciesDetail.notFound", { lng: sheetLang }));
         }
       })
       .finally(() => {
@@ -100,21 +106,21 @@ export function SpeciesDetail() {
     return () => {
       active = false;
     };
-  }, [idOrSlug, animals, currentLang, isEnglish, t]);
+  }, [idOrSlug, animals, sheetLang, t]);
 
-  // 3. Record visit (QR or Direct)
+  // Registro de analítica de visita
   useEffect(() => {
     if (!species || visitLoggedRef.current) return;
     visitLoggedRef.current = true;
 
     const isQr = searchParams.get("scan") === "qr" || window.location.search.includes("qr");
-    recordSpeciesVisit(species.id, currentLang, isQr ? "qr" : "direct");
-  }, [species, searchParams, currentLang]);
+    recordSpeciesVisit(species.id, sheetLang, isQr ? "qr" : "direct");
+  }, [species, searchParams, sheetLang]);
 
-  // Localized species properties
+  // Propiedades localizadas exclusivamente para esta ficha
   const loc = species ? getLocalizedAnimal(species, !isEnglish) : null;
 
-  // 4. Robust audio playback
+  // Reproducción de audio en el idioma de la ficha
   const startAudio = useCallback((targetLoc = loc) => {
     if (!targetLoc) return;
     playChime();
@@ -143,7 +149,6 @@ export function SpeciesDetail() {
       });
     };
 
-    // If a clean MP3 is available and not example.com, try playing
     if (targetLoc.audioUrl && !targetLoc.audioUrl.includes("example.com")) {
       const audio = new Audio(targetLoc.audioUrl);
       audioRef.current = audio;
@@ -154,7 +159,10 @@ export function SpeciesDetail() {
         setAutoplayBlocked(false);
       };
       audio.onpause = () => setIsPlayingAudio(false);
-      audio.onended = () => setIsPlayingAudio(false);
+      audio.onended = () => {
+        setIsPlayingAudio(false);
+        setIsPausedAudio(false);
+      };
       audio.onerror = () => {
         audioRef.current = null;
         speakNarration(
@@ -217,7 +225,7 @@ export function SpeciesDetail() {
     }
   }, [isPausedAudio, isPlayingAudio, startAudio]);
 
-  // 5. Auto-play audio once when scanned via QR
+  // Reproducción automática una sola vez cuando se escanea por QR
   const hasAutoPlayedRef = useRef(false);
   useEffect(() => {
     if (!loc || hasAutoPlayedRef.current) return;
@@ -235,7 +243,7 @@ export function SpeciesDetail() {
     };
   }, [loc, searchParams, startAudio]);
 
-  // Cleanup on unmount
+  // Limpieza al desmontar
   useEffect(() => {
     return () => {
       audioRef.current?.pause();
@@ -244,15 +252,16 @@ export function SpeciesDetail() {
     };
   }, []);
 
+  // Cambiar el idioma EXCLUSIVAMENTE de esta ficha sin afectar la página global
   const toggleLanguage = () => {
     stopAllAudio();
     setIsPlayingAudio(false);
     setIsPausedAudio(false);
     const nextLang = isEnglish ? "es" : "en";
-    setLanguage(nextLang);
+    setSheetLang(nextLang);
     const newParams = new URLSearchParams(searchParams);
     newParams.set("lang", nextLang);
-    setSearchParams(newParams);
+    setSearchParams(newParams, { replace: true });
   };
 
   if (loading) {
@@ -261,7 +270,7 @@ export function SpeciesDetail() {
         <div className="text-center space-y-4">
           <div className="w-16 h-16 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="font-adventure text-2xl text-[#2b1810]">
-            {t("speciesDetail.loading")}
+            {t("speciesDetail.loading", { lng: sheetLang })}
           </p>
         </div>
       </div>
@@ -276,15 +285,15 @@ export function SpeciesDetail() {
             <TreePine className="w-8 h-8" />
           </div>
           <h2 className="font-adventure text-3xl text-[#2b1810] text-adventure-shadow">
-            {t("speciesDetail.notFound")}
+            {t("speciesDetail.notFound", { lng: sheetLang })}
           </h2>
-          <p className="text-stone-600 text-base">{error || t("speciesDetail.notFoundDescription")}</p>
+          <p className="text-stone-600 text-base">{error || t("speciesDetail.notFoundDescription", { lng: sheetLang })}</p>
           <Link
-            to="/animales"
+            to="/especies"
             className="inline-flex items-center gap-2 wood-texture-bg text-amber-200 border-2 border-amber-600 px-6 py-3 rounded-2xl font-adventure text-base shadow-lg hover:scale-105 transition-transform wood-button-shadow"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span>{t("speciesDetail.backToCatalog")}</span>
+            <span>{t("speciesDetail.backToCatalog", { lng: sheetLang })}</span>
           </Link>
         </div>
       </div>
@@ -293,7 +302,7 @@ export function SpeciesDetail() {
 
   return (
     <div className="min-h-screen bg-[#faf8f2] text-stone-900 pb-20">
-      {/* 1. Header Banner matching the photo 1 style */}
+      {/* 1. Header Banner de la ficha */}
       <section className="reveal-on-scroll relative bg-[#f7f3e8] border-b-4 border-[#2b1706] py-12 md:py-16 overflow-hidden">
         <div
           className="absolute inset-0 opacity-20 pointer-events-none"
@@ -306,28 +315,28 @@ export function SpeciesDetail() {
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
             <Link
-              to="/animales"
+              to="/especies"
               className="inline-flex items-center gap-2 text-stone-700 hover:text-amber-900 font-bold text-base transition-all duration-200 hover:scale-105 active:scale-95 hover:-translate-y-0.5 bg-white/80 hover:bg-white px-4 py-2 rounded-xl border border-amber-800/20 shadow-xs will-change-transform"
             >
               <ArrowLeft className="w-5 h-5 transition-transform duration-200 group-hover:-translate-x-1" />
-              <span>{t("speciesDetail.backToWildlifeCatalog")}</span>
+              <span>{t("speciesDetail.backToWildlifeCatalog", { lng: sheetLang })}</span>
             </Link>
 
-            {/* Language Switch Button */}
+            {/* Botón de Cambio de Idioma Exclusivo de la Ficha */}
             <button
               onClick={toggleLanguage}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-amber-50 text-stone-900 font-bold border-2 border-amber-700/30 shadow-md transition-all duration-200 hover:scale-105 active:scale-95 hover:-translate-y-0.5 text-sm cursor-pointer will-change-transform"
-              title={t("speciesDetail.switchToEnglish")}
+              title={t("speciesDetail.switchToEnglish", { lng: sheetLang })}
             >
               <Globe className="w-4 h-4 text-emerald-700" />
-              <span>{t("speciesDetail.switchToEnglish")}</span>
+              <span>{t("speciesDetail.switchToEnglish", { lng: sheetLang })}</span>
             </button>
           </div>
 
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100/90 text-amber-950 text-xs sm:text-sm font-black tracking-wide uppercase shadow-xs border border-amber-300">
               <TreePine className="w-4 h-4 text-emerald-800" />
-              <span>{t("speciesDetail.qrGuide")}</span>
+              <span>{t("speciesDetail.qrGuide", { lng: sheetLang })}</span>
             </div>
 
             <h1 className="font-adventure text-4xl sm:text-6xl text-[#2b1810] tracking-wide text-adventure-shadow leading-tight">
@@ -348,7 +357,7 @@ export function SpeciesDetail() {
 
       {/* 2. Main Content Card */}
       <main className="reveal-on-scroll max-w-5xl mx-auto px-4 sm:px-6 mt-8 space-y-8">
-        {/* Prominent Audio Guide Bar / Mobile Autoplay Prompt */}
+        {/* Barra de audioguía oficial */}
         <div className="bg-gradient-to-r from-amber-900 via-[#8B5A2B] to-[#5C3A1E] text-white p-5 sm:p-6 rounded-3xl shadow-xl border-2 border-amber-500/60 relative overflow-hidden hover:border-amber-400 transition-colors duration-300">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4 text-center sm:text-left">
@@ -361,11 +370,11 @@ export function SpeciesDetail() {
               <div>
                 <p className="font-adventure text-xl sm:text-2xl text-amber-200">
                   {isPlayingAudio
-                    ? t("speciesDetail.playingAudio")
-                    : t("speciesDetail.listenAudio")}
+                    ? t("speciesDetail.playingAudio", { lng: sheetLang })
+                    : t("speciesDetail.listenAudio", { lng: sheetLang })}
                 </p>
                 <p className="text-amber-100/90 text-sm font-medium">
-                  {t("speciesDetail.audioDescription")}
+                  {t("speciesDetail.audioDescription", { lng: sheetLang })}
                 </p>
               </div>
             </div>
@@ -375,18 +384,18 @@ export function SpeciesDetail() {
               className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-white hover:bg-amber-100 text-stone-950 font-adventure text-base tracking-wide shadow-md transition-all duration-200 hover:scale-105 active:scale-95 hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer will-change-transform"
             >
               <Volume2 className="w-5 h-5 text-emerald-800" />
-              <span>{isPlayingAudio ? t("speciesDetail.pauseAudio") : t("speciesDetail.playAudio")}</span>
+              <span>{isPlayingAudio ? t("speciesDetail.pauseAudio", { lng: sheetLang }) : t("speciesDetail.playAudio", { lng: sheetLang })}</span>
             </button>
           </div>
 
           {autoplayBlocked && !isPlayingAudio && (
             <div className="mt-3 bg-amber-500/20 border border-amber-300/40 p-2.5 rounded-xl text-center text-xs sm:text-sm font-semibold text-amber-100 animate-pulse">
-              {t("speciesDetail.autoplayHint")}
+              {t("speciesDetail.autoplayHint", { lng: sheetLang })}
             </div>
           )}
         </div>
 
-        {/* Species Photo with ambient frame */}
+        {/* Fotografía de la especie */}
         <div className="interactive-card bg-white rounded-3xl overflow-hidden shadow-2xl border-2 border-[#e2d5bd] hover:border-amber-600/40 transition-colors duration-300 will-change-transform">
           {species.image && (
             <div className="relative w-full h-[320px] sm:h-[420px] md:h-[480px] bg-stone-950 flex items-center justify-center overflow-hidden">
@@ -414,7 +423,7 @@ export function SpeciesDetail() {
             </div>
           )}
 
-          {/* Details Body Localized */}
+          {/* Contenido descriptivo de la ficha */}
           <div className="p-6 sm:p-10 space-y-8">
             {(loc.mediaImages.length > 0 || loc.mediaVideos.length > 0) && (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -439,23 +448,24 @@ export function SpeciesDetail() {
                 ))}
               </div>
             )}
-            {/* About text */}
+            
+            {/* Sobre esta especie */}
             <div className="space-y-3">
               <h2 className="font-adventure text-2xl sm:text-3xl text-[#2b1810] flex items-center gap-2">
                 <Sparkles className="w-6 h-6 text-amber-600" />
-                <span>{t("speciesDetail.aboutSpecies")}</span>
+                <span>{t("speciesDetail.aboutSpecies", { lng: sheetLang })}</span>
               </h2>
               <p className="text-stone-800 text-lg sm:text-xl leading-relaxed font-medium">
                 {loc.funFact}
               </p>
             </div>
 
-            {/* Grid Attributes */}
+            {/* Cuadrícula de Atributos */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-amber-900/10">
               <div className="interactive-card bg-[#fcfaf5] p-6 rounded-2xl border border-amber-900/10 shadow-xs hover:-translate-y-1 hover:shadow-md hover:border-amber-500/40 transition-all duration-200 will-change-transform">
                 <h3 className="font-adventure text-xl text-amber-950 mb-2 flex items-center gap-2">
                   <MapPin className="w-5 h-5 text-emerald-700" />
-                  <span>{t("speciesDetail.habitatRange")}</span>
+                  <span>{t("speciesDetail.habitatRange", { lng: sheetLang })}</span>
                 </h3>
                 <p className="text-stone-700 text-base sm:text-lg leading-relaxed">
                   {loc.habitat}
@@ -465,7 +475,7 @@ export function SpeciesDetail() {
               <div className="interactive-card bg-[#fcfaf5] p-6 rounded-2xl border border-amber-900/10 shadow-xs hover:-translate-y-1 hover:shadow-md hover:border-amber-500/40 transition-all duration-200 will-change-transform">
                 <h3 className="font-adventure text-xl text-amber-950 mb-2 flex items-center gap-2">
                   <ShieldCheck className="w-5 h-5 text-amber-700" />
-                  <span>{t("speciesDetail.dietHabits")}</span>
+                  <span>{t("speciesDetail.dietHabits", { lng: sheetLang })}</span>
                 </h3>
                 <p className="text-stone-700 text-base sm:text-lg leading-relaxed">
                   {loc.diet}

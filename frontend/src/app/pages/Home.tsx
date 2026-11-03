@@ -241,7 +241,7 @@ export function Home() {
           {/* Botones solicitados en el carrusel (Imagen 2): Especies, Visita y Mapa */}
           <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center justify-center gap-3 sm:gap-6 w-[94%] max-w-2xl px-2">
             <Link
-              to="/animales"
+              to="/especies"
               className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/75 hover:bg-[#731c34] text-white border-2 border-amber-400/80 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-200 hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 font-sans font-bold text-sm sm:text-base tracking-wide group will-change-transform"
             >
               <PawPrint className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-115 transition-transform duration-200" />
@@ -310,7 +310,7 @@ export function Home() {
               </Link>
 
               <Link
-                to="/animales"
+                to="/especies"
                 className="inline-flex items-center gap-3 bg-white hover:bg-amber-50 text-stone-900 border-2 border-amber-800/30 px-8 py-4 rounded-2xl text-lg font-adventure shadow-md hover:shadow-xl hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 transition-all duration-200 will-change-transform"
               >
                 <BookOpen className="w-5 h-5 text-emerald-800" />
@@ -362,7 +362,7 @@ export function Home() {
               </p>
             </div>
             <Link
-              to="/animales"
+              to="/especies"
               className="font-adventure text-base text-amber-950 bg-amber-300 hover:bg-amber-400 border-2 border-amber-500 px-6 py-3 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2 will-change-transform"
             >
               <span>{t("home.featured.viewAll")}</span>

@@ -9,7 +9,7 @@ const resources = {
       ...esLocale,
       nav: {
         home: "Inicio",
-        animals: "Animales",
+        animals: "Especies",
         visit: "Planear Visita",
         map: "Mapa",
         contact: "Contacto",

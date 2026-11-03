@@ -9,8 +9,8 @@ import { playChime, speakNarration, stopAllAudio } from "../services/audioPlayer
 import { useTranslation } from "react-i18next";
 
 export function Animals() {
-  const { animals, currentLang, toggleLanguage, setLanguage } = useZoo();
-  const { t, i18n } = useTranslation();
+  const { animals, currentLang } = useZoo();
+  const { t } = useTranslation();
   const isEs = currentLang === "es";
   const { id: pathId } = useParams<{ id?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -23,17 +23,18 @@ export function Animals() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const qrLoggedRef = useRef<Record<string, boolean>>({});
 
-  // Detect language query parameter if present
-  useEffect(() => {
-    const lang = searchParams.get("lang");
-    if (lang === "es" || lang === "en") {
-      setLanguage(lang);
-    }
-  }, [searchParams, setLanguage]);
+  // Idioma exclusivo del modal de la especie para no afectar el resto de la página
+  const [modalLang, setModalLang] = useState<"es" | "en">("es");
+  const isModalEs = modalLang === "es";
 
   // Auto-open modal if scanned via QR or linked via URL parameter (/especie/:id or ?id=...)
   useEffect(() => {
     const targetId = pathId || searchParams.get("id") || searchParams.get("animal");
+    const lang = searchParams.get("lang");
+    if (lang === "en" || lang === "es") {
+      setModalLang(lang);
+    }
+
     if (targetId && animals.length > 0) {
       const found = animals.find(
         (a) =>
@@ -48,11 +49,11 @@ export function Animals() {
         const isQr = searchParams.get("scan") === "qr" || window.location.search.includes("qr");
         if (isQr && !qrLoggedRef.current[String(found.id)]) {
           qrLoggedRef.current[String(found.id)] = true;
-          recordSpeciesVisit(found.id, currentLang, "qr");
+          recordSpeciesVisit(found.id, modalLang, "qr");
         }
       }
     }
-  }, [pathId, searchParams, animals, currentLang]);
+  }, [pathId, searchParams, animals, modalLang]);
 
   // Stop speech when modal closes or unmounts
   const stopSpeech = useCallback(() => {
@@ -63,21 +64,18 @@ export function Animals() {
   const closeModal = () => {
     stopSpeech();
     setSelectedAnimal(null);
+    setModalLang("es");
     if (pathId) {
-      navigate("/animales", { replace: true });
+      navigate("/especies", { replace: true });
     }
   };
 
   const handleToggleModalLanguage = () => {
     stopSpeech();
-    const nextLang = isEs ? "en" : "es";
-    setLanguage(nextLang);
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set("lang", nextLang);
-    setSearchParams(newParams);
+    setModalLang((prev) => (prev === "es" ? "en" : "es"));
   };
 
-  // Robust Text-to-Speech narrate species info in selected language
+  // Robust Text-to-Speech narrate species info in modal's selected language
   const handleSpeakInfo = () => {
     if (isSpeaking) {
       stopSpeech();
@@ -86,23 +84,23 @@ export function Animals() {
 
     if (!selectedAnimal) return;
 
-    const loc = getLocalizedAnimal(selectedAnimal, isEs);
+    const loc = getLocalizedAnimal(selectedAnimal, isModalEs);
     playChime();
 
     const name = loc.name;
     const scientific = loc.scientificName ? `(${loc.scientificName}).` : "";
-    const aboutHeader = isEs ? "Sobre esta especie:" : "About this species:";
+    const aboutHeader = isModalEs ? "Sobre esta especie:" : "About this species:";
     const aboutText = loc.funFact;
-    const habitatHeader = isEs ? "Hábitat y distribución:" : "Habitat and distribution:";
+    const habitatHeader = isModalEs ? "Hábitat y distribución:" : "Habitat and distribution:";
     const habitatText = loc.habitat;
-    const dietHeader = isEs ? "Alimentación:" : "Diet:";
+    const dietHeader = isModalEs ? "Alimentación:" : "Diet:";
     const dietText = loc.diet;
 
     const fullSpeechText = `${name}. ${scientific} ${aboutHeader} ${aboutText}. ${habitatHeader} ${habitatText}. ${dietHeader} ${dietText}.`;
 
     speakNarration(
       fullSpeechText,
-      isEs,
+      isModalEs,
       () => setIsSpeaking(true),
       () => setIsSpeaking(false)
     );
@@ -168,7 +166,7 @@ export function Animals() {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  const selectedLoc = selectedAnimal ? getLocalizedAnimal(selectedAnimal, isEs) : null;
+  const selectedLoc = selectedAnimal ? getLocalizedAnimal(selectedAnimal, isModalEs) : null;
 
   return (
     <div className="min-h-screen bg-[#faf8f2] text-stone-900 pb-20">
@@ -269,49 +267,48 @@ export function Animals() {
             </div>
           </div>
         </div>
-
-        <div className="mt-6 flex items-center justify-between text-base text-stone-700 font-bold px-2">
-          <p>
-            Mostrando{" "}
-            <span className="font-adventure text-lg text-amber-950 bg-amber-200/80 px-3 py-1 rounded-lg border border-amber-400">
-              {filteredAnimals.length}
-            </span>
-            {" "}especies nativas encontradas
-          </p>
-        </div>
       </section>
 
-      {/* 3. Animals Grid */}
-      <section className="reveal-on-scroll max-w-7xl mx-auto px-4 sm:px-6 pb-24">
+      {/* 3. Animals Grid Section */}
+      <section className="reveal-on-scroll max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex justify-between items-center mb-8">
+          <p className="text-amber-950 font-bold text-lg">
+            Mostrando <span className="text-amber-700 font-black">{filteredAnimals.length}</span> especies
+          </p>
+        </div>
+
         {filteredAnimals.length > 0 ? (
-          <div className="grid min-w-0 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {filteredAnimals.map((animal) => {
-              const loc = getLocalizedAnimal(animal, isEs);
-              return (
-                <div
-                  key={animal.id}
-                  onClick={() => setSelectedAnimal(animal)}
-                  className="cursor-pointer transform transition-all duration-300 hover:-translate-y-2.5 active:scale-[0.98] will-change-transform"
-                >
-                  <AnimalCard
-                    name={loc.name}
-                    scientificName={loc.scientificName}
-                    image={animal.image}
-                    habitat={loc.habitat}
-                    diet={loc.diet}
-                    status={loc.status}
-                    funFact={loc.funFact}
-                    statusColor={
-                      animal.status === "En Peligro de Extinción" || loc.status === "Endangered"
-                        ? "bg-rose-700 text-white"
-                        : animal.status === "Amenazada" || loc.status === "Threatened"
-                        ? "bg-amber-600 text-white"
-                        : "bg-emerald-700 text-white"
-                    }
-                  />
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {filteredAnimals.map((animal) => (
+              <div
+                key={animal.id}
+                onClick={() => {
+                  setSelectedAnimal(animal);
+                  setModalLang("es");
+                  recordSpeciesVisit(animal.id, currentLang, "catalog");
+                }}
+                className="cursor-pointer group flex flex-col h-full"
+              >
+                <AnimalCard
+                  id={String(animal.id)}
+                  name={animal.name}
+                  scientificName={animal.scientificName}
+                  image={animal.image}
+                  habitat={animal.habitat}
+                  diet={animal.diet}
+                  status={animal.status}
+                  funFact={animal.funFact}
+                  category={animal.category}
+                  statusColor={
+                    animal.status === "En Peligro de Extinción"
+                      ? "bg-red-500/90 text-white"
+                      : animal.status === "Amenazada"
+                      ? "bg-amber-500/90 text-white"
+                      : "bg-emerald-600/90 text-white"
+                  }
+                />
+              </div>
+            ))}
           </div>
         ) : (
           <div className="border-2 border-dashed border-amber-300 bg-white rounded-3xl p-16 text-center shadow-lg">
@@ -353,14 +350,14 @@ export function Animals() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                {/* Botón de Cambio de Idioma */}
+                {/* Botón de Cambio de Idioma Exclusivo del Modal */}
                 <button
                   onClick={handleToggleModalLanguage}
                   className="bg-white/90 hover:bg-white text-stone-950 font-black px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-md border-2 border-amber-400 transition-all duration-200 hover:scale-105 active:scale-95 hover:-translate-y-0.5 cursor-pointer will-change-transform"
                   title="Cambiar idioma del modal / Switch modal language"
                 >
                   <Globe className="w-4 h-4 text-emerald-800" />
-                  <span>{isEs ? "ENGLISH" : "ESPAÑOL"}</span>
+                  <span>{isModalEs ? "ENGLISH" : "ESPAÑOL"}</span>
                 </button>
 
                 <span className="bg-amber-950/80 border border-amber-500 text-amber-200 text-xs font-black uppercase px-3.5 py-1.5 rounded-full shadow-xs">
@@ -397,14 +394,14 @@ export function Animals() {
                       </div>
                       <div>
                         <p className="font-adventure text-lg text-amber-200">
-                          {isEs ? "Modo Voz Narradora" : "Voice Reader Mode"}
+                          {isModalEs ? "Modo Voz Narradora" : "Voice Reader Mode"}
                         </p>
                         <p className="text-xs text-amber-100/90 font-medium">
                           {isSpeaking
-                            ? isEs
+                            ? isModalEs
                               ? "Reproduciendo narración de voz..."
                               : "Playing voice narration..."
-                            : isEs
+                            : isModalEs
                             ? "Escucha la narración oficial"
                             : "Listen to official narration"}
                         </p>
@@ -419,7 +416,7 @@ export function Animals() {
                       }`}
                     >
                       {isSpeaking ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                      <span>{isSpeaking ? (isEs ? "Detener" : "Stop") : isEs ? "Escuchar" : "Listen"}</span>
+                      <span>{isSpeaking ? (isModalEs ? "Detener" : "Stop") : isModalEs ? "Escuchar" : "Listen"}</span>
                     </button>
                   </div>
 
@@ -427,7 +424,7 @@ export function Animals() {
                   <div className="bg-white rounded-2xl p-5 border-2 border-[#e2d5bd] shadow-sm space-y-3">
                     <div className="flex items-center gap-2 text-stone-900 font-black text-sm uppercase tracking-wider">
                       <Volume2 className="w-5 h-5 text-amber-700" />
-                      <span>{isEs ? "AUDIO DE LA ESPECIE" : "SPECIES AUDIO"}</span>
+                      <span>{isModalEs ? "AUDIO DE LA ESPECIE" : "SPECIES AUDIO"}</span>
                     </div>
 
                     {selectedLoc.audioUrl ? (
@@ -441,7 +438,7 @@ export function Animals() {
                         }}
                       >
                         <source src={selectedLoc.audioUrl} />
-                        {isEs
+                        {isModalEs
                           ? "Tu navegador no soporta el reproductor."
                           : "Your browser does not support audio."}
                       </audio>
@@ -453,7 +450,7 @@ export function Animals() {
                         selectedLoc.audioUrl ? "hidden" : "block"
                       } bg-[#fcfaf5] text-stone-700 text-xs font-semibold p-3.5 rounded-xl border border-amber-900/15`}
                     >
-                      {isEs
+                      {isModalEs
                         ? "Audio interactivo disponible a través del botón 'Escuchar' del Modo Voz Narradora arriba."
                         : "Interactive audio available via the 'Listen' button in Voice Reader Mode above."}
                     </div>
@@ -465,7 +462,7 @@ export function Animals() {
                   <div className="bg-white p-6 rounded-2xl border-2 border-[#e2d5bd] shadow-sm">
                     <div className="flex items-center gap-2 text-stone-900 font-adventure text-lg tracking-wide mb-3 border-b border-amber-900/10 pb-2">
                       <Sparkles className="w-5 h-5 text-amber-600" />
-                      <span>{isEs ? "SOBRE ESTA ESPECIE" : "ABOUT THIS SPECIES"}</span>
+                      <span>{isModalEs ? "SOBRE ESTA ESPECIE" : "ABOUT THIS SPECIES"}</span>
                     </div>
                     <p className="text-stone-800 text-base sm:text-lg font-medium leading-relaxed">
                       {selectedLoc.funFact}
@@ -475,7 +472,7 @@ export function Animals() {
                   <div className="bg-white p-6 rounded-2xl border-2 border-[#e2d5bd] shadow-sm">
                     <div className="flex items-center gap-2 text-stone-900 font-adventure text-lg tracking-wide mb-3 border-b border-amber-900/10 pb-2">
                       <MapPin className="w-5 h-5 text-emerald-700" />
-                      <span>{isEs ? "HÁBITAT & DISTRIBUCIÓN" : "HABITAT & DISTRIBUTION"}</span>
+                      <span>{isModalEs ? "HÁBITAT & DISTRIBUCIÓN" : "HABITAT & DISTRIBUTION"}</span>
                     </div>
                     <p className="text-stone-800 text-base sm:text-lg font-medium leading-relaxed">
                       {selectedLoc.habitat}
@@ -485,7 +482,7 @@ export function Animals() {
                   <div className="bg-white p-6 rounded-2xl border-2 border-[#e2d5bd] shadow-sm">
                     <div className="flex items-center gap-2 text-stone-900 font-adventure text-lg tracking-wide mb-3 border-b border-amber-900/10 pb-2">
                       <Lightbulb className="w-5 h-5 text-amber-600" />
-                      <span>{isEs ? "ALIMENTACIÓN & DIETA" : "DIET & NUTRITION"}</span>
+                      <span>{isModalEs ? "ALIMENTACIÓN & DIETA" : "DIET & NUTRITION"}</span>
                     </div>
                     <p className="text-stone-800 text-base sm:text-lg font-medium leading-relaxed">
                       {selectedLoc.diet}

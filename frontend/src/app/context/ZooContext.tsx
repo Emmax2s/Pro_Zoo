@@ -120,9 +120,6 @@ export function ZooProvider({ children }: { children: ReactNode }) {
     try {
       const saved = localStorage.getItem("zoomat_lang");
       if (saved === "en" || saved === "es") return saved;
-      if (typeof navigator !== "undefined" && navigator.language?.toLowerCase().startsWith("en")) {
-        return "en";
-      }
     } catch {}
     return "es";
   });

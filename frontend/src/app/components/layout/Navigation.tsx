@@ -359,6 +359,14 @@ export function Navigation() {
               Comité de Ética
             </Link>
 
+            <Link
+              to="/contacto"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block w-full text-left text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1.5"
+            >
+              Contacto
+            </Link>
+
             {/* Apartado Móvil Transparencia */}
             <div className="border-t border-stone-100 pt-2">
               <p className="text-xs font-bold text-[#731c34] uppercase tracking-wider mb-1">
@@ -395,36 +403,6 @@ export function Navigation() {
               </div>
             </div>
 
-            <div className="border-t border-stone-100 pt-2 space-y-2">
-              <Link
-                to="/animales"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1"
-              >
-                Animales
-              </Link>
-              <Link
-                to="/visita"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1"
-              >
-                Visita
-              </Link>
-              <Link
-                to="/mapa"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1"
-              >
-                Mapa
-              </Link>
-              <Link
-                to="/contacto"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1"
-              >
-                Contacto
-              </Link>
-            </div>
           </div>
         )}
       </header>

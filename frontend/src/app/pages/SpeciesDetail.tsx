@@ -6,6 +6,7 @@ import { useZoo } from "../context/ZooContext";
 import { recordSpeciesVisit } from "../services/analytics";
 import { getLocalizedAnimal } from "../services/speciesTranslator";
 import { pauseAllAudio, playChime, resumeAllAudio, speakNarration, stopAllAudio } from "../services/audioPlayer";
+import { generateServerNarration } from "../services/ttsService";
 import { Animal } from "../data/zooStore";
 
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
@@ -82,6 +83,8 @@ export function SpeciesDetail() {
             image: data.imageUrl || data.image || "",
             audioUrl: data.audioDescriptionUrl,
             enclosureId: data.enclosureId ?? null,
+            mediaImages: Array.isArray(data.mediaImages) ? data.mediaImages.slice(0, 4) : data.imageUrl ? [data.imageUrl] : [],
+            mediaVideos: Array.isArray(data.mediaVideos) ? data.mediaVideos.slice(0, 2) : [],
           });
         }
       })
@@ -115,6 +118,30 @@ export function SpeciesDetail() {
   const startAudio = useCallback((targetLoc = loc) => {
     if (!targetLoc) return;
     playChime();
+    const narrationText = `${targetLoc.name}. ${targetLoc.scientificName ? `(${targetLoc.scientificName}).` : ""} ${targetLoc.funFact}. ${targetLoc.habitat}. ${targetLoc.diet}.`;
+
+    const playGeneratedNarration = (audioUrl: string) => {
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+      audio.onplay = () => {
+        setIsPlayingAudio(true);
+        setIsPausedAudio(false);
+        setAutoplayBlocked(false);
+      };
+      audio.onpause = () => setIsPlayingAudio(false);
+      audio.onended = () => {
+        setIsPlayingAudio(false);
+        setIsPausedAudio(false);
+      };
+      audio.onerror = () => {
+        audioRef.current = null;
+        speakNarration(narrationText, !isEnglish, () => setIsPlayingAudio(true), () => setIsPlayingAudio(false));
+      };
+      void audio.play().catch(() => {
+        audioRef.current = null;
+        speakNarration(narrationText, !isEnglish, () => setIsPlayingAudio(true), () => setIsPlayingAudio(false));
+      });
+    };
 
     // If a clean MP3 is available and not example.com, try playing
     if (targetLoc.audioUrl && !targetLoc.audioUrl.includes("example.com")) {
@@ -131,7 +158,7 @@ export function SpeciesDetail() {
       audio.onerror = () => {
         audioRef.current = null;
         speakNarration(
-          `${targetLoc.name}. ${targetLoc.scientificName ? `(${targetLoc.scientificName}).` : ""} ${targetLoc.funFact}. ${targetLoc.habitat}. ${targetLoc.diet}.`,
+          narrationText,
           !isEnglish,
           () => setIsPlayingAudio(true),
           () => {
@@ -144,7 +171,7 @@ export function SpeciesDetail() {
       audio.play().catch(() => {
         audioRef.current = null;
         speakNarration(
-          `${targetLoc.name}. ${targetLoc.scientificName ? `(${targetLoc.scientificName}).` : ""} ${targetLoc.funFact}. ${targetLoc.habitat}. ${targetLoc.diet}.`,
+          narrationText,
           !isEnglish,
           () => setIsPlayingAudio(true),
           () => {
@@ -154,15 +181,17 @@ export function SpeciesDetail() {
         );
       });
     } else {
-      speakNarration(
-        `${targetLoc.name}. ${targetLoc.scientificName ? `(${targetLoc.scientificName}).` : ""} ${targetLoc.funFact}. ${targetLoc.habitat}. ${targetLoc.diet}.`,
-        !isEnglish,
-        () => setIsPlayingAudio(true),
-        () => {
-          setIsPlayingAudio(false);
-          setIsPausedAudio(false);
-        }
-      );
+      void generateServerNarration(narrationText, isEnglish ? "en" : "es")
+        .then((generated) => {
+          if (generated) {
+            playGeneratedNarration(generated.url);
+            return;
+          }
+          speakNarration(narrationText, !isEnglish, () => setIsPlayingAudio(true), () => setIsPlayingAudio(false));
+        })
+        .catch(() => {
+          speakNarration(narrationText, !isEnglish, () => setIsPlayingAudio(true), () => setIsPlayingAudio(false));
+        });
     }
   }, [loc, isEnglish]);
 
@@ -387,6 +416,29 @@ export function SpeciesDetail() {
 
           {/* Details Body Localized */}
           <div className="p-6 sm:p-10 space-y-8">
+            {(loc.mediaImages.length > 0 || loc.mediaVideos.length > 0) && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {loc.mediaImages.map((url, index) => (
+                  <img
+                    key={url}
+                    src={url}
+                    alt={`${loc.name} ${index + 1}`}
+                    loading="lazy"
+                    className="aspect-square w-full rounded-2xl object-cover"
+                  />
+                ))}
+                {loc.mediaVideos.map((url) => (
+                  <video
+                    key={url}
+                    src={url}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    className="aspect-square w-full rounded-2xl bg-black object-cover"
+                  />
+                ))}
+              </div>
+            )}
             {/* About text */}
             <div className="space-y-3">
               <h2 className="font-adventure text-2xl sm:text-3xl text-[#2b1810] flex items-center gap-2">

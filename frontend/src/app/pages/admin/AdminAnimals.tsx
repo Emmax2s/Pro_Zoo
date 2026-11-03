@@ -20,6 +20,8 @@ const emptyForm: Omit<Animal, "id"> = {
   diet: "",
   funFact: "",
   image: "",
+  mediaImages: [],
+  mediaVideos: [],
   audioUrl: "",
   enclosureId: null,
   isVisibleToPublic: true,
@@ -119,6 +121,8 @@ function AnimalModal({
     diet: animal.diet,
     funFact: animal.funFact,
     image: animal.image,
+    mediaImages: animal.mediaImages?.slice(0, 4) || (animal.image ? [animal.image] : []),
+    mediaVideos: animal.mediaVideos?.slice(0, 2) || [],
     audioUrl: animal.audioUrl || "",
     enclosureId: animal.enclosureId,
     isVisibleToPublic: animal.isVisibleToPublic !== false,
@@ -143,6 +147,45 @@ function AnimalModal({
         if (!res.ok) {
           window.alert(json.message || "No se pudo subir la imagen.");
           return;
+        }
+
+        async function uploadMediaFiles(files: FileList | null, kind: "image" | "video") {
+          if (!files?.length) return;
+          const selected = Array.from(files);
+          const current = kind === "image" ? form.mediaImages : form.mediaVideos;
+          const limit = kind === "image" ? 4 : 2;
+          if (current.length + selected.length > limit) {
+            window.alert(`Puedes registrar máximo ${limit} ${kind === "image" ? "imágenes" : "videos"}.`);
+            return;
+          }
+          const urls: string[] = [];
+          for (const file of selected) {
+            const reader = new FileReader();
+            const dataUrl = await new Promise<string>((resolve, reject) => {
+              reader.onload = () => resolve(String(reader.result));
+              reader.onerror = () => reject(new Error("No se pudo leer el archivo."));
+              reader.readAsDataURL(file);
+            });
+            const response = await fetch(`${API_BASE_URL}/api/upload`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${sessionStorage.getItem("pro-zoo-admin-token") || ""}`,
+              },
+              body: JSON.stringify({ filename: file.name, data: dataUrl }),
+            });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok || typeof result.url !== "string") {
+              throw new Error(result.message || "No se pudo subir el archivo.");
+            }
+            urls.push(result.url);
+          }
+          setForm((previous) => ({
+            ...previous,
+            ...(kind === "image"
+              ? { mediaImages: [...previous.mediaImages, ...urls], image: previous.image || urls[0] }
+              : { mediaVideos: [...previous.mediaVideos, ...urls] }),
+          }));
         }
         setForm((p) => ({ ...p, image: json.url }));
       } catch (err) {
@@ -212,6 +255,43 @@ function AnimalModal({
                 placeholder="Nombre común de la especie"
                 className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
+            </div>
+
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4 space-y-4">
+              <div>
+                <p className="text-sm font-bold text-emerald-950">Galería multimedia</p>
+                <p className="text-xs text-emerald-800">Sube hasta 4 imágenes y 2 videos. Se adaptan automáticamente al cuadro.</p>
+              </div>
+              <label className="block text-xs font-bold text-gray-600">
+                Imágenes ({form.mediaImages.length}/4)
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple
+                  disabled={form.mediaImages.length >= 4}
+                  onChange={(event) => void uploadMediaFiles(event.target.files, "image")}
+                  className="mt-1 block w-full text-sm" />
+              </label>
+              <label className="block text-xs font-bold text-gray-600">
+                Videos ({form.mediaVideos.length}/2)
+                <input type="file" accept="video/mp4" multiple
+                  disabled={form.mediaVideos.length >= 2}
+                  onChange={(event) => void uploadMediaFiles(event.target.files, "video")}
+                  className="mt-1 block w-full text-sm" />
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {form.mediaImages.map((url, index) => (
+                  <div key={url} className="relative aspect-square overflow-hidden rounded-lg bg-gray-200">
+                    <img src={url} alt={`Imagen ${index + 1}`} className="h-full w-full object-cover" />
+                    <button type="button" onClick={() => setForm((p) => ({ ...p, mediaImages: p.mediaImages.filter((_, i) => i !== index), image: p.mediaImages.filter((_, i) => i !== index)[0] || "" }))}
+                      className="absolute right-1 top-1 rounded-full bg-red-600 px-2 py-1 text-xs text-white">×</button>
+                  </div>
+                ))}
+                {form.mediaVideos.map((url, index) => (
+                  <div key={url} className="relative aspect-square overflow-hidden rounded-lg bg-gray-900">
+                    <video src={url} muted playsInline controls className="h-full w-full object-cover" />
+                    <button type="button" onClick={() => setForm((p) => ({ ...p, mediaVideos: p.mediaVideos.filter((_, i) => i !== index) }))}
+                      className="absolute right-1 top-1 rounded-full bg-red-600 px-2 py-1 text-xs text-white">×</button>
+                  </div>
+                ))}
+              </div>
             </div>
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
@@ -409,6 +489,8 @@ export function AdminAnimals() {
           diet: String(species.diet || ""),
           funFact: String(species.description || ""),
           image: String(species.imageUrl || ""),
+          mediaImages: Array.isArray(species.mediaImages) ? species.mediaImages.slice(0, 4) : species.imageUrl ? [String(species.imageUrl)] : [],
+          mediaVideos: Array.isArray(species.mediaVideos) ? species.mediaVideos.slice(0, 2) : [],
           audioUrl: species.audioDescriptionUrl || "",
           enclosureId: species.enclosureId ?? null,
           isVisibleToPublic: species.isVisibleToPublic !== false,
@@ -453,6 +535,8 @@ export function AdminAnimals() {
         description: data.funFact,
         diet: data.diet,
         audioDescriptionUrl: data.audioUrl,
+        mediaImages: data.mediaImages.slice(0, 4),
+        mediaVideos: data.mediaVideos.slice(0, 2),
       };
       try {
         const response = await fetch(

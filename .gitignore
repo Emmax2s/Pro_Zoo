@@ -35,6 +35,9 @@ build/
 .env.test.local
 .env.production.local
 
+# Generated narration cache
+backend/uploads/tts/
+
 # Gemini brain/antigravity app data
 .gemini/
 brain/

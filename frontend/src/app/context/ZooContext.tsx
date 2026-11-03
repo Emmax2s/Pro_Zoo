@@ -54,6 +54,8 @@ type ApiSpecies = {
   diet?: string;
   description?: string;
   imageUrl?: string;
+  mediaImages?: string[];
+  mediaVideos?: string[];
   audioDescriptionUrl?: string;
   conservation?: string;
   category?: Animal["category"];
@@ -84,6 +86,8 @@ const mapSpecies = (species: ApiSpecies): Animal => {
     diet: species.diet || "",
     funFact: species.description || "",
     image: species.imageUrl || "",
+    mediaImages: Array.isArray(species.mediaImages) ? species.mediaImages.slice(0, 4) : species.imageUrl ? [species.imageUrl] : [],
+    mediaVideos: Array.isArray(species.mediaVideos) ? species.mediaVideos.slice(0, 2) : [],
     audioUrl: cleanAudio,
     enclosureId: species.enclosureId ?? null,
     isVisibleToPublic: species.isVisibleToPublic !== false,

@@ -27,6 +27,8 @@ export interface Animal {
   diet: string;
   funFact: string;
   image: string;
+  mediaImages: string[];
+  mediaVideos: string[];
   audioUrl?: string;
   enclosureId: string | null;
   isVisibleToPublic: boolean;

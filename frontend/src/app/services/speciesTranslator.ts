@@ -7,6 +7,8 @@ export interface LocalizedAnimalData {
   diet: string;
   funFact: string;
   audioUrl?: string;
+  mediaImages: string[];
+  mediaVideos: string[];
 }
 
 export function translateText(text: string): string {
@@ -23,6 +25,8 @@ export function getLocalizedAnimal(animal: Record<string, unknown> | null | unde
       habitat: "",
       diet: "",
       funFact: "",
+      mediaImages: [],
+      mediaVideos: [],
     };
   }
 
@@ -35,5 +39,7 @@ export function getLocalizedAnimal(animal: Record<string, unknown> | null | unde
     diet: String(animal.diet || ""),
     funFact: String(animal.funFact || animal.description || ""),
     audioUrl: String(animal.audioUrl || animal.audioDescriptionUrl || "") || undefined,
+    mediaImages: Array.isArray(animal.mediaImages) ? animal.mediaImages.map(String).slice(0, 4) : [],
+    mediaVideos: Array.isArray(animal.mediaVideos) ? animal.mediaVideos.map(String).slice(0, 2) : [],
   };
 }

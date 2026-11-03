@@ -10,6 +10,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import enclosureRoutes from './routes/enclosureRoutes.js';
+import ttsRoutes from './routes/ttsRoutes.js';
 
 export const app = express();
 const uploadsDirectory = path.join(path.dirname(fileURLToPath(import.meta.url)), 'uploads');
@@ -39,6 +40,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/enclosures', enclosureRoutes);
+app.use('/api/tts', ttsRoutes);
 
 app.use((error, _req, res, _next) => {
   const message = error instanceof Error ? error.message : 'Unexpected error';

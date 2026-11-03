@@ -37,7 +37,9 @@ export const ensureDatabaseSchema = async () => {
       ADD COLUMN IF NOT EXISTS translation_cache JSONB;
 
     ALTER TABLE species
-      ADD COLUMN IF NOT EXISTS is_visible_to_public BOOLEAN NOT NULL DEFAULT TRUE;
+      ADD COLUMN IF NOT EXISTS is_visible_to_public BOOLEAN NOT NULL DEFAULT TRUE,
+      ADD COLUMN IF NOT EXISTS media_images JSONB NOT NULL DEFAULT '[]',
+      ADD COLUMN IF NOT EXISTS media_videos JSONB NOT NULL DEFAULT '[]';
 
     ALTER TABLE admin_users
       ADD COLUMN IF NOT EXISTS name VARCHAR(150),

@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS species (
   translation_cache JSONB,
   description TEXT,
   image_url VARCHAR(500),
+  media_images JSONB NOT NULL DEFAULT '[]',
+  media_videos JSONB NOT NULL DEFAULT '[]',
   habitat VARCHAR(100),
   diet VARCHAR(100),
   status VARCHAR(50),

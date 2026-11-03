@@ -5,6 +5,11 @@ import { translateSpecies } from '../services/translationService.js';
 
 const router = Router();
 
+const normalizeMedia = (value, limit) =>
+  Array.isArray(value)
+    ? value.filter((item) => typeof item === 'string' && item.length <= 2000).slice(0, limit)
+    : [];
+
 const getAssignedEnclosures = (value) =>
   String(value || '').split(',').map((id) => id.trim()).filter(Boolean);
 
@@ -65,6 +70,8 @@ const formatSpeciesResponse = (row) => ({
   enclosureId: row.enclosure_id,
   isVisibleToPublic: row.is_visible_to_public !== false,
   imageUrl: row.image_url,
+  mediaImages: Array.isArray(row.media_images) ? row.media_images : [],
+  mediaVideos: Array.isArray(row.media_videos) ? row.media_videos : [],
   conservation: row.conservation_status,
   conservationIucn: row.conservation_iucn,
   description: row.description,
@@ -154,6 +161,8 @@ router.post('/', verifyToken, requireSpeciesMutationPermission, async (req, res,
       threats,
       ecosystemRole,
       isVisibleToPublic = true,
+      mediaImages = [],
+      mediaVideos = [],
     } = req.body;
 
     if (!slug || !name || !speciesName) {
@@ -162,10 +171,10 @@ router.post('/', verifyToken, requireSpeciesMutationPermission, async (req, res,
 
     const result = await query(
       `INSERT INTO species
-       (slug, name, species_name, category, enclosure_id, habitat, image_url, conservation_status, description, diet, lifespan, activity, size, weight, distribution, audio_description_url, scientific_classification, conservation_iucn, threats, ecosystem_role, is_visible_to_public)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+       (slug, name, species_name, category, enclosure_id, habitat, image_url, media_images, media_videos, conservation_status, description, diet, lifespan, activity, size, weight, distribution, audio_description_url, scientific_classification, conservation_iucn, threats, ecosystem_role, is_visible_to_public)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
        RETURNING *`,
-      [slug, name, speciesName, category, enclosureId, habitat, imageUrl, conservation, description, diet, lifespan, activity, size, weight, distribution, audioDescriptionUrl, scientificClassification, conservationIucn, threats, ecosystemRole, isVisibleToPublic]
+      [slug, name, speciesName, category, enclosureId, habitat, imageUrl, JSON.stringify(normalizeMedia(mediaImages, 4)), JSON.stringify(normalizeMedia(mediaVideos, 2)), conservation, description, diet, lifespan, activity, size, weight, distribution, audioDescriptionUrl, scientificClassification, conservationIucn, threats, ecosystemRole, isVisibleToPublic]
     );
 
     const newSpecies = formatSpeciesResponse(result.rows[0]);
@@ -204,6 +213,8 @@ router.put('/:id', verifyToken, requireSpeciesMutationPermission, async (req, re
       threats,
       ecosystemRole,
       isVisibleToPublic,
+      mediaImages = [],
+      mediaVideos = [],
     } = req.body;
 
     const result = await query(
@@ -215,24 +226,26 @@ router.put('/:id', verifyToken, requireSpeciesMutationPermission, async (req, re
            enclosure_id = COALESCE($5, enclosure_id),
            habitat = COALESCE($6, habitat),
            image_url = COALESCE($7, image_url),
-           conservation_status = COALESCE($8, conservation_status),
-           description = COALESCE($9, description),
-           diet = COALESCE($10, diet),
-           lifespan = COALESCE($11, lifespan),
-           activity = COALESCE($12, activity),
-           size = COALESCE($13, size),
-           weight = COALESCE($14, weight),
-           distribution = COALESCE($15, distribution),
-           audio_description_url = COALESCE($16, audio_description_url),
-           scientific_classification = COALESCE($17, scientific_classification),
-           conservation_iucn = COALESCE($18, conservation_iucn),
-           threats = COALESCE($19, threats),
-           ecosystem_role = COALESCE($20, ecosystem_role),
-           is_visible_to_public = COALESCE($21, is_visible_to_public),
+           media_images = COALESCE($8, media_images),
+           media_videos = COALESCE($9, media_videos),
+           conservation_status = COALESCE($10, conservation_status),
+           description = COALESCE($11, description),
+           diet = COALESCE($12, diet),
+           lifespan = COALESCE($13, lifespan),
+           activity = COALESCE($14, activity),
+           size = COALESCE($15, size),
+           weight = COALESCE($16, weight),
+           distribution = COALESCE($17, distribution),
+           audio_description_url = COALESCE($18, audio_description_url),
+           scientific_classification = COALESCE($19, scientific_classification),
+           conservation_iucn = COALESCE($20, conservation_iucn),
+           threats = COALESCE($21, threats),
+           ecosystem_role = COALESCE($22, ecosystem_role),
+           is_visible_to_public = COALESCE($23, is_visible_to_public),
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $22
+       WHERE id = $24
        RETURNING *`,
-      [slug, name, speciesName, category, enclosureId, habitat, imageUrl, conservation, description, diet, lifespan, activity, size, weight, distribution, audioDescriptionUrl, scientificClassification, conservationIucn, threats, ecosystemRole, isVisibleToPublic, id]
+      [slug, name, speciesName, category, enclosureId, habitat, imageUrl, JSON.stringify(normalizeMedia(mediaImages, 4)), JSON.stringify(normalizeMedia(mediaVideos, 2)), conservation, description, diet, lifespan, activity, size, weight, distribution, audioDescriptionUrl, scientificClassification, conservationIucn, threats, ecosystemRole, isVisibleToPublic, id]
     );
 
     if (result.rows.length === 0) {

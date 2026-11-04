@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams, useSearchParams } from "react-router";
-import { Volume2, VolumeX, Globe, TreePine, MapPin, Sparkles, ShieldCheck, Play, Pause, ArrowLeft, Video } from "lucide-react";
+import { Volume2, VolumeX, Globe, TreePine, MapPin, Sparkles, ShieldCheck, Play, Pause, ArrowLeft, Video, Camera } from "lucide-react";
 import { useZoo } from "../context/ZooContext";
 import { recordSpeciesVisit } from "../services/analytics";
 import { getLocalizedAnimal, useLocalizedAnimal } from "../services/speciesTranslator";
@@ -307,39 +307,43 @@ export function SpeciesDetail() {
     );
   }
 
+  const extraImages = (loc.mediaImages || []).filter((url) => Boolean(url) && url !== species.image);
+  const extraVideos = (loc.mediaVideos || []).filter(Boolean);
+  const hasExtraMedia = extraImages.length > 0 || extraVideos.length > 0;
+
   return (
     <div className="min-h-screen bg-[#faf8f2] text-stone-900 pb-20">
-      {/* 1. Header Banner de la ficha */}
-      <section className="relative bg-[#f7f3e8] border-b-4 border-[#2b1706] py-12 md:py-16 overflow-hidden">
+      {/* 1. Header Banner de la ficha - Compacto y sin espacios excesivos */}
+      <section className="relative bg-[#f7f3e8] border-b-2 border-amber-900/30 py-4 sm:py-6 overflow-hidden">
         <div
-          className="absolute inset-0 opacity-20 pointer-events-none"
+          className="absolute inset-0 opacity-15 pointer-events-none"
           style={{
             backgroundImage: "radial-gradient(#854d0e 1px, transparent 1px)",
-            backgroundSize: "32px 32px",
+            backgroundSize: "24px 24px",
           }}
         />
 
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
             <Link
               to="/especies"
-              className="inline-flex items-center gap-2 text-stone-700 hover:text-amber-900 font-bold text-base transition-all duration-200 hover:scale-105 active:scale-95 hover:-translate-y-0.5 bg-white/80 hover:bg-white px-4 py-2 rounded-xl border border-amber-800/20 shadow-xs will-change-transform"
+              className="inline-flex items-center gap-2 text-stone-700 hover:text-amber-900 font-bold text-sm sm:text-base transition-all duration-200 hover:scale-105 active:scale-95 bg-white/90 hover:bg-white px-3.5 py-1.5 rounded-xl border border-amber-800/20 shadow-xs"
             >
-              <ArrowLeft className="w-5 h-5 transition-transform duration-200 group-hover:-translate-x-1" />
+              <ArrowLeft className="w-4 h-4" />
               <span>{t("speciesDetail.backToWildlifeCatalog", { lng: sheetLang })}</span>
             </Link>
 
             {/* Selector de Idioma Exclusivo de la Ficha (Segmented Switch) */}
-            <div className="inline-flex items-center rounded-2xl bg-white p-1.5 shadow-md border-2 border-amber-700/30 gap-1 select-none">
-              <Globe className="w-4 h-4 text-emerald-800 ml-1.5 mr-0.5" />
+            <div className="inline-flex items-center rounded-xl bg-white p-1 shadow-sm border border-amber-700/30 gap-1 select-none">
+              <Globe className="w-3.5 h-3.5 text-emerald-800 ml-1.5 mr-0.5" />
               <button
                 type="button"
                 onClick={() => {
                   if (sheetLang !== "es") toggleLanguage();
                 }}
-                className={`px-3.5 py-1.5 rounded-xl font-black text-xs sm:text-sm transition-all duration-200 cursor-pointer ${
+                className={`px-3 py-1 rounded-lg font-black text-xs transition-all duration-200 cursor-pointer ${
                   !isEnglish
-                    ? "bg-[#2b1810] text-amber-200 shadow-md scale-102"
+                    ? "bg-[#2b1810] text-amber-200 shadow-sm"
                     : "text-stone-700 hover:text-stone-950 hover:bg-amber-100/60"
                 }`}
               >
@@ -350,9 +354,9 @@ export function SpeciesDetail() {
                 onClick={() => {
                   if (sheetLang !== "en") toggleLanguage();
                 }}
-                className={`px-3.5 py-1.5 rounded-xl font-black text-xs sm:text-sm transition-all duration-200 cursor-pointer ${
+                className={`px-3 py-1 rounded-lg font-black text-xs transition-all duration-200 cursor-pointer ${
                   isEnglish
-                    ? "bg-[#2b1810] text-amber-200 shadow-md scale-102"
+                    ? "bg-[#2b1810] text-amber-200 shadow-sm"
                     : "text-stone-700 hover:text-stone-950 hover:bg-amber-100/60"
                 }`}
               >
@@ -361,166 +365,150 @@ export function SpeciesDetail() {
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100/90 text-amber-950 text-xs sm:text-sm font-black tracking-wide uppercase shadow-xs border border-amber-300">
-              <TreePine className="w-4 h-4 text-emerald-800" />
-              <span>{t("speciesDetail.qrGuide", { lng: sheetLang })}</span>
+          <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-100/90 text-amber-950 text-xs font-black tracking-wide uppercase shadow-2xs border border-amber-300 mb-1.5">
+                <TreePine className="w-3.5 h-3.5 text-emerald-800" />
+                <span>{t("speciesDetail.qrGuide", { lng: sheetLang })}</span>
+              </div>
+              <h1 className="font-adventure text-3xl sm:text-4xl lg:text-5xl text-[#2b1810] tracking-wide text-adventure-shadow leading-tight">
+                {loc.name || species.name}
+              </h1>
             </div>
 
-            <h1 className="font-adventure text-4xl sm:text-6xl text-[#2b1810] tracking-wide text-adventure-shadow leading-tight">
-              {loc?.name || species.name}
-            </h1>
-
-            {(loc?.scientificName || species.scientificName) && (
-              <p className="text-xl sm:text-2xl font-serif italic text-amber-900 font-medium">
-                ({loc?.scientificName || species.scientificName})
+            {(loc.scientificName || species.scientificName) && (
+              <p className="text-lg sm:text-xl font-serif italic text-amber-900 font-medium sm:text-right">
+                ({loc.scientificName || species.scientificName})
               </p>
             )}
           </div>
         </div>
 
         {/* Rustic Wood Beam */}
-        <div className="wood-texture-bg h-4 sm:h-5 w-full border-t border-b-2 border-amber-950/80 shadow-md mt-8" />
+        <div className="wood-texture-bg h-2.5 sm:h-3 w-full border-t border-b border-amber-950/70 shadow-xs mt-3 sm:mt-4" />
       </section>
 
       {/* 2. Main Content Card */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 mt-8 space-y-8">
-        {/* Barra de audioguía oficial */}
-        <div className="bg-gradient-to-r from-amber-900 via-[#8B5A2B] to-[#5C3A1E] text-white p-5 sm:p-6 rounded-3xl shadow-xl border-2 border-amber-500/60 relative overflow-hidden hover:border-amber-400 transition-colors duration-300">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4 text-center sm:text-left">
-              <button
-                onClick={toggleAudio}
-                className="w-14 h-14 rounded-2xl bg-amber-400 hover:bg-amber-300 text-stone-950 flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 active:scale-90 flex-shrink-0 cursor-pointer will-change-transform"
-              >
-                {isPlayingAudio ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-0.5" />}
-              </button>
-              <div>
-                <p className="font-adventure text-xl sm:text-2xl text-amber-200">
-                  {isPlayingAudio
-                    ? t("speciesDetail.playingAudio", { lng: sheetLang })
-                    : t("speciesDetail.listenAudio", { lng: sheetLang })}
-                </p>
-                <p className="text-amber-100/90 text-sm font-medium">
-                  {t("speciesDetail.audioDescription", { lng: sheetLang })}
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={toggleAudio}
-              className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-white hover:bg-amber-100 text-stone-950 font-adventure text-base tracking-wide shadow-md transition-all duration-200 hover:scale-105 active:scale-95 hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer will-change-transform"
-            >
-              <Volume2 className="w-5 h-5 text-emerald-800" />
-              <span>{isPlayingAudio ? t("speciesDetail.pauseAudio", { lng: sheetLang }) : t("speciesDetail.playAudio", { lng: sheetLang })}</span>
-            </button>
-          </div>
-
-          {autoplayBlocked && !isPlayingAudio && (
-            <div className="mt-3 bg-amber-500/20 border border-amber-300/40 p-2.5 rounded-xl text-center text-xs sm:text-sm font-semibold text-amber-100 animate-pulse">
-              {t("speciesDetail.autoplayHint", { lng: sheetLang })}
-            </div>
-          )}
-        </div>
-
-        {/* Fotografía de la especie */}
-        <div className="interactive-card bg-white rounded-3xl overflow-hidden shadow-2xl border-2 border-[#e2d5bd] hover:border-amber-600/40 transition-colors duration-300 will-change-transform">
-          {species.image && (
-            <div className="relative w-full h-[320px] sm:h-[420px] md:h-[480px] bg-stone-950 flex items-center justify-center overflow-hidden">
-              <img
-                src={species.image}
-                alt=""
-                aria-hidden="true"
-                className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none"
-              />
-              <img
-                src={species.image}
-                alt={loc?.name || species.name}
-                className="relative z-10 w-full h-full object-cover object-center"
-              />
-              <div className="absolute top-4 left-4 z-20">
-                <span className="bg-black/60 backdrop-blur-md text-amber-300 border border-amber-400/40 text-xs sm:text-sm font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider">
-                  {loc?.category || species.category}
-                </span>
-              </div>
-              <div className="absolute top-4 right-4 z-20">
-                <span className="bg-emerald-900/80 backdrop-blur-md text-emerald-200 border border-emerald-400/40 text-xs sm:text-sm font-extrabold px-4 py-1.5 rounded-full">
-                  {loc?.status || species.status}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Contenido descriptivo de la ficha */}
-          <div className="p-6 sm:p-10 space-y-8">
-            {((loc?.mediaImages?.length ?? 0) > 0 || (loc?.mediaVideos?.length ?? 0) > 0) && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {loc?.mediaImages?.map((url, index) => (
-                  <img
-                    key={url}
-                    src={url}
-                    alt={`${loc?.name || species.name} ${index + 1}`}
-                    loading="lazy"
-                    className="aspect-square w-full rounded-2xl object-cover"
-                  />
-                ))}
-                {loc?.mediaVideos?.map((url) => (
-                  <video
-                    key={url}
-                    src={url}
-                    controls
-                    playsInline
-                    preload="metadata"
-                    className="aspect-square w-full rounded-2xl bg-black object-cover"
-                  />
-                ))}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+        {/* Distribución en 2 Columnas para vista balanceada y foto completa */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Columna Izquierda: Fotografía 4:3 + Audioguía */}
+          <div className="lg:col-span-5 space-y-4">
+            {species.image && (
+              <div className="interactive-card relative aspect-[4/3] w-full rounded-3xl overflow-hidden bg-stone-950 shadow-xl border-2 border-amber-900/20 flex items-center justify-center">
+                {/* Fondo difuminado ambiental para que se aprecie completo sin recortar partes de la especie */}
+                <img
+                  src={species.image}
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 w-full h-full object-cover blur-md opacity-35 scale-105 pointer-events-none"
+                />
+                <img
+                  src={species.image}
+                  alt={loc.name || species.name}
+                  className="relative z-10 w-full h-full object-contain"
+                />
+                <div className="absolute top-3.5 left-3.5 z-20">
+                  <span className="bg-black/75 backdrop-blur-md text-amber-300 border border-amber-400/40 text-xs font-black px-3.5 py-1 rounded-full uppercase tracking-wider shadow-md">
+                    {loc.category || species.category}
+                  </span>
+                </div>
+                <div className="absolute top-3.5 right-3.5 z-20">
+                  <span className="bg-emerald-900/90 backdrop-blur-md text-emerald-200 border border-emerald-400/40 text-xs font-black px-3.5 py-1 rounded-full shadow-md">
+                    {loc.status || species.status}
+                  </span>
+                </div>
               </div>
             )}
-            
+
+            {/* Barra de audioguía oficial compacta */}
+            <div className="bg-gradient-to-r from-amber-900 via-[#8B5A2B] to-[#5C3A1E] text-white p-4 sm:p-5 rounded-2xl shadow-lg border border-amber-500/50 relative overflow-hidden">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={toggleAudio}
+                    className="w-12 h-12 rounded-2xl bg-amber-400 hover:bg-amber-300 text-stone-950 flex items-center justify-center shadow-md transition-all duration-200 hover:scale-110 active:scale-95 flex-shrink-0 cursor-pointer will-change-transform"
+                    aria-label={isPlayingAudio ? "Pausar audio" : "Reproducir audio"}
+                  >
+                    {isPlayingAudio ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-0.5" />}
+                  </button>
+                  <div>
+                    <p className="font-adventure text-lg sm:text-xl text-amber-200 leading-tight">
+                      {isPlayingAudio
+                        ? t("speciesDetail.playingAudio", { lng: sheetLang })
+                        : t("speciesDetail.listenAudio", { lng: sheetLang })}
+                    </p>
+                    <p className="text-amber-100/80 text-xs sm:text-sm font-medium">
+                      {t("speciesDetail.audioDescription", { lng: sheetLang })}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={toggleAudio}
+                  className="hidden sm:inline-flex px-3.5 py-2 rounded-xl bg-white hover:bg-amber-100 text-stone-950 font-adventure text-xs tracking-wide shadow transition-all duration-200 hover:scale-105 active:scale-95 items-center gap-1.5 cursor-pointer will-change-transform"
+                >
+                  <Volume2 className="w-4 h-4 text-emerald-800" />
+                  <span>{isPlayingAudio ? t("speciesDetail.pauseAudio", { lng: sheetLang }) : t("speciesDetail.playAudio", { lng: sheetLang })}</span>
+                </button>
+              </div>
+
+              {autoplayBlocked && !isPlayingAudio && (
+                <div className="mt-2.5 bg-amber-500/20 border border-amber-300/40 p-2 rounded-xl text-center text-xs font-semibold text-amber-100 animate-pulse">
+                  {t("speciesDetail.autoplayHint", { lng: sheetLang })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Columna Derecha: Sobre esta especie + Atributos + LSM */}
+          <div className="lg:col-span-7 space-y-4">
             {/* Sobre esta especie */}
-            <div className="space-y-3">
+            <div className="interactive-card bg-white p-6 sm:p-7 rounded-3xl border border-[#e2d5bd] shadow-lg space-y-3">
               <h2 className="font-adventure text-2xl sm:text-3xl text-[#2b1810] flex items-center gap-2">
                 <Sparkles className="w-6 h-6 text-amber-600" />
                 <span>{t("speciesDetail.aboutSpecies", { lng: sheetLang })}</span>
               </h2>
-              <p className="text-stone-800 text-lg sm:text-xl leading-relaxed font-medium">
-                {loc?.funFact || species.funFact}
+              <p className="text-stone-800 text-base sm:text-lg leading-relaxed font-medium">
+                {loc.funFact || species.funFact}
               </p>
             </div>
 
-            {/* Cuadrícula de Atributos */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-amber-900/10">
-              <div className="interactive-card bg-[#fcfaf5] p-6 rounded-2xl border border-amber-900/10 shadow-xs hover:-translate-y-1 hover:shadow-md hover:border-amber-500/40 transition-all duration-200 will-change-transform">
-                <h3 className="font-adventure text-xl text-amber-950 mb-2 flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-emerald-700" />
+            {/* Cuadrícula de Atributos: Hábitat y Alimentación */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="interactive-card bg-white p-5 rounded-2xl border border-amber-900/10 shadow-sm hover:border-amber-500/40 transition-colors">
+                <h3 className="font-adventure text-lg text-amber-950 mb-2 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-emerald-700 flex-shrink-0" />
                   <span>{t("speciesDetail.habitatRange", { lng: sheetLang })}</span>
                 </h3>
-                <p className="text-stone-700 text-base sm:text-lg leading-relaxed">
-                  {loc?.habitat || species.habitat}
+                <p className="text-stone-700 text-sm sm:text-base leading-relaxed">
+                  {loc.habitat || species.habitat}
                 </p>
               </div>
 
-              <div className="interactive-card bg-[#fcfaf5] p-6 rounded-2xl border border-amber-900/10 shadow-xs hover:-translate-y-1 hover:shadow-md hover:border-amber-500/40 transition-all duration-200 will-change-transform">
-                <h3 className="font-adventure text-xl text-amber-950 mb-2 flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-amber-700" />
+              <div className="interactive-card bg-white p-5 rounded-2xl border border-amber-900/10 shadow-sm hover:border-amber-500/40 transition-colors">
+                <h3 className="font-adventure text-lg text-amber-950 mb-2 flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-amber-700 flex-shrink-0" />
                   <span>{t("speciesDetail.dietHabits", { lng: sheetLang })}</span>
                 </h3>
-                <p className="text-stone-700 text-base sm:text-lg leading-relaxed">
-                  {loc?.diet || species.diet}
+                <p className="text-stone-700 text-sm sm:text-base leading-relaxed">
+                  {loc.diet || species.diet}
                 </p>
               </div>
             </div>
 
             {/* Video en Lengua de Señas Mexicana (LSM) */}
             <div className="overflow-hidden rounded-2xl border-2 border-emerald-700/20 bg-white shadow-md">
-              <div className="flex items-center gap-2 bg-emerald-800 px-5 py-3.5 text-sm font-black uppercase tracking-wider text-white">
-                <Video className="h-5 w-5 text-amber-300" />
+              <div className="flex items-center gap-2 bg-emerald-800 px-4 py-2.5 text-xs sm:text-sm font-black uppercase tracking-wider text-white">
+                <Video className="h-4 w-4 text-amber-300" />
                 <span>{isEnglish ? "MEXICAN SIGN LANGUAGE INTERPRETATION (LSM)" : "INTERPRETACIÓN EN LENGUA DE SEÑAS MEXICANA (LSM)"}</span>
               </div>
-              <div className="p-4 sm:p-5">
-                {(loc?.lsmVideoUrl || species.lsmVideoUrl) ? (
+              <div className="p-3 sm:p-4">
+                {(loc.lsmVideoUrl || species.lsmVideoUrl) ? (
                   <video
-                    src={loc?.lsmVideoUrl || species.lsmVideoUrl}
+                    src={loc.lsmVideoUrl || species.lsmVideoUrl}
                     controls
                     playsInline
                     preload="metadata"
@@ -529,7 +517,7 @@ export function SpeciesDetail() {
                     {isEnglish ? "Your browser does not support video playback." : "Tu navegador no soporta la reproducción de video."}
                   </video>
                 ) : (
-                  <div className="rounded-xl border border-emerald-900/10 bg-[#fcfaf5] p-4 text-sm font-semibold leading-relaxed text-stone-700">
+                  <div className="rounded-xl border border-emerald-900/10 bg-[#fcfaf5] p-3 text-xs sm:text-sm font-semibold leading-relaxed text-stone-600">
                     {isEnglish ? "The official sign language video will be available soon." : "El video en lengua de señas estará disponible próximamente."}
                   </div>
                 )}
@@ -537,6 +525,39 @@ export function SpeciesDetail() {
             </div>
           </div>
         </div>
+
+        {/* Galería Adicional de Fotos y Videos (excluyendo la portada para no duplicarla) */}
+        {hasExtraMedia && (
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#e2d5bd] shadow-md space-y-4">
+            <h3 className="font-adventure text-xl sm:text-2xl text-[#2b1810] flex items-center gap-2">
+              <Camera className="w-5 h-5 text-emerald-700" />
+              <span>{isEnglish ? "Photo & Video Gallery" : "Galería de Fotos y Videos"}</span>
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {extraImages.map((url, index) => (
+                <div key={url} className="aspect-square rounded-2xl overflow-hidden border border-amber-900/10 shadow-xs bg-stone-100 hover:shadow-md transition-shadow">
+                  <img
+                    src={url}
+                    alt={`${loc.name || species.name} ${index + 1}`}
+                    loading="lazy"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+              ))}
+              {extraVideos.map((url) => (
+                <div key={url} className="aspect-square rounded-2xl overflow-hidden border border-amber-900/10 shadow-xs bg-black">
+                  <video
+                    src={url}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

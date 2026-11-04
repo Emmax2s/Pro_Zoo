@@ -6,11 +6,9 @@ import { useZoo } from "../context/ZooContext";
 import { recordSpeciesVisit } from "../services/analytics";
 import { getLocalizedAnimal, useLocalizedAnimal } from "../services/speciesTranslator";
 import { playChime, speakNarration, stopAllAudio } from "../services/audioPlayer";
-import { useTranslation } from "react-i18next";
 
 export function Animals() {
   const { animals, currentLang } = useZoo();
-  const { t } = useTranslation();
   const isEs = currentLang === "es";
   const { id: pathId } = useParams<{ id?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -188,11 +186,11 @@ export function Animals() {
             </div>
 
             <h1 className="font-adventure text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-stone-900 leading-[1.1] text-adventure-shadow">
-              Catálogo de Fauna Nativa
+              {"Catálogo de Fauna Nativa"}
             </h1>
 
             <p className="text-xl md:text-2xl text-stone-700 leading-relaxed font-semibold">
-              Explora la increíble diversidad de fauna protegida en el ZooMAT a través de nuestro catálogo interactivo y audioguías oficiales.
+              {"Explora la increíble diversidad de fauna protegida en el ZooMAT a través de nuestro catálogo interactivo y audioguías oficiales."}
             </p>
           </div>
         </div>
@@ -224,7 +222,7 @@ export function Animals() {
             <div className="flex-1">
               <label className="flex items-center text-sm font-black text-amber-900 uppercase tracking-widest mb-4">
                 <Filter className="w-4 h-4 mr-2 text-amber-700" />
-                Categoría
+                {"Categoría"}
               </label>
               <div className="flex flex-wrap gap-2.5">
                 {categories.map((category) => (
@@ -247,7 +245,7 @@ export function Animals() {
             <div className="flex-1">
               <label className="flex items-center text-sm font-black text-amber-900 uppercase tracking-widest mb-4">
                 <Filter className="w-4 h-4 mr-2 text-amber-700" />
-                Estado de Conservación
+                {"Estado de Conservación"}
               </label>
               <div className="flex flex-wrap gap-2.5">
                 {statuses.map((status) => (
@@ -273,7 +271,7 @@ export function Animals() {
       <section className="reveal-on-scroll max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex justify-between items-center mb-8">
           <p className="text-amber-950 font-bold text-lg">
-            Mostrando <span className="text-amber-700 font-black">{filteredAnimals.length}</span> especies
+            {"Mostrando "}<span className="text-amber-700 font-black">{filteredAnimals.length}</span>{" especies nativas encontradas"}
           </p>
         </div>
 
@@ -313,7 +311,7 @@ export function Animals() {
         ) : (
           <div className="border-2 border-dashed border-amber-300 bg-white rounded-3xl p-16 text-center shadow-lg">
             <p className="text-stone-800 font-bold mb-6 text-xl">
-              No se encontraron animales con los filtros seleccionados.
+              {"No se encontraron animales con los filtros seleccionados."}
             </p>
             <button
               onClick={() => {
@@ -323,7 +321,7 @@ export function Animals() {
               }}
               className="wood-texture-bg text-amber-200 hover:text-white px-8 py-3.5 rounded-2xl text-base font-adventure border-2 border-amber-600 shadow-md hover:scale-105 transition-all wood-button-shadow"
             >
-              Limpiar Filtros
+              {"Limpiar Filtros"}
             </button>
           </div>
         )}

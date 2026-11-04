@@ -1,6 +1,5 @@
 import { Mail, Phone, MapPin, Clock, Send, Facebook, Instagram, TreePine, Navigation } from "lucide-react";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 
 function Tiktok({ className }: { className?: string }) {
   return (
@@ -20,7 +19,6 @@ function Tiktok({ className }: { className?: string }) {
 }
 
 export function Contact() {
-  const { t, i18n } = useTranslation();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -30,33 +28,33 @@ export function Contact() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert(t("contact.success"));
+    alert("Gracias por tu mensaje. Te contactaremos pronto.");
     setFormData({ name: "", email: "", subject: "", message: "" });
   };
 
   const contactInfo = [
     {
       icon: Phone,
-      title: t("contact.phoneTitle"),
-      details: ["(961) 614-4700", t("contact.phoneHours")],
+      title: "Teléfono",
+      details: ["(961) 614-4700", "Lun-Vie 9:00-17:00"],
       links: ["tel:+529616144700", null],
     },
     {
       icon: Mail,
-      title: t("contact.emailTitle"),
-      details: ["contacto@zoologico.gob.mx", t("contact.emailResponse")],
+      title: "Email",
+      details: ["contacto@zoologico.gob.mx", "Respuesta en 24-48 horas"],
       links: ["mailto:contacto@zoologico.gob.mx", null],
     },
     {
       icon: MapPin,
-      title: t("contact.addressTitle"),
-      details: [t("contact.addressLine1"), t("contact.addressLine2")],
+      title: "Dirección",
+      details: ["Calzada Cerro Hueco s/n", "Tuxtla Gutiérrez, Chiapas"],
       links: [null, null],
     },
     {
       icon: Clock,
-      title: t("contact.hoursTitle"),
-      details: [t("contact.hoursLine1"), t("contact.hoursLine2")],
+      title: "Horario de Atención",
+      details: ["Martes a Domingo: 9:00 - 17:00", "Lunes cerrado por mantenimiento"],
       links: [null, null],
     },
   ];
@@ -77,15 +75,15 @@ export function Contact() {
           <div className="max-w-4xl space-y-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100/90 text-amber-950 text-xs sm:text-sm font-black tracking-wide uppercase shadow-xs border border-amber-300">
               <TreePine className="w-4 h-4 text-emerald-800" />
-              <span>{t("home.hero.tag")}</span>
+              <span>{"Zoológico Regional Miguel Álvarez del Toro"}</span>
             </div>
 
             <h1 className="font-adventure text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-stone-900 leading-[1.1] text-adventure-shadow">
-              {t("contact.title")}
+              {"Contacto"}
             </h1>
 
             <p className="text-xl md:text-2xl text-stone-700 leading-relaxed font-semibold">
-              {t("contact.subtitle")}
+              {"Estamos aquí para ayudarte. Contáctanos para cualquier consulta."}
             </p>
           </div>
         </div>
@@ -101,13 +99,13 @@ export function Contact() {
           <div className="lg:col-span-2">
             <div className="interactive-card bg-white rounded-3xl shadow-xl p-8 md:p-10 border-2 border-[#e2d5bd] hover:border-amber-600/30 transition-colors duration-300 will-change-transform">
               <h2 className="font-adventure text-3xl sm:text-4xl text-[#2b1810] mb-8">
-                {t("contact.sendMessage")}
+                {"Envíanos un Mensaje"}
               </h2>
               <form onSubmit={handleSubmit} className="space-y-7">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-base font-extrabold text-stone-900 mb-2">
-                      {t("contact.fullName")}
+                      {"Nombre Completo *"}
                     </label>
                     <input
                       type="text"
@@ -115,12 +113,12 @@ export function Contact() {
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="w-full px-5 py-4 border-2 border-amber-900/20 rounded-2xl focus:ring-4 focus:ring-amber-500 focus:border-amber-700 text-base font-semibold bg-[#fcfaf5] transition-all duration-200"
-                      placeholder={t("contact.namePlaceholder")}
+                      placeholder="Tu nombre completo"
                     />
                   </div>
                   <div>
                     <label className="block text-base font-extrabold text-stone-900 mb-2">
-                      {t("contact.email")}
+                      {"Email *"}
                     </label>
                     <input
                       type="email"
@@ -128,14 +126,14 @@ export function Contact() {
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="w-full px-5 py-4 border-2 border-amber-900/20 rounded-2xl focus:ring-4 focus:ring-amber-500 focus:border-amber-700 text-base font-semibold bg-[#fcfaf5] transition-all duration-200"
-                      placeholder={t("contact.emailPlaceholder")}
+                      placeholder="tu@email.com"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-base font-extrabold text-stone-900 mb-2">
-                    {t("contact.subject")}
+                    {"Asunto *"}
                   </label>
                   <select
                     required
@@ -143,19 +141,19 @@ export function Contact() {
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                     className="w-full px-5 py-4 border-2 border-amber-900/20 rounded-2xl focus:ring-4 focus:ring-amber-500 focus:border-amber-700 text-base font-semibold bg-[#fcfaf5] transition-all duration-200"
                   >
-                    <option value="">{t("contact.selectSubject")}</option>
-                    <option value="informacion">{t("contact.optGeneral")}</option>
-                    <option value="visita-escolar">{t("contact.optSchool")}</option>
-                    <option value="donacion">{t("contact.optDonation")}</option>
-                    <option value="voluntariado">{t("contact.optVolunteer")}</option>
-                    <option value="quejas">{t("contact.optFeedback")}</option>
-                    <option value="otro">{t("contact.optOther")}</option>
+                    <option value="">{"Selecciona un asunto"}</option>
+                    <option value="informacion">{"Información General"}</option>
+                    <option value="visita-escolar">{"Visita Escolar"}</option>
+                    <option value="donacion">{"Donaciones"}</option>
+                    <option value="voluntariado">{"Voluntariado"}</option>
+                    <option value="quejas">{"Quejas y Sugerencias"}</option>
+                    <option value="otro">{"Otro"}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-base font-extrabold text-stone-900 mb-2">
-                    {t("contact.message")}
+                    {"Mensaje *"}
                   </label>
                   <textarea
                     required
@@ -163,7 +161,7 @@ export function Contact() {
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     rows={6}
                     className="w-full px-5 py-4 border-2 border-amber-900/20 rounded-2xl focus:ring-4 focus:ring-amber-500 focus:border-amber-700 resize-none text-base font-medium bg-[#fcfaf5] transition-all duration-200"
-                    placeholder={t("contact.messagePlaceholder")}
+                    placeholder="Escribe tu mensaje aquí..."
                   />
                 </div>
 
@@ -172,7 +170,7 @@ export function Contact() {
                   className="w-full wood-texture-bg text-amber-200 hover:text-white py-4.5 rounded-2xl font-adventure text-lg border-2 border-amber-600 shadow-xl hover:shadow-2xl hover:-translate-y-1 hover:scale-102 active:translate-y-0.5 active:scale-98 transition-all duration-200 flex items-center justify-center gap-3 wood-button-shadow cursor-pointer will-change-transform"
                 >
                   <Send className="w-5 h-5 text-amber-400 group-hover:translate-x-1 transition-transform" />
-                  <span>{t("contact.sendButton")}</span>
+                  <span>{"Enviar Mensaje"}</span>
                 </button>
               </form>
             </div>
@@ -209,9 +207,9 @@ export function Contact() {
 
             {/* Redes Oficiales */}
             <div className="wood-texture-bg rounded-3xl shadow-2xl p-7 text-amber-100 border-2 border-amber-600 hover:border-amber-500 transition-colors duration-300">
-              <h3 className="font-adventure text-2xl text-amber-200 mb-2">{t("contact.followUs")}</h3>
+              <h3 className="font-adventure text-2xl text-amber-200 mb-2">{"Síguenos en Redes Sociales"}</h3>
               <p className="text-amber-100/90 text-sm mb-5 font-medium">
-                Sigue las redes oficiales de ZooMAT
+                {"Sigue las redes oficiales de ZooMAT"}
               </p>
               <div className="flex gap-4">
                 <a
@@ -243,7 +241,7 @@ export function Contact() {
                 </a>
               </div>
               <p className="text-amber-200/90 text-xs mt-5 font-medium">
-                Comparte tus fotos con #ZooMAT
+                {"Comparte tus fotos con #ZooMAT"}
               </p>
             </div>
           </div>

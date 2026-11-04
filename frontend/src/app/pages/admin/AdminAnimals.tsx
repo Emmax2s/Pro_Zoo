@@ -485,22 +485,6 @@ function AnimalModal({
               className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none" />
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">URL de Imagen</label>
-            <div className="flex gap-2">
-              <input name="image" value={form.image} onChange={handle}
-                placeholder="/assets/images/placeholder.svg"
-                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-              <input type="file" accept="image/*" onChange={handleFileUpload} className="px-3 py-2 bg-white border border-gray-200 rounded-xl" />
-            </div>
-            {form.image && (
-              <div className="mt-2 h-32 rounded-xl overflow-hidden bg-gray-100">
-                <img src={form.image} alt="Vista previa" className="w-full h-full object-cover"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-              </div>
-            )}
-          </div>
-
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={onClose}
               className="px-5 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
@@ -732,10 +716,59 @@ export function AdminAnimals() {
 
   async function togglePublicVisibility(animal: Animal) {
     if (!isSuperAdmin) return;
-    await handleSave({
-      ...animal,
-      isVisibleToPublic: animal.isVisibleToPublic === false,
-    });
+    // Primero cerrar el modal si está abierto para evitar conflictos
+    setModalState({ open: false, animal: null });
+    const newVisibility = !animal.isVisibleToPublic;
+
+    if (API_BASE_URL && token) {
+      try {
+        const payload = {
+          slug: (animal.name.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")),
+          name: animal.name,
+          species: animal.scientificName,
+          category: animal.category,
+          enclosureId: animal.enclosureId,
+          isVisibleToPublic: newVisibility,
+          habitat: animal.habitat,
+          imageUrl: animal.image,
+          conservation: animal.status,
+          description: animal.funFact,
+          diet: animal.diet,
+          audioDescriptionUrl: animal.audioUrl,
+          mediaImages: animal.mediaImages?.slice(0, 4) || [],
+          mediaVideos: animal.mediaVideos?.slice(0, 2) || [],
+          lsmVideoUrl: animal.lsmVideoUrl,
+        };
+        const response = await fetch(
+          `${API_BASE_URL}/api/species/${animal.id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + token,
+            },
+            body: JSON.stringify(payload),
+          }
+        );
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          window.alert(result.message || "No se pudo cambiar la visibilidad.");
+          return;
+        }
+        setAnimals(animals.map((a) =>
+          a.id === animal.id ? { ...a, isVisibleToPublic: newVisibility } : a
+        ));
+      } catch (error) {
+        console.warn("Error toggling visibility:", error);
+        setAnimals(animals.map((a) =>
+          a.id === animal.id ? { ...a, isVisibleToPublic: newVisibility } : a
+        ));
+      }
+    } else {
+      setAnimals(animals.map((a) =>
+        a.id === animal.id ? { ...a, isVisibleToPublic: newVisibility } : a
+      ));
+    }
   }
 
   const getEnclosure = (id: string | null) => enclosures.find((e) => e.id === id);

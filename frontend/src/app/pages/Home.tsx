@@ -5,7 +5,6 @@ import {
   BookOpen, ChevronLeft, ChevronRight, Play, PawPrint, Map
 } from "lucide-react";
 import { useZoo } from "../context/ZooContext";
-import { useTranslation } from "react-i18next";
 
 const transparencyBanners = [
   {
@@ -33,7 +32,6 @@ const transparencyBanners = [
 // ── Hero Carousel (Clean & Beautiful with Wooden Controls) ───────────────────
 function HeroCarousel() {
   const { slides } = useZoo();
-  const { t, i18n } = useTranslation();
   const [current, setCurrent] = useState(0);
   const [playing, setPlaying] = useState(false);
   const total = slides.length;
@@ -87,7 +85,7 @@ function HeroCarousel() {
               {/* Cleanly fitted foreground photo */}
               <img
                 src={s.src}
-                alt={s.alt || t("home.carouselImage")}
+                alt={s.alt || "Imagen del carrusel"}
                 className="relative z-10 max-h-full max-w-full w-auto h-auto object-contain object-center select-none transition-transform duration-700"
               />
             </div>
@@ -100,7 +98,7 @@ function HeroCarousel() {
                   return (
                     <iframe
                       src={`https://www.youtube.com/embed/${ytMatch[1]}?autoplay=${playing ? 1 : 0}&enablejsapi=1&rel=0`}
-                      title={s.alt || t("home.carouselVideo")}
+                      title={s.alt || "Video del carrusel"}
                       className="w-full h-full border-0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
@@ -170,7 +168,7 @@ function HeroCarousel() {
       <button
         onClick={prev}
         className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-14 sm:h-14 rounded-full wood-texture-dark border-2 border-amber-500 text-amber-300 flex items-center justify-center shadow-2xl hover:scale-110 active:scale-90 hover:border-amber-300 transition-all duration-200 cursor-pointer wood-button-shadow will-change-transform"
-        aria-label={t("home.previousSlide")}
+        aria-label="Diapositiva anterior"
       >
         <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8" />
       </button>
@@ -178,7 +176,7 @@ function HeroCarousel() {
       <button
         onClick={next}
         className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-14 sm:h-14 rounded-full wood-texture-dark border-2 border-amber-500 text-amber-300 flex items-center justify-center shadow-2xl hover:scale-110 active:scale-90 hover:border-amber-300 transition-all duration-200 cursor-pointer wood-button-shadow will-change-transform"
-        aria-label={t("home.nextSlide")}
+        aria-label="Siguiente diapositiva"
       >
         <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />
       </button>
@@ -195,7 +193,7 @@ function HeroCarousel() {
             className={`rounded-full transition-all duration-200 hover:scale-125 cursor-pointer ${
               i === current ? "w-6 sm:w-7 h-2 sm:h-2.5 bg-amber-400 scale-105" : "w-2 sm:w-2.5 h-2 sm:h-2.5 bg-white/60 hover:bg-white"
             }`}
-            aria-label={t("home.slide", { count: i + 1 })}
+            aria-label={`Diapositiva ${i + 1}`}
           />
         ))}
       </div>    </div>
@@ -205,24 +203,11 @@ function HeroCarousel() {
 // ── Main Home Page ────────────────────────────────────────────────────────────
 export function Home() {
   const { animals } = useZoo();
-  const { t, i18n } = useTranslation();
 
   const highlights = [
-    {
-      icon: Users,
-      title: t("home.highlights.species"),
-      description: t("home.highlights.speciesDesc"),
-    },
-    {
-      icon: TreePine,
-      title: t("home.highlights.conservation"),
-      description: t("home.highlights.conservationDesc"),
-    },
-    {
-      icon: Heart,
-      title: t("home.highlights.education"),
-      description: t("home.highlights.educationDesc"),
-    },
+    { icon: Users, title: "50+ Especies", description: "Fauna nativa de Chiapas" },
+    { icon: TreePine, title: "Conservación", description: "Protegemos y rehabilitamos especies en peligro de extinción nativas de nuestra región." },
+    { icon: Heart, title: "Educación", description: "Programas educativos para concientizar sobre la importancia de nuestra biodiversidad." },
   ];
 
   return (
@@ -245,7 +230,7 @@ export function Home() {
               className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/75 hover:bg-[#731c34] text-white border-2 border-amber-400/80 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-200 hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 font-sans font-bold text-sm sm:text-base tracking-wide group will-change-transform"
             >
               <PawPrint className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-115 transition-transform duration-200" />
-              <span>{t("nav.animals")}</span>
+              <span>{"Especies"}</span>
             </Link>
 
             <Link
@@ -253,7 +238,7 @@ export function Home() {
               className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/75 hover:bg-[#731c34] text-white border-2 border-amber-400/80 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-200 hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 font-sans font-bold text-sm sm:text-base tracking-wide group will-change-transform"
             >
               <Ticket className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-115 transition-transform duration-200" />
-              <span>{t("nav.visit")}</span>
+              <span>{"Visita"}</span>
             </Link>
 
             <Link
@@ -261,7 +246,7 @@ export function Home() {
               className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/75 hover:bg-[#731c34] text-white border-2 border-amber-400/80 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-200 hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 font-sans font-bold text-sm sm:text-base tracking-wide group will-change-transform"
             >
               <Map className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-115 transition-transform duration-200" />
-              <span>{t("nav.map")}</span>
+              <span>{"Mapa"}</span>
             </Link>
           </div>
         </div>
@@ -288,15 +273,15 @@ export function Home() {
           <div className="max-w-4xl space-y-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100/90 text-amber-950 text-xs sm:text-sm font-black tracking-wide uppercase shadow-xs border border-amber-300">
               <TreePine className="w-4 h-4 text-emerald-800" />
-              <span>{t("home.hero.tag")}</span>
+              <span>{"Zoológico Regional Miguel Álvarez del Toro"}</span>
             </div>
 
             <h1 className="font-adventure text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-stone-900 leading-[1.15]">
-              {t("home.hero.title")}
+              {"Bienvenidos al ZOOMAT"}
             </h1>
 
             <p className="text-xl md:text-2xl text-stone-700 leading-relaxed font-semibold">
-              {t("home.hero.desc")}
+              {"El único zoológico en México dedicado exclusivamente a la conservación, exhibición e investigación de la fauna silvestre nativa del estado de Chiapas en su entorno selvático natural."}
             </p>
 
             <div className="flex flex-wrap gap-4 pt-2">
@@ -305,7 +290,7 @@ export function Home() {
                 className="inline-flex items-center gap-3 wood-texture-bg text-amber-200 hover:text-white border-2 border-amber-600/80 px-8 py-4 rounded-2xl text-lg font-adventure shadow-lg hover:shadow-2xl hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 transition-all duration-200 wood-button-shadow will-change-transform"
               >
                 <Ticket className="w-5 h-5 text-amber-400" />
-                <span>{t("home.hero.planVisit")}</span>
+                <span>{"Planear Visita"}</span>
                 <ArrowRight className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" />
               </Link>
 
@@ -314,7 +299,7 @@ export function Home() {
                 className="inline-flex items-center gap-3 bg-white hover:bg-amber-50 text-stone-900 border-2 border-amber-800/30 px-8 py-4 rounded-2xl text-lg font-adventure shadow-md hover:shadow-xl hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 transition-all duration-200 will-change-transform"
               >
                 <BookOpen className="w-5 h-5 text-emerald-800" />
-                <span>{t("home.hero.exploreCatalog")}</span>
+                <span>{"Explorar Catálogo"}</span>
               </Link>
             </div>
           </div>
@@ -352,20 +337,20 @@ export function Home() {
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 text-xs font-bold uppercase tracking-wider mb-2">
                 <TreePine className="w-3.5 h-3.5 text-emerald-700" />
-                <span>{t("home.featured.title")}</span>
+                <span>{"Especies"}</span>
               </div>
               <h2 className="font-adventure text-3xl sm:text-5xl text-stone-900 tracking-wide text-adventure-shadow">
                 Especies
               </h2>
               <p className="text-stone-600 max-w-2xl font-semibold text-lg md:text-xl mt-2">
-                Conoce algunos de nuestros habitantes más emblemáticos que protegemos en el zoológico.
+                {"Conoce algunos de nuestros habitantes más emblemáticos que protegemos en el zoológico."}
               </p>
             </div>
             <Link
               to="/especies"
               className="font-adventure text-base text-amber-950 bg-amber-300 hover:bg-amber-400 border-2 border-amber-500 px-6 py-3 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2 will-change-transform"
             >
-              <span>{t("home.featured.viewAll")}</span>
+              <span>{"Ver catálogo completo"}</span>
               <ArrowRight className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" />
             </Link>
           </div>
@@ -374,10 +359,10 @@ export function Home() {
             {animals.length === 0 ? (
               <div className="col-span-full text-center py-12 bg-white rounded-3xl border-2 border-dashed border-amber-300">
                 <p className="text-stone-800 font-bold text-lg">
-                  No hay especies registradas actualmente.
+                  {"No hay especies registradas actualmente."}
                 </p>
                 <p className="text-stone-500 text-sm mt-1">
-                  Las especies agregadas desde el panel de administración aparecerán aquí.
+                  {"Las especies agregadas desde el panel de administración aparecerán aquí."}
                 </p>
               </div>
             ) : (
@@ -405,7 +390,7 @@ export function Home() {
                         to={`/animales?id=${animal.id}`}
                         className="text-emerald-900 hover:text-emerald-950 font-adventure text-sm bg-emerald-50 hover:bg-emerald-100 hover:scale-105 active:scale-95 px-4 py-2 rounded-xl border border-emerald-300 shadow-xs transition-all duration-200 will-change-transform"
                       >
-                        Ver más →
+                        {"Ver más →"}
                       </Link>
                     </div>
                   </div>
@@ -428,37 +413,37 @@ export function Home() {
               <div>
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400/20 text-amber-300 text-xs font-bold tracking-widest uppercase mb-6 border border-amber-400/30">
                   <Calendar className="w-3.5 h-3.5" />
-                  <span>{t("home.visit.tag")}</span>
+                  <span>{"Tu visita"}</span>
                 </div>
                 <h2 className="font-adventure text-3xl md:text-5xl mb-6 tracking-wide text-white text-adventure-shadow">
-                  Planifica tu recorrido
+                  {"Planifica tu recorrido"}
                 </h2>
                 <p className="text-stone-300 text-lg mb-10 leading-relaxed font-medium">
-                  Estamos abiertos de martes a domingo. Ven y vive una experiencia educativa inmersiva para toda la familia en el corazón de la selva.
+                  {"Estamos abiertos de martes a domingo. Ven y vive una experiencia educativa inmersiva para toda la familia en el corazón de la selva."}
                 </p>
 
                 <div className="space-y-5 mb-10">
                   <div className="flex items-center gap-4 text-stone-200 bg-black/40 hover:bg-black/55 p-4 rounded-2xl border border-amber-900/60 hover:border-amber-700/70 hover:-translate-y-0.5 transition-all duration-200 will-change-transform">
                     <Clock className="w-6 h-6 text-amber-400 flex-shrink-0" />
                     <div>
-                      <p className="font-bold text-white">{t("home.visit.hoursTitle")}</p>
-                      <p className="text-sm text-amber-200">{t("home.visit.hoursDesc")}</p>
+                      <p className="font-bold text-white">{"Horario de apertura"}</p>
+                      <p className="text-sm text-amber-200">{"Martes a Domingo: 9:00 - 17:00"}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-4 text-stone-200 bg-black/40 hover:bg-black/55 p-4 rounded-2xl border border-amber-900/60 hover:border-amber-700/70 hover:-translate-y-0.5 transition-all duration-200 will-change-transform">
                     <MapPin className="w-6 h-6 text-amber-400 flex-shrink-0" />
                     <div>
-                      <p className="font-bold text-white">{t("home.visit.locationTitle")}</p>
-                      <p className="text-sm text-amber-200">{t("home.visit.locationDesc")}</p>
+                      <p className="font-bold text-white">{"Ubicación"}</p>
+                      <p className="text-sm text-amber-200">{"Calzada Cerro Hueco, Tuxtla Gutiérrez"}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-4 text-stone-200 bg-black/40 hover:bg-black/55 p-4 rounded-2xl border border-amber-900/60 hover:border-amber-700/70 hover:-translate-y-0.5 transition-all duration-200 will-change-transform">
                     <Ticket className="w-6 h-6 text-amber-400 flex-shrink-0" />
                     <div>
-                      <p className="font-bold text-white">{t("home.visit.admissionTitle")}</p>
-                      <p className="text-sm text-amber-200">{t("home.visit.admissionDesc")}</p>
+                      <p className="font-bold text-white">{"Admisión"}</p>
+                      <p className="text-sm text-amber-200">{"Entrada general: $30 MXN"}</p>
                     </div>
                   </div>
                 </div>
@@ -467,7 +452,7 @@ export function Home() {
                   to="/visita"
                   className="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-stone-950 px-8 py-4 rounded-2xl font-adventure text-lg transition-all duration-200 shadow-lg hover:shadow-2xl hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 wood-button-shadow will-change-transform"
                 >
-                  <span>{t("home.visit.moreDetails")}</span>
+                  <span>{"Ver Más Detalles"}</span>
                   <ArrowRight className="w-5 h-5" />
                 </Link>
               </div>

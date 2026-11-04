@@ -174,7 +174,7 @@ function AnimalModal({
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${sessionStorage.getItem("pro-zoo-admin-token") || ""}`,
+                Authorization: "Bearer " + (sessionStorage.getItem("pro-zoo-admin-token") || ""),
               },
               body: JSON.stringify({ filename: file.name, data: dataUrl }),
             });
@@ -203,11 +203,18 @@ function AnimalModal({
 
   const isEditing = "id" in animal;
 
-  async function uploadMediaFiles(files: FileList | null, kind: "image" | "video") {
+  async function uploadMediaFiles(files: FileList | null, kind: "image" | "video" | "lsm") {
     if (!files?.length) return;
     const selected = Array.from(files);
-    const current = kind === "image" ? form.mediaImages : form.mediaVideos;
-    const limit = kind === "image" ? 4 : 2;
+    const current =
+      kind === "image"
+        ? form.mediaImages
+        : kind === "video"
+        ? form.mediaVideos
+        : form.lsmVideoUrl
+        ? [form.lsmVideoUrl]
+        : [];
+    const limit = kind === "image" ? 4 : kind === "video" ? 2 : 1;
     if (current.length + selected.length > limit) {
       window.alert(`Puedes registrar máximo ${limit} ${kind === "image" ? "imágenes" : "videos"}.`);
       return;
@@ -225,7 +232,7 @@ function AnimalModal({
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${sessionStorage.getItem("pro-zoo-admin-token") || ""}`,
+            Authorization: "Bearer " + (sessionStorage.getItem("pro-zoo-admin-token") || ""),
           },
           body: JSON.stringify({ filename: file.name, data: dataUrl }),
         });
@@ -239,7 +246,9 @@ function AnimalModal({
         ...previous,
         ...(kind === "image"
           ? { mediaImages: [...previous.mediaImages, ...urls], image: previous.image || urls[0] }
-          : { mediaVideos: [...previous.mediaVideos, ...urls] }),
+          : kind === "video"
+          ? { mediaVideos: [...previous.mediaVideos, ...urls] }
+          : { lsmVideoUrl: urls[0] }),
       }));
     } catch (error) {
       window.alert(error instanceof Error ? error.message : "No se pudo subir el archivo.");
@@ -254,16 +263,17 @@ function AnimalModal({
       return;
     }
 
-    function addLsmVideoUrl() {
-      const url = lsmVideoUrl.trim();
-      if (!url || !/^https?:\/\/\S+$/i.test(url)) {
-        window.alert("Ingresa una URL válida para el video LSM.");
-        return;
-      }
-      setForm((previous) => ({ ...previous, lsmVideoUrl: url }));
-    }
     setForm((previous) => ({ ...previous, mediaVideos: [...previous.mediaVideos, url] }));
     setVideoUrl("");
+  }
+
+  function addLsmVideoUrl() {
+    const url = lsmVideoUrl.trim();
+    if (!url || !/^https?:\/\/\S+$/i.test(url)) {
+      window.alert("Ingresa una URL válida para el video LSM.");
+      return;
+    }
+    setForm((previous) => ({ ...previous, lsmVideoUrl: url }));
   }
 
   function handle(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
@@ -585,7 +595,7 @@ export function AdminAnimals() {
   useEffect(() => {
     if (!API_BASE_URL || !token || currentUser.role !== "superadmin") return;
     fetch(`${API_BASE_URL}/api/species/manage/all`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: "Bearer " + token },
       cache: "no-store",
     })
       .then(async (response) => {
@@ -663,7 +673,7 @@ export function AdminAnimals() {
             method: isEditing ? "PUT" : "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${sessionStorage.getItem("pro-zoo-admin-token") || ""}`,
             },
             body: JSON.stringify(payload),
           }
@@ -727,7 +737,7 @@ export function AdminAnimals() {
       try {
         const response = await fetch(`${API_BASE_URL}/api/species/${deleteTarget.id}`, {
           method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: "Bearer " + token },
         });
         const result = await response.json().catch(() => ({}));
         if (!response.ok) {

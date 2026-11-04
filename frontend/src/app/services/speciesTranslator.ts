@@ -11,6 +11,7 @@ export interface LocalizedAnimalData {
   audioUrl?: string;
   mediaImages: string[];
   mediaVideos: string[];
+  lsmVideoUrl?: string;
 }
 
 const CATEGORY_MAP_EN: Record<string, string> = {
@@ -23,10 +24,10 @@ const CATEGORY_MAP_EN: Record<string, string> = {
 };
 
 const STATUS_MAP_EN: Record<string, string> = {
-  "En Peligro de Extinción": "Endangere",
+  "En Peligro de Extinción": "Endangered",
   "Amenazada": "Threatened",
-  "Protegida Especial": ,
-  "Preocupación Menor": ,
+  "Protegida Especial": "Special Protection",
+  "Preocupación Menor": "Least Concern",
 };
 
 const CATEGORY_MAP_ES: Record<string, string> = {
@@ -188,6 +189,7 @@ export function getLocalizedAnimal(
       funFact: "",
       mediaImages: [],
       mediaVideos: [],
+        lsmVideoUrl: "",
     };
   }
 
@@ -262,6 +264,7 @@ export function getLocalizedAnimal(
     audioUrl: String(animal.audioUrl || animal.audioDescriptionUrl || "") || undefined,
     mediaImages: Array.isArray(animal.mediaImages) ? animal.mediaImages.map(String).slice(0, 4) : [],
     mediaVideos: Array.isArray(animal.mediaVideos) ? animal.mediaVideos.map(String).slice(0, 2) : [],
+    lsmVideoUrl: String(animal.lsmVideoUrl || "") || undefined,
   };
 }
 

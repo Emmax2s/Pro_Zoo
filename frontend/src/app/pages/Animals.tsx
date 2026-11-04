@@ -457,31 +457,33 @@ export function Animals() {
                   </div>
 
                   {/* Video en lengua de señas */}
-                  <div className="bg-white rounded-2xl p-5 border-2 border-[#e2d5bd] shadow-sm space-y-4">
-                    <div className="flex items-center gap-2 text-stone-900 font-black text-sm uppercase tracking-wider">
-                        <Video className="w-5 h-5 text-emerald-700" />
-                        <span>{isModalEs ? "VIDEO EN LENGUA DE SEÑAS" : "SIGN LANGUAGE VIDEO"}</span>
+                  <div className="overflow-hidden rounded-2xl border-2 border-[#e2d5bd] bg-white shadow-sm">
+                    <div className="flex items-center gap-2 bg-emerald-700 px-5 py-4 text-sm font-black uppercase tracking-wider text-white">
+                        <Video className="h-5 w-5 text-amber-300" />
+                        <span>{isModalEs ? "INTERPRETACIÓN EN LENGUA DE SEÑAS (LSM)" : "SIGN LANGUAGE INTERPRETATION (LSM)"}</span>
                     </div>
 
-                    {selectedLoc.mediaVideos[0] ? (
-                        <video
-                          src={selectedLoc.mediaVideos[0]}
-                          controls
-                          playsInline
-                          preload="metadata"
-                          className="w-full aspect-video rounded-xl bg-stone-950 object-contain"
-                        >
-                          {isModalEs
-                            ? "Tu navegador no soporta la reproducción de video."
-                            : "Your browser does not support video playback."}
-                        </video>
-                    ) : (
-                        <div className="rounded-xl border border-emerald-900/10 bg-[#fcfaf5] p-4 text-sm font-semibold leading-relaxed text-stone-700">
-                          {isModalEs
-                            ? "El video en lengua de señas estará disponible próximamente."
-                            : "The sign language video will be available soon."}
-                        </div>
-                    )}
+                    <div className="p-3">
+                        {selectedLoc.lsmVideoUrl ? (
+                          <video
+                            src={selectedLoc.lsmVideoUrl}
+                            controls
+                            playsInline
+                            preload="metadata"
+                            className="w-full aspect-video rounded-xl bg-slate-950 object-contain"
+                          >
+                            {isModalEs
+                              ? "Tu navegador no soporta la reproducción de video."
+                              : "Your browser does not support video playback."}
+                          </video>
+                        ) : (
+                          <div className="rounded-xl border border-emerald-900/10 bg-[#fcfaf5] p-4 text-sm font-semibold leading-relaxed text-stone-700">
+                            {isModalEs
+                              ? "El video en lengua de señas estará disponible próximamente."
+                              : "The sign language video will be available soon."}
+                          </div>
+                        )}
+                    </div>
                   </div>
                 </div>
 

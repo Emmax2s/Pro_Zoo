@@ -29,6 +29,7 @@ export interface Animal {
   image: string;
   mediaImages: string[];
   mediaVideos: string[];
+  lsmVideoUrl?: string;
   audioUrl?: string;
   enclosureId: string | null;
   isVisibleToPublic: boolean;

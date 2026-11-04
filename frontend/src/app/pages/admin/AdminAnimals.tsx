@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Search, X, AlertTriangle, MapPin, Volume2, QrCode, Download } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, X, AlertTriangle, MapPin, Volume2, QrCode, Download, Hand } from "lucide-react";
 import QRCode from "qrcode";
 import { useZoo } from "../../context/ZooContext";
 import { useAuth } from "../../context/AuthContext";
@@ -22,6 +22,7 @@ const emptyForm: Omit<Animal, "id"> = {
   image: "",
   mediaImages: [],
   mediaVideos: [],
+  lsmVideoUrl: "",
   audioUrl: "",
   enclosureId: null,
   isVisibleToPublic: true,
@@ -123,11 +124,13 @@ function AnimalModal({
     image: animal.image,
     mediaImages: animal.mediaImages?.slice(0, 4) || (animal.image ? [animal.image] : []),
     mediaVideos: animal.mediaVideos?.slice(0, 2) || [],
+    lsmVideoUrl: animal.lsmVideoUrl || "",
     audioUrl: animal.audioUrl || "",
     enclosureId: animal.enclosureId,
     isVisibleToPublic: animal.isVisibleToPublic !== false,
   });
   const [videoUrl, setVideoUrl] = useState("");
+  const [lsmVideoUrl, setLsmVideoUrl] = useState(animal.lsmVideoUrl || "");
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -150,11 +153,11 @@ function AnimalModal({
           return;
         }
 
-        async function uploadMediaFiles(files: FileList | null, kind: "image" | "video") {
+        async function uploadMediaFiles(files: FileList | null, kind: "image" | "video" | "lsm") {
           if (!files?.length) return;
           const selected = Array.from(files);
-          const current = kind === "image" ? form.mediaImages : form.mediaVideos;
-          const limit = kind === "image" ? 4 : 2;
+          const current = kind === "image" ? form.mediaImages : kind === "video" ? form.mediaVideos : form.lsmVideoUrl ? [form.lsmVideoUrl] : [];
+          const limit = kind === "image" ? 4 : kind === "video" ? 2 : 1;
           if (current.length + selected.length > limit) {
             window.alert(`Puedes registrar máximo ${limit} ${kind === "image" ? "imágenes" : "videos"}.`);
             return;
@@ -185,7 +188,9 @@ function AnimalModal({
             ...previous,
             ...(kind === "image"
               ? { mediaImages: [...previous.mediaImages, ...urls], image: previous.image || urls[0] }
-              : { mediaVideos: [...previous.mediaVideos, ...urls] }),
+              : kind === "video"
+              ? { mediaVideos: [...previous.mediaVideos, ...urls] }
+              : { lsmVideoUrl: urls[0] }),
           }));
         }
         setForm((p) => ({ ...p, image: json.url }));
@@ -247,6 +252,15 @@ function AnimalModal({
     if (!/^https?:\/\/\S+$/i.test(url)) {
       window.alert("Ingresa una URL válida para el video.");
       return;
+    }
+
+    function addLsmVideoUrl() {
+      const url = lsmVideoUrl.trim();
+      if (!url || !/^https?:\/\/\S+$/i.test(url)) {
+        window.alert("Ingresa una URL válida para el video LSM.");
+        return;
+      }
+      setForm((previous) => ({ ...previous, lsmVideoUrl: url }));
     }
     setForm((previous) => ({ ...previous, mediaVideos: [...previous.mediaVideos, url] }));
     setVideoUrl("");
@@ -362,6 +376,49 @@ function AnimalModal({
                       className="absolute right-1 top-1 rounded-full bg-red-600 px-2 py-1 text-xs text-white">×</button>
                   </div>
                 ))}
+              </div>
+              <div className="border-t border-emerald-200 pt-4 space-y-3">
+                <div className="flex items-center gap-2 text-sm font-bold text-emerald-950">
+                  <Hand className="h-4 w-4 text-amber-500" />
+                  <span>Video en lengua de señas (LSM)</span>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    value={lsmVideoUrl}
+                    onChange={(event) => setLsmVideoUrl(event.target.value)}
+                    placeholder="https://video.zoologico.mx/lsm/puma"
+                    className="min-w-0 flex-1 rounded-lg border border-emerald-300 bg-white px-3 py-2 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={addLsmVideoUrl}
+                    className="rounded-lg border border-emerald-500 px-3 py-2 text-xs font-bold text-emerald-800"
+                  >
+                    Guardar URL
+                  </button>
+                </div>
+                <label className="flex cursor-pointer items-center justify-center rounded-lg border border-dashed border-emerald-500 px-3 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-50">
+                  <input
+                    type="file"
+                    accept="video/mp4,video/webm,video/quicktime"
+                    className="sr-only"
+                    onChange={(event) => void uploadMediaFiles(event.target.files, "lsm")}
+                  />
+                  Subir video LSM desde el equipo
+                </label>
+                <p className="text-[10px] text-emerald-700">Formatos locales: MP4, WebM o MOV. Proporción recomendada 16:9.</p>
+                {form.lsmVideoUrl ? (
+                  <div className="relative overflow-hidden rounded-lg bg-slate-950">
+                    <video src={form.lsmVideoUrl} muted playsInline controls className="aspect-video w-full object-contain" />
+                    <button
+                      type="button"
+                      onClick={() => setForm((previous) => ({ ...previous, lsmVideoUrl: "" }))}
+                      className="absolute right-2 top-2 rounded-full bg-red-600 px-2 py-1 text-xs text-white"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : null}
               </div>
             </div>
             <div>
@@ -550,6 +607,7 @@ export function AdminAnimals() {
           image: String(species.imageUrl || ""),
           mediaImages: Array.isArray(species.mediaImages) ? species.mediaImages.slice(0, 4) : species.imageUrl ? [String(species.imageUrl)] : [],
           mediaVideos: Array.isArray(species.mediaVideos) ? species.mediaVideos.slice(0, 2) : [],
+          lsmVideoUrl: String(species.lsmVideoUrl || ""),
           audioUrl: species.audioDescriptionUrl || "",
           enclosureId: species.enclosureId ?? null,
           isVisibleToPublic: species.isVisibleToPublic !== false,
@@ -596,6 +654,7 @@ export function AdminAnimals() {
         audioDescriptionUrl: data.audioUrl,
         mediaImages: data.mediaImages.slice(0, 4),
         mediaVideos: data.mediaVideos.slice(0, 2),
+        lsmVideoUrl: data.lsmVideoUrl,
       };
       try {
         const response = await fetch(

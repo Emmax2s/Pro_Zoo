@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router";
-import { Search, Filter, Volume2, MapPin, X, Info, Lightbulb, Globe, VolumeX, Mic, TreePine, Sparkles } from "lucide-react";
+import { Search, Filter, Volume2, MapPin, X, Info, Lightbulb, Globe, VolumeX, Mic, TreePine, Sparkles, Video } from "lucide-react";
 import { AnimalCard } from "../components/AnimalCard";
 import { useZoo } from "../context/ZooContext";
 import { recordSpeciesVisit } from "../services/analytics";
@@ -454,6 +454,34 @@ export function Animals() {
                         ? "Audio interactivo disponible a través del botón 'Escuchar' del Modo Voz Narradora arriba."
                         : "Interactive audio available via the 'Listen' button in Voice Reader Mode above."}
                     </div>
+                  </div>
+
+                  {/* Video en lengua de señas */}
+                  <div className="bg-white rounded-2xl p-5 border-2 border-[#e2d5bd] shadow-sm space-y-4">
+                    <div className="flex items-center gap-2 text-stone-900 font-black text-sm uppercase tracking-wider">
+                        <Video className="w-5 h-5 text-emerald-700" />
+                        <span>{isModalEs ? "VIDEO EN LENGUA DE SEÑAS" : "SIGN LANGUAGE VIDEO"}</span>
+                    </div>
+
+                    {selectedLoc.mediaVideos[0] ? (
+                        <video
+                          src={selectedLoc.mediaVideos[0]}
+                          controls
+                          playsInline
+                          preload="metadata"
+                          className="w-full aspect-video rounded-xl bg-stone-950 object-contain"
+                        >
+                          {isModalEs
+                            ? "Tu navegador no soporta la reproducción de video."
+                            : "Your browser does not support video playback."}
+                        </video>
+                    ) : (
+                        <div className="rounded-xl border border-emerald-900/10 bg-[#fcfaf5] p-4 text-sm font-semibold leading-relaxed text-stone-700">
+                          {isModalEs
+                            ? "El video en lengua de señas estará disponible próximamente."
+                            : "The sign language video will be available soon."}
+                        </div>
+                    )}
                   </div>
                 </div>
 

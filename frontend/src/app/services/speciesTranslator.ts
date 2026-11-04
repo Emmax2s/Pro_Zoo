@@ -23,10 +23,10 @@ const CATEGORY_MAP_EN: Record<string, string> = {
 };
 
 const STATUS_MAP_EN: Record<string, string> = {
-  "En Peligro de Extinción": "Endangered",
+  "En Peligro de Extinción": "Endangere",
   "Amenazada": "Threatened",
-  "Protegida Especial": "Special Protection",
-  "Preocupación Menor": "Least Concern",
+  "Protegida Especial": ,
+  "Preocupación Menor": ,
 };
 
 const CATEGORY_MAP_ES: Record<string, string> = {

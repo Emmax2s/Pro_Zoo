@@ -75,7 +75,7 @@ function QrModal({ animal, onClose }: { animal: Animal; onClose: () => void }) {
           Placa interactiva y audioguía para el recinto de <strong className="text-amber-950 font-bold">{animal.name}</strong>
         </p>
         <p className="text-xs text-emerald-800 font-semibold mb-4 bg-emerald-50 py-1.5 px-3 rounded-xl border border-emerald-200 inline-block">
-          ✨ Modo Automático: Detecta el idioma del teléfono del visitante (Español o Inglés) y reproduce el audio
+           Modo Automático: Detecta el idioma del teléfono del visitante (Español o Inglés) y reproduce el audio
         </p>
 
         <div className="bg-[#fcfaf5] border-2 border-amber-900/20 rounded-3xl p-5 inline-block mb-4 shadow-sm">
@@ -315,7 +315,7 @@ function AnimalModal({
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4 space-y-4">
               <div>
                 <p className="text-sm font-bold text-emerald-950">Galería multimedia</p>
-                <p className="text-xs text-emerald-800">Sube hasta 4 imágenes y 2 videos. Se adaptan automáticamente al cuadro.</p>
+                <p className="text-xs text-emerald-800">Sube hasta 4 imágenes y 2 videos.</p>
               </div>
               <label className="block text-xs font-bold text-gray-600">
                 Imágenes ({form.mediaImages.length}/4)
@@ -447,12 +447,12 @@ function AnimalModal({
               className="w-full px-3.5 py-2.5 border border-emerald-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-emerald-50/40 text-sm"
             />
             <p className="text-[11px] text-gray-500 mt-1">
-              Ingresa el enlace al archivo de audio en formato MP3 u OGG que se reproducirá en el reproductor del visitante.
+              Ingresa el enlace al archivo de audio en formato MP3
             </p>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Dato Curioso</label>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Datos Curiosos</label>
             <textarea name="funFact" value={form.funFact} onChange={handle} rows={3}
               placeholder="Un dato interesante sobre esta especie..."
               className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none" />
@@ -722,7 +722,7 @@ export function AdminAnimals() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
             {isSuperAdmin
-              ? "Gestión de Especies"
+              ? "Gestión de especies"
               : userEnclosures.length > 0
               ? `Especies — ${userEnclosures.map((e) => `${e.icon || ""} ${e.name}`).join(", ")}`
               : `Especies — ${myEnclosure?.name ?? "Sin recinto"}`}

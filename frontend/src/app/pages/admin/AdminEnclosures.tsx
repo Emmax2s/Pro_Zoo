@@ -18,7 +18,6 @@ const ENCLOSURE_COLORS = [
   { label: "Naranja", value: "bg-orange-500" },
 ];
 
-const ENCLOSURE_ICONS = ["Herpetario", "Nocturnario", "Vivario", "Aviario", "Felinos", "Herbívoros", "Acuario", "Insectario"];
 
 const emptyForm: Omit<Enclosure, "id"> = {
   name: "",

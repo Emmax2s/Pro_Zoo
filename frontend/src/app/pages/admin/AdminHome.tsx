@@ -7,7 +7,6 @@ import { useAuth } from "../../context/AuthContext";
 
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
 
-// ── Add Slide Modal ───────────────────────────────────────────────────────────
 
 type NewSlide =
   | { type: "image"; src: string; alt: string }
@@ -152,7 +151,7 @@ function AddSlideModal({ onSave, onClose }: { onSave: (s: NewSlide) => void; onC
   );
 }
 
-// ── Preview Modal ─────────────────────────────────────────────────────────────
+
 
 function PreviewModal({ slides, onClose }: { slides: SlideItem[]; onClose: () => void }) {
   const [current, setCurrent] = useState(0);
@@ -195,7 +194,6 @@ function PreviewModal({ slides, onClose }: { slides: SlideItem[]; onClose: () =>
   );
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
 
 export function AdminHome() {
   const { slides, setSlides, currentUser } = useZoo();

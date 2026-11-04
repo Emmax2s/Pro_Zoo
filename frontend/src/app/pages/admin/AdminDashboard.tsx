@@ -7,13 +7,13 @@ import { useAuth } from "../../context/AuthContext";
 
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
 
-type PeriodKey = "dia" | "semana" | "mes" | "anio";
+type PeriodKey = "dia" | "semana" | "mes" | "año";
 
 const PERIODS: { key: PeriodKey; label: string; multiplier: number }[] = [
   { key: "dia", label: "Día", multiplier: 1 },
   { key: "semana", label: "Semana", multiplier: 7 },
   { key: "mes", label: "Mes", multiplier: 30 },
-  { key: "anio", label: "Año", multiplier: 365 },
+  { key: "año", label: "Año", multiplier: 365 },
 ];
 
 const COLORS_CATEGORY = ["#059669", "#0284c7", "#d97706", "#7c3aed", "#e11d48", "#475569"];
@@ -106,7 +106,7 @@ export function AdminDashboard() {
     }));
   }, [scopedAnimals, selectedPeriod, visitsBySpecies]);
 
-  // Data for Pie Charts (Gráficas de Pastel)
+  // Gráficas de pastel
   const categoryData = useMemo(() => {
     const counts: Record<string, number> = {};
     scopedAnimals.forEach((a) => {
@@ -170,14 +170,15 @@ export function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Header Dashboard */}
+
+      {/*  Dashboard */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Dashboard ZooMAT</h1>
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Dashboard</h1>
           <p className="text-sm text-gray-600 font-medium mt-1">
             {currentUser.role === "superadmin"
-              ? "Resumen de visitas y métricas estadísticas por especie y recinto"
-              : "Resumen de visitas de tus especies en tu recinto"}
+              ? "Resumen de visitas y métricas de por especie y recinto"
+              : "Resumen de visitas de tus especies"}
           </p>
         </div>
         {currentUser.role === "superadmin" && (
@@ -190,7 +191,7 @@ export function AdminDashboard() {
         )}
       </div>
 
-      {/* Period Selection */}
+      {/* Periodo de selección */}
       <div className="bg-white rounded-2xl shadow-sm border border-emerald-100 p-4 flex flex-wrap items-center gap-3">
         <span className="text-xs font-black uppercase text-emerald-800 tracking-wider mr-2">Filtrar periodo:</span>
         {PERIODS.map((p) => (
@@ -255,7 +256,7 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      {/* SECCIÓN DE GRÁFICAS DE PASTEL (PIE CHARTS) */}
+      {/*  Grafiocas de pastel  */}
       <div className="space-y-6">
         <div className="flex items-center gap-3 border-b-2 border-emerald-100 pb-3">
           <PieIcon className="w-7 h-7 text-emerald-700" />
@@ -263,7 +264,7 @@ export function AdminDashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Gráfica 1: Distribución de Especies por Categoría */}
+          {/* Gráfica 1: Distribución  por categoría */}
           <div className="interactive-card bg-white rounded-3xl p-6 shadow-md border-2 border-emerald-100 hover:border-emerald-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between will-change-transform">
             <div>
               <h3 className="text-xl font-black text-emerald-950 mb-1">Especies por Categoría</h3>
@@ -407,7 +408,7 @@ export function AdminDashboard() {
 
         <div className="bg-white rounded-2xl shadow-sm border border-emerald-100 p-6">
           <h2 className="text-lg font-black text-emerald-950 mb-4 flex items-center gap-2">
-            <span>📉 Especies menos visitadas</span> ({periodMeta.label})
+            <span> Especies menos visitadas</span> ({periodMeta.label})
           </h2>
           <div className="space-y-3">
             {leastVisited.length === 0 ? (

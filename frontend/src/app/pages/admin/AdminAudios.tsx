@@ -167,7 +167,7 @@ export function AdminAudios() {
         </div>
       </div>
 
-      {/* Filters and Search */}
+      {/* Filtros y búsqueda*/}
       <div className="bg-white rounded-2xl border border-gray-100 p-5 flex flex-col md:flex-row gap-4 shadow-sm">
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -187,8 +187,8 @@ export function AdminAudios() {
             className="px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <option value="all">Todos los estados</option>
-            <option value="has_audio">Con Audio Configurado</option>
-            <option value="missing_audio">Sin Audio Configurado</option>
+            <option value="has_audio">Con audio configurado</option>
+            <option value="missing_audio">Sin audio configurado</option>
           </select>
 
           {currentUser.role === "superadmin" && (
@@ -209,7 +209,7 @@ export function AdminAudios() {
         </div>
       </div>
 
-      {/* Animal Audio Cards Grid */}
+      {/* tarjetas de audio de especies*/}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredAnimals.map((animal) => {
           const enc = getEnclosure(animal.enclosureId);
@@ -223,7 +223,7 @@ export function AdminAudios() {
                 hasAudio ? "border-emerald-200 hover:border-emerald-400" : "border-amber-200 hover:border-amber-300"
               }`}
             >
-              {/* Header Info */}
+              {/* Header  */}
               <div className="p-5 space-y-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -250,7 +250,7 @@ export function AdminAudios() {
                     </div>
                   </div>
 
-                  {/* Status Badge */}
+                  {/* Insignia de estado*/}
                   {hasAudio ? (
                     <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 flex-shrink-0">
                       <CheckCircle2 size={12} /> Audio Listo
@@ -272,7 +272,7 @@ export function AdminAudios() {
                   </div>
                 )}
 
-                {/* Audio Player Box */}
+                {/* Audio */}
                 {hasAudio ? (
                   <div className="bg-emerald-50/70 border border-emerald-100 rounded-xl p-3.5 space-y-3">
                     <div className="flex items-center justify-between gap-2">
@@ -286,11 +286,11 @@ export function AdminAudios() {
                       >
                         {isPlaying ? (
                           <>
-                            <Square size={14} className="fill-current" /> Detener Vista Previa
+                            <Square size={14} className="fill-current" /> Detener vista previa
                           </>
                         ) : (
                           <>
-                            <Play size={14} className="fill-current" /> Escuchar Audio Real
+                            <Play size={14} className="fill-current" /> Escuchar audio real
                           </>
                         )}
                       </button>
@@ -304,7 +304,7 @@ export function AdminAudios() {
                       </button>
                     </div>
 
-                    {/* Animated equalizer bars when playing */}
+                    {/*Barras de ecualizador */}
                     {isPlaying && (
                       <div className="flex items-center gap-2 pt-1 px-1">
                         <span className="text-[11px] font-bold text-emerald-800 animate-pulse">Reproduciendo...</span>
@@ -328,13 +328,13 @@ export function AdminAudios() {
                 )}
               </div>
 
-              {/* Upload and Edit Form Footer */}
+              {/* Footer */}
               <div className="p-4 bg-gray-50 border-t border-gray-100 space-y-2.5">
                 <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                   Cambiar / Asignar Audio
                 </label>
 
-                {/* Upload Button */}
+                {/* Boton de descarga  */}
                 <div className="flex items-center gap-2">
                   <label className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-white border border-gray-200 hover:border-emerald-500 hover:bg-emerald-50/30 text-emerald-800 rounded-xl text-xs font-bold transition cursor-pointer shadow-sm">
                     <Upload size={14} /> Subir desde equipo (.mp3)
@@ -350,7 +350,7 @@ export function AdminAudios() {
                   </label>
                 </div>
 
-                {/* Custom URL Input */}
+                {/* Carga de URL de audio */}
                 <div className="relative">
                   <input
                     type="url"

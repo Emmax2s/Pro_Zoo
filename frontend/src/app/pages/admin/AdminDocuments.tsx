@@ -214,15 +214,15 @@ export function AdminDocuments() {
       const failedVideos = uploadResults.filter((result) => result.status === "rejected");
 
       if (uploadedVideos.length === 0) {
-        throw new Error("No se pudo guardar ningún video. Verifica el tamaño y formato de los archivos.");
+        throw new Error("No se pudo guardar el video. Verifica el tamaño y formato del archivo.");
       }
 
       const updated = saveSexenioInfo({ ethicsVideos: [...currentVideos, ...uploadedVideos] });
       setSexenio(updated);
       setSexenioForm(updated);
-      showToast(`${uploadedVideos.length} video(s) del Comité de Ética cargado(s) exitosamente.`);
+      showToast(`${uploadedVideos.length} video cargado exitosamente.`);
       if (failedVideos.length > 0) {
-        alert(`${failedVideos.length} video(s) no se pudieron guardar. Los demás sí fueron guardados.`);
+        alert(`${failedVideos.length} El video no se pudieron guardar. Los demás sí fueron guardados.`);
       }
     } catch (error) {
       alert(error instanceof Error ? error.message : "No se pudieron cargar los videos.");
@@ -236,7 +236,7 @@ export function AdminDocuments() {
     const updated = saveSexenioInfo({ ethicsVideos: videos });
     setSexenio(updated);
     setSexenioForm(updated);
-    showToast("Video removido del Comité de Ética.");
+    showToast("Video removido del comité de ética.");
   };
 
   // Remove PDF from a document
@@ -296,7 +296,7 @@ export function AdminDocuments() {
     reader.onload = () => {
       const dataUrl = reader.result as string;
       handleSexenioChange(field, dataUrl);
-      showToast(`Imagen para ${field} cargada en el formulario. Recuerda hacer clic en "Guardar Cambios".`);
+      showToast(`Imagen para ${field} cargada. Recuerda hacer clic en "Guardar Cambios".`);
     };
     reader.readAsDataURL(file);
   };
@@ -489,9 +489,9 @@ export function AdminDocuments() {
         )}
       </div>
 
-      {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* PESTAÑA: EDITOR DE INFORMACIÓN INSTITUCIONAL DEL SEXENIO            */}
-      {/* ─────────────────────────────────────────────────────────────────── */}
+   
+      {/* INFORMACIÓN INSTITUCIONAL DEL SEXENIO */}
+   
       {activeTab === "sexenio_editor" ? (
         <form onSubmit={handleSaveSexenio} className="space-y-8">
           <div className="bg-white p-6 sm:p-8 rounded-2xl border border-stone-200 shadow-sm space-y-6">
@@ -867,9 +867,8 @@ export function AdminDocuments() {
           </div>
         </form>
       ) : (
-        /* ─────────────────────────────────────────────────────────────────── */
-        /* LISTADO Y GESTIÓN DE DOCUMENTOS PDF                                 */
-        /* ─────────────────────────────────────────────────────────────────── */
+       
+        /*  GESTIÓN DE  PDF  */
         activeTab !== "comite_etica" ? (
         <div className="space-y-4">
           <div className="grid grid-cols-1 gap-4">
@@ -1043,7 +1042,7 @@ export function AdminDocuments() {
             <div className="text-center py-12 bg-white rounded-2xl border border-stone-200">
               <AlertCircle className="w-8 h-8 text-stone-400 mx-auto mb-2" />
               <p className="text-stone-600 text-sm font-semibold">
-                No se encontraron documentos en esta categoría o búsqueda.
+                No se encontraron documentos.
               </p>
             </div>
           )}

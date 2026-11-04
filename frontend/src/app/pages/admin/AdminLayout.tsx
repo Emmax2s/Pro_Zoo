@@ -45,7 +45,7 @@ export function AdminLayout() {
 
   const isSuperAdmin = currentUser.role === "superadmin";
 
-  // Strict route protection: An enclosure admin can ONLY view and manage /admin/animales ("Mis Especies")
+  // ("Mis Especies")
   if (!isSuperAdmin && location.pathname !== "/admin/animales") {
     return <Navigate to="/admin/animales" replace />;
   }

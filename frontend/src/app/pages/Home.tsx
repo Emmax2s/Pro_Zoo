@@ -75,18 +75,10 @@ function HeroCarousel() {
         >
           {s.type === "image" ? (
             <div className="w-full h-full relative bg-stone-950 flex items-center justify-center overflow-hidden">
-              {/* Blurred ambient background so the photo is not harshly cut */}
-              <img
-                src={s.src}
-                alt=""
-                aria-hidden="true"
-                className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-35 select-none pointer-events-none"
-              />
-              {/* Cleanly fitted foreground photo */}
               <img
                 src={s.src}
                 alt={s.alt || "Imagen del carrusel"}
-                className="relative z-10 max-h-full max-w-full w-auto h-auto object-contain object-center select-none transition-transform duration-700"
+                className="w-full h-full object-cover object-center select-none transition-transform duration-700"
               />
             </div>
           ) : (
@@ -120,7 +112,7 @@ function HeroCarousel() {
                     <video
                       src={s.src}
                       poster={s.poster}
-                      className="max-h-full max-w-full w-auto h-auto object-contain"
+                      className="w-full h-full object-cover"
                       loop
                       controls={playing}
                       playsInline

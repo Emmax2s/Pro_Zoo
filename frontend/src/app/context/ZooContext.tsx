@@ -147,10 +147,8 @@ export function ZooProvider({ children }: { children: ReactNode }) {
   }, [currentLang, setLanguage]);
 
   useEffect(() => {
-    if (!API_BASE_URL) return;
-
     let active = true;
-    fetch(`${API_BASE_URL}/api/species?lang=${currentLang}`, { cache: "no-store" })
+    fetch(`${API_BASE_URL || ""}/api/species?lang=${currentLang}`, { cache: "no-store" })
       .then(async (response) => {
         if (!response.ok) {
           throw new Error(`Species request failed with status ${response.status}`);
@@ -163,7 +161,7 @@ export function ZooProvider({ children }: { children: ReactNode }) {
         }
       })
       .catch((error) => {
-        console.error("Unable to load species from API:", error);
+        console.warn("Unable to load species from API:", error);
       });
 
     return () => {
@@ -172,9 +170,8 @@ export function ZooProvider({ children }: { children: ReactNode }) {
   }, [currentLang]);
 
   useEffect(() => {
-    if (!API_BASE_URL) return;
     let active = true;
-    fetch(`${API_BASE_URL}/api/site-content`, { cache: "no-store" })
+    fetch(`${API_BASE_URL || ""}/api/site-content`, { cache: "no-store" })
       .then(async (response) => {
         if (!response.ok) throw new Error(`Carousel request failed with status ${response.status}`);
         return response.json();
@@ -184,16 +181,15 @@ export function ZooProvider({ children }: { children: ReactNode }) {
           setSlides(carousel as SlideItem[]);
         }
       })
-      .catch((error) => console.error("Unable to load carousel from API:", error));
+      .catch((error) => console.warn("Unable to load carousel from API:", error));
     return () => {
       active = false;
     };
   }, []);
 
   useEffect(() => {
-    if (!API_BASE_URL) return;
     let active = true;
-    fetch(`${API_BASE_URL}/api/enclosures`, { cache: "no-store" })
+    fetch(`${API_BASE_URL || ""}/api/enclosures`, { cache: "no-store" })
       .then(async (response) => {
         if (!response.ok) throw new Error(`Enclosures request failed with status ${response.status}`);
         return response.json();
@@ -201,7 +197,7 @@ export function ZooProvider({ children }: { children: ReactNode }) {
       .then((data) => {
         if (active && Array.isArray(data)) setEnclosures(data as Enclosure[]);
       })
-      .catch((error) => console.error("Unable to load enclosures from API:", error));
+      .catch((error) => console.warn("Unable to load enclosures from API:", error));
     return () => {
       active = false;
     };

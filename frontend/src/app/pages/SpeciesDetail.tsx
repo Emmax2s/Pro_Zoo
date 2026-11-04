@@ -60,49 +60,50 @@ export function SpeciesDetail() {
           a.scientificName.toLowerCase().trim() === decodeURIComponent(idOrSlug).toLowerCase().trim()
       );
 
-    if (!API_BASE_URL) {
-      const match = findLocal();
-      if (match) {
-        setSpecies(match);
-      } else {
-        setError(t("speciesDetail.catalogNotFound", { lng: sheetLang }));
-      }
+    const localMatch = findLocal();
+    if (localMatch) {
+      setSpecies(localMatch);
+      setError("");
       setLoading(false);
-      return;
     }
 
     let active = true;
-    fetch(`${API_BASE_URL}/api/species/${encodeURIComponent(idOrSlug)}?lang=${sheetLang}`, { cache: "no-store" })
+    fetch(`${API_BASE_URL || ""}/api/species/${encodeURIComponent(idOrSlug)}?lang=${sheetLang}`, { cache: "no-store" })
       .then(async (res) => {
         if (!res.ok) throw new Error(t("speciesDetail.apiUnavailable", { lng: sheetLang }));
         const data = await res.json();
-        if (active) {
+        if (active && data) {
           setSpecies({
             id: Number(data.id) || 1,
-            name: data.name,
+            name: data.name || "",
             scientificName: data.species || data.scientificName || "",
-            category: data.category || "",
-            status: data.conservation || "",
+            category: data.category || "Mamífero",
+            status: data.conservation || data.status || "Amenazada",
             habitat: data.habitat || "",
             diet: data.diet || "",
             funFact: data.description || data.funFact || "",
             image: data.imageUrl || data.image || "",
-            audioUrl: data.audioDescriptionUrl,
+            audioUrl: data.audioDescriptionUrl || data.audioUrl,
             enclosureId: data.enclosureId ?? null,
-            mediaImages: Array.isArray(data.mediaImages) ? data.mediaImages.slice(0, 4) : data.imageUrl ? [data.imageUrl] : [],
+            mediaImages: Array.isArray(data.mediaImages) && data.mediaImages.length > 0
+              ? data.mediaImages.slice(0, 4)
+              : data.imageUrl ? [data.imageUrl] : data.image ? [data.image] : [],
             mediaVideos: Array.isArray(data.mediaVideos) ? data.mediaVideos.slice(0, 2) : [],
             lsmVideoUrl: data.lsmVideoUrl || "",
             isVisibleToPublic: data.isVisibleToPublic !== false,
           });
+          setError("");
         }
       })
       .catch(() => {
-        const match = findLocal();
-        if (active && match) {
-          setSpecies(match);
-          setError("");
-        } else if (active) {
-          setError(t("speciesDetail.notFound", { lng: sheetLang }));
+        if (active) {
+          const fallback = findLocal();
+          if (fallback) {
+            setSpecies(fallback);
+            setError("");
+          } else if (!localMatch) {
+            setError(t("speciesDetail.notFound", { lng: sheetLang }));
+          }
         }
       })
       .finally(() => {
@@ -309,7 +310,7 @@ export function SpeciesDetail() {
   return (
     <div className="min-h-screen bg-[#faf8f2] text-stone-900 pb-20">
       {/* 1. Header Banner de la ficha */}
-      <section className="reveal-on-scroll relative bg-[#f7f3e8] border-b-4 border-[#2b1706] py-12 md:py-16 overflow-hidden">
+      <section className="relative bg-[#f7f3e8] border-b-4 border-[#2b1706] py-12 md:py-16 overflow-hidden">
         <div
           className="absolute inset-0 opacity-20 pointer-events-none"
           style={{
@@ -367,12 +368,12 @@ export function SpeciesDetail() {
             </div>
 
             <h1 className="font-adventure text-4xl sm:text-6xl text-[#2b1810] tracking-wide text-adventure-shadow leading-tight">
-              {loc.name}
+              {loc?.name || species.name}
             </h1>
 
-            {loc.scientificName && (
+            {(loc?.scientificName || species.scientificName) && (
               <p className="text-xl sm:text-2xl font-serif italic text-amber-900 font-medium">
-                ({loc.scientificName})
+                ({loc?.scientificName || species.scientificName})
               </p>
             )}
           </div>
@@ -383,7 +384,7 @@ export function SpeciesDetail() {
       </section>
 
       {/* 2. Main Content Card */}
-      <main className="reveal-on-scroll max-w-5xl mx-auto px-4 sm:px-6 mt-8 space-y-8">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 mt-8 space-y-8">
         {/* Barra de audioguía oficial */}
         <div className="bg-gradient-to-r from-amber-900 via-[#8B5A2B] to-[#5C3A1E] text-white p-5 sm:p-6 rounded-3xl shadow-xl border-2 border-amber-500/60 relative overflow-hidden hover:border-amber-400 transition-colors duration-300">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -434,17 +435,17 @@ export function SpeciesDetail() {
               />
               <img
                 src={species.image}
-                alt={loc.name}
-                className="relative z-10 max-h-full max-w-full w-auto h-auto object-contain object-center"
+                alt={loc?.name || species.name}
+                className="relative z-10 w-full h-full object-cover object-center"
               />
               <div className="absolute top-4 left-4 z-20">
                 <span className="bg-black/60 backdrop-blur-md text-amber-300 border border-amber-400/40 text-xs sm:text-sm font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider">
-                  {loc.category}
+                  {loc?.category || species.category}
                 </span>
               </div>
               <div className="absolute top-4 right-4 z-20">
                 <span className="bg-emerald-900/80 backdrop-blur-md text-emerald-200 border border-emerald-400/40 text-xs sm:text-sm font-extrabold px-4 py-1.5 rounded-full">
-                  {loc.status}
+                  {loc?.status || species.status}
                 </span>
               </div>
             </div>
@@ -452,18 +453,18 @@ export function SpeciesDetail() {
 
           {/* Contenido descriptivo de la ficha */}
           <div className="p-6 sm:p-10 space-y-8">
-            {(loc.mediaImages.length > 0 || loc.mediaVideos.length > 0) && (
+            {((loc?.mediaImages?.length ?? 0) > 0 || (loc?.mediaVideos?.length ?? 0) > 0) && (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {loc.mediaImages.map((url, index) => (
+                {loc?.mediaImages?.map((url, index) => (
                   <img
                     key={url}
                     src={url}
-                    alt={`${loc.name} ${index + 1}`}
+                    alt={`${loc?.name || species.name} ${index + 1}`}
                     loading="lazy"
                     className="aspect-square w-full rounded-2xl object-cover"
                   />
                 ))}
-                {loc.mediaVideos.map((url) => (
+                {loc?.mediaVideos?.map((url) => (
                   <video
                     key={url}
                     src={url}
@@ -483,7 +484,7 @@ export function SpeciesDetail() {
                 <span>{t("speciesDetail.aboutSpecies", { lng: sheetLang })}</span>
               </h2>
               <p className="text-stone-800 text-lg sm:text-xl leading-relaxed font-medium">
-                {loc.funFact}
+                {loc?.funFact || species.funFact}
               </p>
             </div>
 
@@ -495,7 +496,7 @@ export function SpeciesDetail() {
                   <span>{t("speciesDetail.habitatRange", { lng: sheetLang })}</span>
                 </h3>
                 <p className="text-stone-700 text-base sm:text-lg leading-relaxed">
-                  {loc.habitat}
+                  {loc?.habitat || species.habitat}
                 </p>
               </div>
 
@@ -505,7 +506,7 @@ export function SpeciesDetail() {
                   <span>{t("speciesDetail.dietHabits", { lng: sheetLang })}</span>
                 </h3>
                 <p className="text-stone-700 text-base sm:text-lg leading-relaxed">
-                  {loc.diet}
+                  {loc?.diet || species.diet}
                 </p>
               </div>
             </div>
@@ -517,9 +518,9 @@ export function SpeciesDetail() {
                 <span>{isEnglish ? "MEXICAN SIGN LANGUAGE INTERPRETATION (LSM)" : "INTERPRETACIÓN EN LENGUA DE SEÑAS MEXICANA (LSM)"}</span>
               </div>
               <div className="p-4 sm:p-5">
-                {loc.lsmVideoUrl ? (
+                {(loc?.lsmVideoUrl || species.lsmVideoUrl) ? (
                   <video
-                    src={loc.lsmVideoUrl}
+                    src={loc?.lsmVideoUrl || species.lsmVideoUrl}
                     controls
                     playsInline
                     preload="metadata"

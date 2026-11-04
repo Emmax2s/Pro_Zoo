@@ -657,6 +657,7 @@ export function AdminAnimals() {
   const [filterEnclosure, setFilterEnclosure] = useState<string>("all");
   const [modalState, setModalState] = useState<{ open: boolean; animal: Animal | null }>({ open: false, animal: null });
   const [qrModalAnimal, setQrModalAnimal] = useState<Animal | null>(null);
+  const [tableCropperAnimal, setTableCropperAnimal] = useState<Animal | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Animal | null>(null);
   const [nextId, setNextId] = useState(100);
 
@@ -795,6 +796,72 @@ export function AdminAnimals() {
       setAnimals([...animals, savedAnimal]);
       setNextId((n) => Math.max(n, newId + 1));
     }
+  }
+
+  async function handleSaveTableCroppedImage(croppedDataUrl: string) {
+    if (!tableCropperAnimal) return;
+    let finalUrl = croppedDataUrl;
+    try {
+      const res = await fetch(`${API_BASE_URL || ""}/api/upload`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: JSON.stringify({
+          filename: `encuadre-${(tableCropperAnimal.name || "especie").replace(/\s+/g, "_")}-${Date.now()}.jpg`,
+          data: croppedDataUrl,
+        }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.url) finalUrl = json.url;
+      }
+    } catch (e) {
+      console.warn("Upload fallback to dataUrl", e);
+    }
+
+    const updatedAnimal: Animal = {
+      ...tableCropperAnimal,
+      image: finalUrl,
+      mediaImages: tableCropperAnimal.mediaImages?.length
+        ? [finalUrl, ...tableCropperAnimal.mediaImages.filter((u) => u !== tableCropperAnimal.image).slice(0, 3)]
+        : [finalUrl],
+    };
+
+    if (token) {
+      try {
+        await fetch(`${API_BASE_URL || ""}/api/species/${tableCropperAnimal.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            slug: tableCropperAnimal.name.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-"),
+            name: tableCropperAnimal.name,
+            species: tableCropperAnimal.scientificName,
+            category: tableCropperAnimal.category,
+            enclosureId: tableCropperAnimal.enclosureId,
+            isVisibleToPublic: tableCropperAnimal.isVisibleToPublic !== false,
+            habitat: tableCropperAnimal.habitat,
+            imageUrl: finalUrl,
+            conservation: tableCropperAnimal.status,
+            description: tableCropperAnimal.funFact,
+            diet: tableCropperAnimal.diet,
+            audioDescriptionUrl: tableCropperAnimal.audioUrl,
+            mediaImages: updatedAnimal.mediaImages,
+            mediaVideos: tableCropperAnimal.mediaVideos,
+            lsmVideoUrl: tableCropperAnimal.lsmVideoUrl,
+          }),
+        });
+      } catch (err) {
+        console.warn("Error updating cropped image in DB:", err);
+      }
+    }
+
+    setAnimals(animals.map((a) => (a.id === tableCropperAnimal.id ? updatedAnimal : a)));
+    setTableCropperAnimal(null);
   }
 
   async function handleDelete() {
@@ -969,11 +1036,26 @@ export function AdminAnimals() {
                   <tr key={animal.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0">
                     <td className="p-4">
                       {animal.image ? (
-                        <img src={animal.image} alt={animal.name}
-                          className="w-10 h-10 rounded-lg object-cover bg-gray-100"
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        <div
+                          className="relative w-12 h-12 rounded-xl overflow-hidden bg-stone-900 group cursor-pointer border-2 border-stone-200 shadow-xs hover:border-emerald-500 transition-all"
+                          title="🎯 Clic para centrar o ajustar la foto de esta especie"
+                          onClick={() => setTableCropperAnimal(animal)}
+                        >
+                          <img
+                            src={animal.image}
+                            alt={animal.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                          />
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                            <Crop size={16} className="text-amber-300" />
+                          </div>
+                        </div>
                       ) : (
-                        <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-400 text-sm font-bold">
+                        <div
+                          onClick={() => setModalState({ open: true, animal })}
+                          className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 text-sm font-bold cursor-pointer hover:bg-emerald-100"
+                        >
                           {animal.name.charAt(0)}
                         </div>
                       )}
@@ -1006,6 +1088,14 @@ export function AdminAnimals() {
                       </span>
                     </td>
                     <td className="p-4 text-right space-x-1">
+                      <button
+                        onClick={() => setTableCropperAnimal(animal)}
+                        className="p-2 text-amber-900 hover:bg-amber-100 rounded-lg transition-colors font-bold text-xs inline-flex items-center gap-1 bg-amber-50 border border-amber-300 cursor-pointer shadow-xs"
+                        title="🎯 Centrar o encuadrar la imagen para que no salga descuadrada"
+                      >
+                        <Crop size={15} className="text-amber-700" />
+                        <span>Ajustar Foto</span>
+                      </button>
                       <button
                         onClick={() => setQrModalAnimal(animal)}
                         className="p-2 text-emerald-700 hover:bg-emerald-100 rounded-lg transition-colors font-bold text-xs inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200"
@@ -1061,6 +1151,14 @@ export function AdminAnimals() {
       )}
       {deleteTarget && (
         <DeleteDialog animal={deleteTarget} onConfirm={handleDelete} onClose={() => setDeleteTarget(null)} />
+      )}
+      {tableCropperAnimal && (
+        <ImageCropperModal
+          imageUrl={tableCropperAnimal.image}
+          speciesName={tableCropperAnimal.name}
+          onSave={handleSaveTableCroppedImage}
+          onClose={() => setTableCropperAnimal(null)}
+        />
       )}
     </div>
   );

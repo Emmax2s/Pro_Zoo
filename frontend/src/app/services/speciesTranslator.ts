@@ -385,7 +385,9 @@ export function getLocalizedAnimal(
     diet,
     funFact,
     audioUrl: String(animal.audioUrl || animal.audioDescriptionUrl || "") || undefined,
-    mediaImages: Array.isArray(animal.mediaImages) ? animal.mediaImages.map(String).slice(0, 4) : [],
+    mediaImages: Array.isArray(animal.mediaImages) && animal.mediaImages.length > 0
+      ? animal.mediaImages.map(String).slice(0, 4)
+      : (animal.image || animal.imageUrl ? [String(animal.image || animal.imageUrl)] : []),
     mediaVideos: Array.isArray(animal.mediaVideos) ? animal.mediaVideos.map(String).slice(0, 2) : [],
     lsmVideoUrl: String(animal.lsmVideoUrl || "") || undefined,
   };
@@ -400,20 +402,17 @@ export function getLocalizedAnimal(
 export function useLocalizedAnimal(
   animal: Record<string, unknown> | null | undefined,
   isEs: boolean
-): LocalizedAnimalData | null {
-  const [data, setData] = useState<LocalizedAnimalData | null>(() => {
-    return animal ? getLocalizedAnimal(animal, isEs) : null;
+): LocalizedAnimalData {
+  const [data, setData] = useState<LocalizedAnimalData>(() => {
+    return getLocalizedAnimal(animal, isEs);
   });
 
   useEffect(() => {
-    if (!animal) {
-      setData(null);
-      return;
-    }
+    setData(getLocalizedAnimal(animal, isEs));
+    if (!animal) return;
 
     // 1. Si es español, revertir inmediatamente a los datos originales en español
     if (isEs) {
-      setData(getLocalizedAnimal(animal, true));
       return;
     }
 

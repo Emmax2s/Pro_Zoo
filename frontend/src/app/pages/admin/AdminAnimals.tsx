@@ -153,46 +153,6 @@ function AnimalModal({
           return;
         }
 
-        async function uploadMediaFiles(files: FileList | null, kind: "image" | "video" | "lsm") {
-          if (!files?.length) return;
-          const selected = Array.from(files);
-          const current = kind === "image" ? form.mediaImages : kind === "video" ? form.mediaVideos : form.lsmVideoUrl ? [form.lsmVideoUrl] : [];
-          const limit = kind === "image" ? 4 : kind === "video" ? 2 : 1;
-          if (current.length + selected.length > limit) {
-            window.alert(`Puedes registrar máximo ${limit} ${kind === "image" ? "imágenes" : "videos"}.`);
-            return;
-          }
-          const urls: string[] = [];
-          for (const file of selected) {
-            const reader = new FileReader();
-            const dataUrl = await new Promise<string>((resolve, reject) => {
-              reader.onload = () => resolve(String(reader.result));
-              reader.onerror = () => reject(new Error("No se pudo leer el archivo."));
-              reader.readAsDataURL(file);
-            });
-            const response = await fetch(`${API_BASE_URL}/api/upload`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: "Bearer " + (sessionStorage.getItem("pro-zoo-admin-token") || ""),
-              },
-              body: JSON.stringify({ filename: file.name, data: dataUrl }),
-            });
-            const result = await response.json().catch(() => ({}));
-            if (!response.ok || typeof result.url !== "string") {
-              throw new Error(result.message || "No se pudo subir el archivo.");
-            }
-            urls.push(result.url);
-          }
-          setForm((previous) => ({
-            ...previous,
-            ...(kind === "image"
-              ? { mediaImages: [...previous.mediaImages, ...urls], image: previous.image || urls[0] }
-              : kind === "video"
-              ? { mediaVideos: [...previous.mediaVideos, ...urls] }
-              : { lsmVideoUrl: urls[0] }),
-          }));
-        }
         setForm((p) => ({ ...p, image: json.url }));
       } catch (err) {
         console.error('Upload failed', err);
@@ -673,7 +633,7 @@ export function AdminAnimals() {
             method: isEditing ? "PUT" : "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${sessionStorage.getItem("pro-zoo-admin-token") || ""}`,
+              Authorization: "Bearer " + token,
             },
             body: JSON.stringify(payload),
           }

@@ -55,7 +55,7 @@ export function AnimalCard(props: AnimalCardProps) {
         <img
           src={image}
           alt={displayName}
-          className="relative z-10 w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out will-change-transform"
+          className="relative z-10 w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-700 ease-out will-change-transform"
         />
         <div
           className={`card-badge absolute top-4 right-4 z-20 inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider shadow-lg transition-transform duration-300 ease-out group-hover:scale-105 group-hover:-translate-y-0.5 ${statusColor}`}

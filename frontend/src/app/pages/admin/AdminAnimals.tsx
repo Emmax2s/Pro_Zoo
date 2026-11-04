@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Search, X, AlertTriangle, MapPin, Volume2, QrCode, Download, Hand } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, X, AlertTriangle, MapPin, Volume2, QrCode, Download, Hand, Crop, Sparkles, Star, Check } from "lucide-react";
 import QRCode from "qrcode";
 import { useZoo } from "../../context/ZooContext";
 import { useAuth } from "../../context/AuthContext";
+import { ImageCropperModal } from "../../components/admin/ImageCropperModal";
 import {
   Animal,
   ANIMAL_CATEGORIES,
@@ -131,6 +132,49 @@ function AnimalModal({
   });
   const [videoUrl, setVideoUrl] = useState("");
   const [lsmVideoUrl, setLsmVideoUrl] = useState(animal.lsmVideoUrl || "");
+  const [cropperState, setCropperState] = useState<{
+    open: boolean;
+    imageUrl: string;
+    imageIndex?: number;
+  }>({ open: false, imageUrl: "" });
+
+  async function handleSaveCroppedImage(croppedDataUrl: string) {
+    let finalUrl = croppedDataUrl;
+    try {
+      const token = sessionStorage.getItem("pro-zoo-admin-token") || "";
+      const res = await fetch(`${API_BASE_URL || ""}/api/upload`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: JSON.stringify({
+          filename: `encuadre-${(form.name || "especie").replace(/\s+/g, "_")}-${Date.now()}.jpg`,
+          data: croppedDataUrl,
+        }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.url) finalUrl = json.url;
+      }
+    } catch (e) {
+      console.warn("Upload fallback to dataUrl", e);
+    }
+
+    setForm((prev) => {
+      const newMedia = [...prev.mediaImages];
+      if (cropperState.imageIndex !== undefined && cropperState.imageIndex >= 0 && cropperState.imageIndex < newMedia.length) {
+        newMedia[cropperState.imageIndex] = finalUrl;
+      } else if (!newMedia.includes(finalUrl)) {
+        newMedia.unshift(finalUrl);
+      }
+      return {
+        ...prev,
+        image: finalUrl,
+        mediaImages: newMedia.slice(0, 4),
+      };
+    });
+  }
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -205,11 +249,20 @@ function AnimalModal({
       setForm((previous) => ({
         ...previous,
         ...(kind === "image"
-          ? { mediaImages: [...previous.mediaImages, ...urls], image: previous.image || urls[0] }
+          ? { mediaImages: [...previous.mediaImages, ...urls].slice(0, 4), image: previous.image || urls[0] }
           : kind === "video"
-          ? { mediaVideos: [...previous.mediaVideos, ...urls] }
+          ? { mediaVideos: [...previous.mediaVideos, ...urls].slice(0, 2) }
           : { lsmVideoUrl: urls[0] }),
       }));
+
+      // Abrir el ajustador de encuadre para centrar la imagen recién agregada
+      if (kind === "image" && urls.length > 0) {
+        setCropperState({
+          open: true,
+          imageUrl: urls[0],
+          imageIndex: form.mediaImages.length,
+        });
+      }
     } catch (error) {
       window.alert(error instanceof Error ? error.message : "No se pudo subir el archivo.");
     }
@@ -331,21 +384,82 @@ function AnimalModal({
                   Agregar URL
                 </button>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {form.mediaImages.map((url, index) => (
-                  <div key={url} className="relative aspect-square overflow-hidden rounded-lg bg-gray-200">
-                    <img src={url} alt={`Imagen ${index + 1}`} className="h-full w-full object-cover" />
-                    <button type="button" onClick={() => setForm((p) => ({ ...p, mediaImages: p.mediaImages.filter((_, i) => i !== index), image: p.mediaImages.filter((_, i) => i !== index)[0] || "" }))}
-                      className="absolute right-1 top-1 rounded-full bg-red-600 px-2 py-1 text-xs text-white">×</button>
+              {/* Foto Principal de Portada */}
+              {form.image && (
+                <div className="bg-white p-3 rounded-xl border border-emerald-300 shadow-xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
+                      <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" /> Foto Principal (Portada de Ficha)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setCropperState({ open: true, imageUrl: form.image })}
+                      className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-xs cursor-pointer hover:scale-105"
+                    >
+                      <Crop className="w-3.5 h-3.5" /> 🎯 Centrar / Ajustar
+                    </button>
                   </div>
-                ))}
-                {form.mediaVideos.map((url, index) => (
-                  <div key={url} className="relative aspect-square overflow-hidden rounded-lg bg-gray-900">
-                    <video src={url} muted playsInline controls className="h-full w-full object-cover" />
-                    <button type="button" onClick={() => setForm((p) => ({ ...p, mediaVideos: p.mediaVideos.filter((_, i) => i !== index) }))}
-                      className="absolute right-1 top-1 rounded-full bg-red-600 px-2 py-1 text-xs text-white">×</button>
+                  <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden bg-stone-900 border border-stone-200">
+                    <img src={form.image} alt="Portada" className="h-full w-full object-cover object-center" />
                   </div>
-                ))}
+                </div>
+              )}
+
+              {/* Miniaturas de la Galería con Acciones */}
+              <div className="space-y-1.5">
+                <span className="text-[11px] font-bold text-stone-600 uppercase tracking-wider">Miniaturas cargadas:</span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {form.mediaImages.map((url, index) => {
+                    const isCover = form.image === url;
+                    return (
+                      <div key={url} className="relative aspect-square overflow-hidden rounded-xl bg-stone-900 border-2 border-stone-200 group">
+                        <img src={url} alt={`Imagen ${index + 1}`} className="h-full w-full object-cover object-center" />
+                        {isCover && (
+                          <span className="absolute top-1 left-1 bg-amber-500 text-stone-950 font-black text-[9px] px-1.5 py-0.5 rounded shadow-xs uppercase">
+                            Portada
+                          </span>
+                        )}
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-1">
+                          <button
+                            type="button"
+                            onClick={() => setCropperState({ open: true, imageUrl: url, imageIndex: index })}
+                            className="w-full py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-bold transition-colors cursor-pointer flex items-center justify-center gap-1"
+                          >
+                            <Crop className="w-3 h-3" /> Centrar
+                          </button>
+                          {!isCover && (
+                            <button
+                              type="button"
+                              onClick={() => setForm((p) => ({ ...p, image: url }))}
+                              className="w-full py-0.5 bg-amber-500 hover:bg-amber-600 text-stone-950 rounded text-[9px] font-bold transition-colors cursor-pointer"
+                            >
+                              Hacer Portada
+                            </button>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setForm((p) => ({ ...p, mediaImages: p.mediaImages.filter((_, i) => i !== index), image: p.mediaImages.filter((_, i) => i !== index)[0] || "" }))}
+                          className="absolute right-1 top-1 rounded-full bg-red-600/90 hover:bg-red-700 p-1 text-[10px] text-white transition-colors cursor-pointer"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                  {form.mediaVideos.map((url, index) => (
+                    <div key={url} className="relative aspect-square overflow-hidden rounded-xl bg-gray-900">
+                      <video src={url} muted playsInline controls className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setForm((p) => ({ ...p, mediaVideos: p.mediaVideos.filter((_, i) => i !== index) }))}
+                        className="absolute right-1 top-1 rounded-full bg-red-600 px-2 py-1 text-xs text-white"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="border-t border-emerald-200 pt-4 space-y-3">
                 <div className="flex items-center gap-2 text-sm font-bold text-emerald-950">
@@ -496,6 +610,16 @@ function AnimalModal({
             </button>
           </div>
         </form>
+
+        {/* Modal Interactivo de Ajuste y Centrado de Imagen */}
+        {cropperState.open && (
+          <ImageCropperModal
+            imageUrl={cropperState.imageUrl}
+            speciesName={form.name}
+            onSave={handleSaveCroppedImage}
+            onClose={() => setCropperState({ open: false, imageUrl: "" })}
+          />
+        )}
       </div>
     </div>
   );

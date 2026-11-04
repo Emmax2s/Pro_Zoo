@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams, useSearchParams } from "react-router";
-import { Volume2, VolumeX, Globe, TreePine, MapPin, Sparkles, ShieldCheck, Play, Pause, ArrowLeft } from "lucide-react";
+import { Volume2, VolumeX, Globe, TreePine, MapPin, Sparkles, ShieldCheck, Play, Pause, ArrowLeft, Video } from "lucide-react";
 import { useZoo } from "../context/ZooContext";
 import { recordSpeciesVisit } from "../services/analytics";
 import { getLocalizedAnimal, useLocalizedAnimal } from "../services/speciesTranslator";
@@ -328,15 +328,36 @@ export function SpeciesDetail() {
               <span>{t("speciesDetail.backToWildlifeCatalog", { lng: sheetLang })}</span>
             </Link>
 
-            {/* Botón de Cambio de Idioma Exclusivo de la Ficha */}
-            <button
-              onClick={toggleLanguage}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-amber-50 text-stone-900 font-bold border-2 border-amber-700/30 shadow-md transition-all duration-200 hover:scale-105 active:scale-95 hover:-translate-y-0.5 text-sm cursor-pointer will-change-transform"
-              title={t("speciesDetail.switchToEnglish", { lng: sheetLang })}
-            >
-              <Globe className="w-4 h-4 text-emerald-700" />
-              <span>{t("speciesDetail.switchToEnglish", { lng: sheetLang })}</span>
-            </button>
+            {/* Selector de Idioma Exclusivo de la Ficha (Segmented Switch) */}
+            <div className="inline-flex items-center rounded-2xl bg-white p-1.5 shadow-md border-2 border-amber-700/30 gap-1 select-none">
+              <Globe className="w-4 h-4 text-emerald-800 ml-1.5 mr-0.5" />
+              <button
+                type="button"
+                onClick={() => {
+                  if (sheetLang !== "es") toggleLanguage();
+                }}
+                className={`px-3.5 py-1.5 rounded-xl font-black text-xs sm:text-sm transition-all duration-200 cursor-pointer ${
+                  !isEnglish
+                    ? "bg-[#2b1810] text-amber-200 shadow-md scale-102"
+                    : "text-stone-700 hover:text-stone-950 hover:bg-amber-100/60"
+                }`}
+              >
+                ESPAÑOL
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (sheetLang !== "en") toggleLanguage();
+                }}
+                className={`px-3.5 py-1.5 rounded-xl font-black text-xs sm:text-sm transition-all duration-200 cursor-pointer ${
+                  isEnglish
+                    ? "bg-[#2b1810] text-amber-200 shadow-md scale-102"
+                    : "text-stone-700 hover:text-stone-950 hover:bg-amber-100/60"
+                }`}
+              >
+                ENGLISH
+              </button>
+            </div>
           </div>
 
           <div className="space-y-4">
@@ -486,6 +507,31 @@ export function SpeciesDetail() {
                 <p className="text-stone-700 text-base sm:text-lg leading-relaxed">
                   {loc.diet}
                 </p>
+              </div>
+            </div>
+
+            {/* Video en Lengua de Señas Mexicana (LSM) */}
+            <div className="overflow-hidden rounded-2xl border-2 border-emerald-700/20 bg-white shadow-md">
+              <div className="flex items-center gap-2 bg-emerald-800 px-5 py-3.5 text-sm font-black uppercase tracking-wider text-white">
+                <Video className="h-5 w-5 text-amber-300" />
+                <span>{isEnglish ? "MEXICAN SIGN LANGUAGE INTERPRETATION (LSM)" : "INTERPRETACIÓN EN LENGUA DE SEÑAS MEXICANA (LSM)"}</span>
+              </div>
+              <div className="p-4 sm:p-5">
+                {loc.lsmVideoUrl ? (
+                  <video
+                    src={loc.lsmVideoUrl}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    className="w-full aspect-video rounded-xl bg-slate-950 object-contain shadow-inner"
+                  >
+                    {isEnglish ? "Your browser does not support video playback." : "Tu navegador no soporta la reproducción de video."}
+                  </video>
+                ) : (
+                  <div className="rounded-xl border border-emerald-900/10 bg-[#fcfaf5] p-4 text-sm font-semibold leading-relaxed text-stone-700">
+                    {isEnglish ? "The official sign language video will be available soon." : "El video en lengua de señas estará disponible próximamente."}
+                  </div>
+                )}
               </div>
             </div>
           </div>

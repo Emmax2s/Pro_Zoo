@@ -25,33 +25,14 @@ export function Animals() {
   const [modalLang, setModalLang] = useState<"es" | "en">("es");
   const isModalEs = modalLang === "es";
 
-  // Auto-open modal if scanned via QR or linked via URL parameter (/especie/:id or ?id=...)
+  // Redirigir a la ficha oficial con cabecera y pie de página si se escanea por QR o enlace directo
   useEffect(() => {
     const targetId = pathId || searchParams.get("id") || searchParams.get("animal");
-    const lang = searchParams.get("lang");
-    if (lang === "en" || lang === "es") {
-      setModalLang(lang);
+    if (targetId) {
+      const search = window.location.search || "";
+      navigate(`/especies/${encodeURIComponent(targetId)}${search}`, { replace: true });
     }
-
-    if (targetId && animals.length > 0) {
-      const found = animals.find(
-        (a) =>
-          String(a.id) === String(targetId) ||
-          a.name.toLowerCase().includes(String(targetId).toLowerCase().replace(/-/g, " ")) ||
-          a.scientificName.toLowerCase().includes(String(targetId).toLowerCase())
-      );
-      if (found) {
-        setSelectedAnimal(found);
-
-        // Record QR scan if flagged
-        const isQr = searchParams.get("scan") === "qr" || window.location.search.includes("qr");
-        if (isQr && !qrLoggedRef.current[String(found.id)]) {
-          qrLoggedRef.current[String(found.id)] = true;
-          recordSpeciesVisit(found.id, modalLang, "qr");
-        }
-      }
-    }
-  }, [pathId, searchParams, animals, modalLang]);
+  }, [pathId, searchParams, navigate]);
 
   // Stop speech when modal closes or unmounts
   const stopSpeech = useCallback(() => {
@@ -281,9 +262,8 @@ export function Animals() {
               <div
                 key={animal.id}
                 onClick={() => {
-                  setSelectedAnimal(animal);
-                  setModalLang("es");
                   recordSpeciesVisit(animal.id, currentLang, "catalog");
+                  navigate(`/especies/${animal.id}`);
                 }}
                 className="cursor-pointer group flex flex-col h-full"
               >
@@ -348,15 +328,36 @@ export function Animals() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                {/* Botón de Cambio de Idioma Exclusivo del Modal */}
-                <button
-                  onClick={handleToggleModalLanguage}
-                  className="bg-white/90 hover:bg-white text-stone-950 font-black px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-md border-2 border-amber-400 transition-all duration-200 hover:scale-105 active:scale-95 hover:-translate-y-0.5 cursor-pointer will-change-transform"
-                  title="Cambiar idioma del modal / Switch modal language"
-                >
-                  <Globe className="w-4 h-4 text-emerald-800" />
-                  <span>{isModalEs ? "ENGLISH" : "ESPAÑOL"}</span>
-                </button>
+                {/* Selector de Idioma de la Ficha (Segmented Switch) */}
+                <div className="inline-flex items-center rounded-xl bg-white p-1 shadow-md border-2 border-amber-400 gap-1 select-none">
+                  <Globe className="w-4 h-4 text-emerald-800 ml-1 mr-0.5" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!isModalEs) handleToggleModalLanguage();
+                    }}
+                    className={`px-2.5 py-1 rounded-lg font-black text-xs transition-all cursor-pointer ${
+                      isModalEs
+                        ? "bg-[#2b1810] text-amber-200 shadow-sm"
+                        : "text-stone-700 hover:text-stone-950 hover:bg-amber-100/60"
+                    }`}
+                  >
+                    ESPAÑOL
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isModalEs) handleToggleModalLanguage();
+                    }}
+                    className={`px-2.5 py-1 rounded-lg font-black text-xs transition-all cursor-pointer ${
+                      !isModalEs
+                        ? "bg-[#2b1810] text-amber-200 shadow-sm"
+                        : "text-stone-700 hover:text-stone-950 hover:bg-amber-100/60"
+                    }`}
+                  >
+                    ENGLISH
+                  </button>
+                </div>
 
                 <span className="bg-amber-950/80 border border-amber-500 text-amber-200 text-xs font-black uppercase px-3.5 py-1.5 rounded-full shadow-xs">
                   {selectedLoc.status}

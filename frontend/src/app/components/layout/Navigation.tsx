@@ -215,6 +215,16 @@ export function Navigation() {
               </Link>
 
               <Link
+                to="/especies"
+                style={{ fontSize: "17px" }}
+                className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer ${
+                  isActive("/especies") || isActive("/especie") || isActive("/animales") ? "text-[#731c34] font-medium" : "text-stone-800"
+                }`}
+              >
+                {"Especies"}
+              </Link>
+
+              <Link
                 to="/comite-de-etica"
                 style={{ fontSize: "17px" }}
                 className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer ${
@@ -349,6 +359,14 @@ export function Navigation() {
               className="block w-full text-left text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1.5"
             >
               Quienes somos
+            </Link>
+
+            <Link
+              to="/especies"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block w-full text-left text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1.5"
+            >
+              Especies
             </Link>
 
             <Link

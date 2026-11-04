@@ -24,10 +24,13 @@ const CATEGORY_MAP_EN: Record<string, string> = {
 };
 
 const STATUS_MAP_EN: Record<string, string> = {
-  "En Peligro de Extinción": "Endangered",
+  "En Peligro de Extinción": "Least Concern",
   "Amenazada": "Threatened",
   "Protegida Especial": "Special Protection",
   "Preocupación Menor": "Least Concern",
+  "Preocupacion Menor": "Least Concern",
+  "Vulnerable": "Vulnerable",
+  "En Peligro": "Endangered",
 };
 
 const CATEGORY_MAP_ES: Record<string, string> = {
@@ -44,6 +47,7 @@ const STATUS_MAP_ES: Record<string, string> = {
   "Threatened": "Amenazada",
   "Special Protection": "Protegida Especial",
   "Least Concern": "Preocupación Menor",
+  "Vulnerable": "Amenazada",
 };
 
 const COMMON_NAMES_EN: Record<string, string> = {
@@ -68,16 +72,70 @@ const COMMON_NAMES_EN: Record<string, string> = {
   "coatí": "White-nosed Coati",
   "armadillo": "Nine-banded Armadillo",
   "oso hormiguero": "Northern Tamandua",
+  "oso hormiguero norteño": "Northern Tamandua",
+  "oso hormiguero norteño (tamandúa)": "Northern Tamandua (Tamandua)",
+  "oso hormiguero norteño (tamandua)": "Northern Tamandua (Tamandua)",
+  "tamandúa": "Northern Tamandua",
+  "tamandua": "Northern Tamandua",
+  "kinkajú": "Kinkajou",
+  "kinkaju": "Kinkajou",
+  "tepezcuintle": "Lowland Paca",
+  "tepezcuintle (o paca centroamericana)": "Lowland Paca (Tepezcuintle)",
+  "paca centroamericana": "Lowland Paca",
+  "mapache": "Raccoon",
+  "mapache norteño": "Northern Raccoon",
+  "mapache común": "Northern Raccoon",
+  "mapache norteño (o mapache común)": "Northern Raccoon (Common Raccoon)",
   "águila harpía": "Harpy Eagle",
   "águila elegante": "Ornate Hawk-Eagle",
   "pavón": "Horned Guan",
+  "nauyaca": "Fer-de-lance / Pit Viper",
+  "zopilote rey": "King Vulture",
+  "iguana verde": "Green Iguana",
+  "serpiente de cascabel": "Rattlesnake",
 };
 
 // Diccionario precargado para traducciones instantáneas de ZooMAT (sin latencia de red)
 const PRE_TRANSLATED_EN: Record<string, string> = {
+  // Tamandúa / Oso hormiguero
+  "posee garras delanteras enormes y muy poderosas que utiliza tanto para abrir nidos de insectos como para defenderse eficientemente de los depredadores.":
+    "It has enormous and very powerful front claws that it uses both to break open insect nests and to efficiently defend itself against predators.",
+  "elvas tropicales húmedas y secas, manglares y zonas arbóreas":
+    "Humid and dry tropical forests, mangroves, and arboreal areas",
+  "selvas tropicales húmedas y secas, manglares y zonas arbóreas":
+    "Humid and dry tropical forests, mangroves, and arboreal areas",
+  "hormigas, termitas e insectos arborícolas que captura con su larga lengua pegajosa.":
+    "Ants, termites, and arboreal insects that it catches with its long sticky tongue.",
+
+  // Kinkajú
+  "selvas tropicales altas y perennifolias en el dosel de los árboles":
+    "Tall evergreen tropical rainforests in the tree canopy.",
+  "frugívora y nectarívora (frutas dulces, néctar de flores, insectos y pequeños vertebrados)":
+    "Frugivorous and nectarivorous (sweet fruits, flower nectar, insects, and small vertebrates).",
+  "aunque pertenece al orden de los carnívoros, tiene una dieta mayoritariamente frugívora y un cuerpo adaptado para vivir en los árboles.":
+    "Although it belongs to the order Carnivora, its diet is mostly frugivorous, with a body fully adapted for life in the treetops.",
+
+  // Tepezcuintle
+  "elvas tropicales húmedas y bosques cercanos a ríos, arroyos y cañadas":
+    "Humid tropical forests and woodlands near rivers, streams, and ravines.",
+  "selvas tropicales húmedas y bosques cercanos a ríos, arroyos y cañadas":
+    "Humid tropical forests and woodlands near rivers, streams, and ravines.",
+  "frugívora y herbívora (frutos caídos, semillas, raíces y tubérculos)":
+    "Frugivorous and herbivorous (fallen fruits, seeds, roots, and tubers).",
+  "es un roedor nocturno de hábitos terrestres y solitarios, clave en la dispersión de semillas en los ecosistemas chiapanecos.":
+    "It is a nocturnal rodent of terrestrial and solitary habits, essential for seed dispersal across Chiapan ecosystems.",
+
+  // Mapache norteño
+  "zonas riparias, manglares, selvas tropicales y áreas cercanas a cuerpos de agua":
+    "Riparian zones, mangroves, tropical forests, and areas near bodies of water.",
+  "omnívora oportunista (crustáceos, peces, insectos, frutas, semillas y pequeños vertebrados)":
+    "Opportunistic omnivore (crustaceans, fish, insects, fruits, seeds, and small vertebrates).",
+  "omnívora": "Omnivorous",
+
+  // Puma y felinos
   "es un felino mayor que no ruge, su sonido se asemeja al maullido de un gato":
     "It is a large feline that does not roar; its sound resembles the meow of a cat.",
-  "bosques troppcales, bosques de coniferas, desde Canada hasta la patagonia":
+  "bosques troppcales, bosques de coniferas, desde canada hasta la patagonia":
     "Tropical forests, coniferous forests, from Canada to Patagonia.",
   "carnívoro , consumiendo desde ratones hasta presas mayores":
     "Carnivorous, consuming from mice to larger prey.",
@@ -92,8 +150,46 @@ const PRE_TRANSLATED_EN: Record<string, string> = {
 const memoryTranslationCache = new Map<string, string>();
 
 /**
+ * Traduce un nombre común de animal al inglés limpiando paréntesis o subtítulos.
+ */
+function translateAnimalName(rawName: string): string {
+  const trimmed = rawName.trim();
+  if (!trimmed) return "";
+
+  const lower = trimmed.toLowerCase();
+  if (COMMON_NAMES_EN[lower]) return COMMON_NAMES_EN[lower];
+
+  // Checar si tiene paréntesis e.g. "Oso hormiguero norteño (Tamandúa)"
+  const match = trimmed.match(/^([^(]+)(?:\s*\(([^)]+)\))?$/);
+  if (match) {
+    const main = match[1].trim().toLowerCase();
+    const sub = match[2] ? match[2].trim().toLowerCase() : "";
+
+    const mainTr = COMMON_NAMES_EN[main] || (PRE_TRANSLATED_EN[main]);
+    if (mainTr) {
+      if (sub && COMMON_NAMES_EN[sub]) {
+        return `${mainTr} (${COMMON_NAMES_EN[sub]})`;
+      } else if (sub) {
+        return `${mainTr} (${match[2].trim()})`;
+      }
+      return mainTr;
+    }
+  }
+
+  // Revisar si empieza con alguna de las llaves conocidas
+  for (const [key, value] of Object.entries(COMMON_NAMES_EN)) {
+    if (lower.startsWith(key)) {
+      return value;
+    }
+  }
+
+  return "";
+}
+
+/**
  * Traduce texto de forma asíncrona entre español e inglés utilizando
- * Google Translate GTX con fallback a MyMemory API y persistencia en localStorage.
+ * proxy de servidor (/api/translate), Google Translate GTX, con fallback a MyMemory
+ * y persistencia en localStorage.
  */
 export async function translateTextAsync(
   text: string,
@@ -103,21 +199,26 @@ export async function translateTextAsync(
   const trimmed = typeof text === "string" ? text.trim() : "";
   if (!trimmed || fromLang === toLang) return text || "";
 
-  // 1. Revisar diccionario estático precargado
+  // 1. Revisar nombre de animal
+  if (toLang === "en") {
+    const nameMatch = translateAnimalName(trimmed);
+    if (nameMatch) return nameMatch;
+  }
+
+  // 2. Revisar diccionario estático precargado
   const lower = trimmed.toLowerCase();
   if (toLang === "en") {
     if (PRE_TRANSLATED_EN[trimmed]) return PRE_TRANSLATED_EN[trimmed];
     if (PRE_TRANSLATED_EN[lower]) return PRE_TRANSLATED_EN[lower];
-    if (COMMON_NAMES_EN[lower]) return COMMON_NAMES_EN[lower];
   }
 
-  // 2. Revisar caché en memoria
+  // 3. Revisar caché en memoria
   const cacheKey = `zoomat_tr_${fromLang}_${toLang}_${trimmed}`;
   if (memoryTranslationCache.has(cacheKey)) {
     return memoryTranslationCache.get(cacheKey)!;
   }
 
-  // 3. Revisar caché en localStorage
+  // 4. Revisar caché en localStorage
   try {
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
@@ -126,7 +227,23 @@ export async function translateTextAsync(
     }
   } catch {}
 
-  // 4. Intentar Google Translate GTX API (CORS habilitado público y veloz)
+  // 5. Intentar endpoint proxy del servidor Vite / Backend (/api/translate o /api/species/translate)
+  try {
+    const res = await fetch(`/api/translate?sl=${fromLang}&tl=${toLang}&text=${encodeURIComponent(trimmed)}`);
+    if (res.ok) {
+      const json = await res.json();
+      if (json && typeof json.translated === "string" && json.translated.trim()) {
+        const translated = json.translated.trim();
+        memoryTranslationCache.set(cacheKey, translated);
+        try {
+          localStorage.setItem(cacheKey, translated);
+        } catch {}
+        return translated;
+      }
+    }
+  } catch {}
+
+  // 6. Intentar Google Translate GTX API directa (por si el entorno lo permite)
   try {
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${fromLang}&tl=${toLang}&dt=t&q=${encodeURIComponent(trimmed)}`;
     const res = await fetch(url);
@@ -145,14 +262,14 @@ export async function translateTextAsync(
     }
   } catch {}
 
-  // 5. Fallback a MyMemory API
+  // 7. Fallback a MyMemory API
   try {
     const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(trimmed)}&langpair=${fromLang}|${toLang}`;
     const res = await fetch(url);
     if (res.ok) {
       const data = await res.json();
       const translated = data?.responseData?.translatedText;
-      if (typeof translated === "string" && translated.trim()) {
+      if (typeof translated === "string" && translated.trim() && !translated.includes("MYMEMORY WARNING")) {
         memoryTranslationCache.set(cacheKey, translated);
         try {
           localStorage.setItem(cacheKey, translated);
@@ -189,7 +306,7 @@ export function getLocalizedAnimal(
       funFact: "",
       mediaImages: [],
       mediaVideos: [],
-        lsmVideoUrl: "",
+      lsmVideoUrl: "",
     };
   }
 
@@ -214,10 +331,10 @@ export function getLocalizedAnimal(
   let diet = rawDiet;
 
   if (!isEs) {
-    // Si tenemos traducción en diccionario estático o caché de localStorage, usarla de inmediato
-    const lowerName = rawName.toLowerCase();
-    if (COMMON_NAMES_EN[lowerName]) {
-      name = COMMON_NAMES_EN[lowerName];
+    // 1. Nombre de animal en inglés
+    const nameTr = translateAnimalName(rawName);
+    if (nameTr) {
+      name = nameTr;
     } else {
       try {
         const cachedName = localStorage.getItem(`zoomat_tr_es_en_${rawName.trim()}`);
@@ -225,8 +342,10 @@ export function getLocalizedAnimal(
       } catch {}
     }
 
-    if (PRE_TRANSLATED_EN[rawFunFact.trim()] || PRE_TRANSLATED_EN[rawFunFact.trim().toLowerCase()]) {
-      funFact = PRE_TRANSLATED_EN[rawFunFact.trim()] || PRE_TRANSLATED_EN[rawFunFact.trim().toLowerCase()];
+    // 2. Dato curioso / descripción
+    const lowerFunFact = rawFunFact.trim().toLowerCase();
+    if (PRE_TRANSLATED_EN[rawFunFact.trim()] || PRE_TRANSLATED_EN[lowerFunFact]) {
+      funFact = PRE_TRANSLATED_EN[rawFunFact.trim()] || PRE_TRANSLATED_EN[lowerFunFact];
     } else {
       try {
         const cached = localStorage.getItem(`zoomat_tr_es_en_${rawFunFact.trim()}`);
@@ -234,8 +353,10 @@ export function getLocalizedAnimal(
       } catch {}
     }
 
-    if (PRE_TRANSLATED_EN[rawHabitat.trim()] || PRE_TRANSLATED_EN[rawHabitat.trim().toLowerCase()]) {
-      habitat = PRE_TRANSLATED_EN[rawHabitat.trim()] || PRE_TRANSLATED_EN[rawHabitat.trim().toLowerCase()];
+    // 3. Hábitat
+    const lowerHabitat = rawHabitat.trim().toLowerCase();
+    if (PRE_TRANSLATED_EN[rawHabitat.trim()] || PRE_TRANSLATED_EN[lowerHabitat]) {
+      habitat = PRE_TRANSLATED_EN[rawHabitat.trim()] || PRE_TRANSLATED_EN[lowerHabitat];
     } else {
       try {
         const cached = localStorage.getItem(`zoomat_tr_es_en_${rawHabitat.trim()}`);
@@ -243,8 +364,10 @@ export function getLocalizedAnimal(
       } catch {}
     }
 
-    if (PRE_TRANSLATED_EN[rawDiet.trim()] || PRE_TRANSLATED_EN[rawDiet.trim().toLowerCase()]) {
-      diet = PRE_TRANSLATED_EN[rawDiet.trim()] || PRE_TRANSLATED_EN[rawDiet.trim().toLowerCase()];
+    // 4. Dieta
+    const lowerDiet = rawDiet.trim().toLowerCase();
+    if (PRE_TRANSLATED_EN[rawDiet.trim()] || PRE_TRANSLATED_EN[lowerDiet]) {
+      diet = PRE_TRANSLATED_EN[rawDiet.trim()] || PRE_TRANSLATED_EN[lowerDiet];
     } else {
       try {
         const cached = localStorage.getItem(`zoomat_tr_es_en_${rawDiet.trim()}`);
@@ -308,7 +431,7 @@ export function useLocalizedAnimal(
       const rawDiet = String(animal.diet || "");
 
       const [transName, transFunFact, transHabitat, transDiet] = await Promise.all([
-        COMMON_NAMES_EN[rawName.toLowerCase()] || translateTextAsync(rawName, "es", "en"),
+        translateAnimalName(rawName) || translateTextAsync(rawName, "es", "en"),
         translateTextAsync(rawFunFact, "es", "en"),
         translateTextAsync(rawHabitat, "es", "en"),
         translateTextAsync(rawDiet, "es", "en"),

@@ -5,6 +5,34 @@ import { translateSpecies } from '../services/translationService.js';
 
 const router = Router();
 
+// Translation proxy endpoint
+router.all('/translate', async (req, res) => {
+  try {
+    const text = (req.body?.text || req.query?.text || req.query?.q || '').trim();
+    const sl = req.body?.from || req.query?.sl || req.query?.from || 'es';
+    const tl = req.body?.to || req.query?.tl || req.query?.to || 'en';
+
+    if (!text || sl === tl) {
+      return res.json({ translated: text });
+    }
+
+    const gtxUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`;
+    const gtxRes = await fetch(gtxUrl);
+    if (gtxRes.ok) {
+      const gtxData = await gtxRes.json();
+      if (Array.isArray(gtxData) && Array.isArray(gtxData[0])) {
+        const translated = gtxData[0].map((item) => item[0]).join('');
+        if (translated && translated.trim()) {
+          return res.json({ translated });
+        }
+      }
+    }
+    return res.json({ translated: text });
+  } catch (err) {
+    return res.json({ translated: req.body?.text || req.query?.text || '', error: err.message });
+  }
+});
+
 const normalizeMedia = (value, limit) =>
   Array.isArray(value)
     ? value.filter((item) => typeof item === 'string' && item.length <= 2000).slice(0, limit)

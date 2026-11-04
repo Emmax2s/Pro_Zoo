@@ -163,8 +163,7 @@ export function Navigation() {
               </a>
               <button
                 onClick={() => openDocById("transparencia-portal")}
-                style={{ fontSize: "18px" }}
-                className="text-stone-300 hover:text-white transition-colors font-normal cursor-pointer"
+                className="text-stone-300 hover:text-white transition-colors font-normal cursor-pointer text-xs sm:text-[18px] hidden xs:inline"
               >
                 {t("nav.transparency")}
               </button>

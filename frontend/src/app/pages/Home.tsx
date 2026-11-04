@@ -77,8 +77,14 @@ function HeroCarousel() {
             <div className="w-full h-full relative bg-stone-950 flex items-center justify-center overflow-hidden">
               <img
                 src={s.src}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 w-full h-full object-cover blur-md opacity-35 scale-105 pointer-events-none select-none"
+              />
+              <img
+                src={s.src}
                 alt={s.alt || "Imagen del carrusel"}
-                className="w-full h-full object-cover object-center select-none transition-transform duration-700"
+                className="relative z-10 w-full h-full object-cover object-center select-none transition-transform duration-700"
               />
             </div>
           ) : (
@@ -144,14 +150,14 @@ function HeroCarousel() {
       ))}
 
       {/* Counter pill (Photo 1 Style: 01 / 04) */}
-      <div className="absolute top-6 right-6 z-20 bg-black/60 backdrop-blur-md text-white font-mono text-xs sm:text-sm font-bold px-4 py-1.5 rounded-full border border-amber-400/30 shadow-xl tracking-wider">
+      <div className="absolute top-3 right-3 sm:top-6 sm:right-6 z-20 bg-black/60 backdrop-blur-md text-white font-mono text-[11px] sm:text-sm font-bold px-3 py-1 sm:px-4 sm:py-1.5 rounded-full border border-amber-400/30 shadow-xl tracking-wider">
         {String(current + 1).padStart(2, "0")}{" "}
         <span className="text-amber-300/80">/ {String(total).padStart(2, "0")}</span>
       </div>
 
       {/* Slide description badge if available */}
       {slide?.alt && (
-        <div className="absolute top-6 left-6 z-20 hidden sm:inline-flex items-center gap-2 bg-black/60 backdrop-blur-md text-amber-300 text-xs font-bold px-4 py-1.5 rounded-full border border-amber-400/30 shadow-xl">
+        <div className="absolute top-3 left-3 sm:top-6 sm:left-6 z-20 hidden sm:inline-flex items-center gap-2 bg-black/60 backdrop-blur-md text-amber-300 text-xs font-bold px-3.5 py-1 rounded-full border border-amber-400/30 shadow-xl">
           <span>{slide.alt}</span>
         </div>
       )}
@@ -159,22 +165,22 @@ function HeroCarousel() {
       {/* Round Wooden Navigation Arrows (Photo 1 Signature Style) */}
       <button
         onClick={prev}
-        className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-14 sm:h-14 rounded-full wood-texture-dark border-2 border-amber-500 text-amber-300 flex items-center justify-center shadow-2xl hover:scale-110 active:scale-90 hover:border-amber-300 transition-all duration-200 cursor-pointer wood-button-shadow will-change-transform"
+        className="absolute left-2.5 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-14 sm:h-14 rounded-full wood-texture-dark border-2 border-amber-500 text-amber-300 flex items-center justify-center shadow-xl hover:scale-110 active:scale-90 hover:border-amber-300 transition-all duration-200 cursor-pointer wood-button-shadow will-change-transform"
         aria-label="Diapositiva anterior"
       >
-        <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8" />
+        <ChevronLeft className="w-5 h-5 sm:w-8 sm:h-8" />
       </button>
 
       <button
         onClick={next}
-        className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-14 sm:h-14 rounded-full wood-texture-dark border-2 border-amber-500 text-amber-300 flex items-center justify-center shadow-2xl hover:scale-110 active:scale-90 hover:border-amber-300 transition-all duration-200 cursor-pointer wood-button-shadow will-change-transform"
+        className="absolute right-2.5 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-14 sm:h-14 rounded-full wood-texture-dark border-2 border-amber-500 text-amber-300 flex items-center justify-center shadow-xl hover:scale-110 active:scale-90 hover:border-amber-300 transition-all duration-200 cursor-pointer wood-button-shadow will-change-transform"
         aria-label="Siguiente diapositiva"
       >
-        <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />
+        <ChevronRight className="w-5 h-5 sm:w-8 sm:h-8" />
       </button>
 
       {/* Dots / Indicators Bar (Ubicada arriba de los botones de navegación) */}
-      <div className="absolute bottom-16 sm:bottom-20 md:bottom-22 left-1/2 -translate-x-1/2 z-20 flex gap-2 sm:gap-2.5 bg-black/50 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-amber-400/30 shadow-lg">
+      <div className="absolute bottom-13 sm:bottom-20 md:bottom-22 left-1/2 -translate-x-1/2 z-20 flex gap-1.5 sm:gap-2.5 bg-black/50 backdrop-blur-md px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full border border-amber-400/30 shadow-lg">
         {slides.map((_, i) => (
           <button
             key={i}
@@ -183,7 +189,7 @@ function HeroCarousel() {
               setPlaying(false);
             }}
             className={`rounded-full transition-all duration-200 hover:scale-125 cursor-pointer ${
-              i === current ? "w-6 sm:w-7 h-2 sm:h-2.5 bg-amber-400 scale-105" : "w-2 sm:w-2.5 h-2 sm:h-2.5 bg-white/60 hover:bg-white"
+              i === current ? "w-5 sm:w-7 h-1.5 sm:h-2.5 bg-amber-400 scale-105" : "w-1.5 sm:w-2.5 h-1.5 sm:h-2.5 bg-white/60 hover:bg-white"
             }`}
             aria-label={`Diapositiva ${i + 1}`}
           />
@@ -207,44 +213,44 @@ export function Home() {
       {/* 1. Full-bleed Edge-to-Edge Hero Carousel with Top & Bottom Wood Beams */}
       <section className="relative w-full overflow-hidden bg-stone-950 no-reveal">
         {/* Barra café rústica superior (arriba de la imagen del carrusel) */}
-        <div className="wood-texture-bg h-7 sm:h-9 w-full border-t-2 border-b-4 border-[#2b1706] shadow-2xl relative z-30">
+        <div className="wood-texture-bg h-6 sm:h-9 w-full border-t-2 border-b-4 border-[#2b1706] shadow-2xl relative z-30">
           <div className="absolute inset-x-0 top-0 h-0.5 bg-amber-200/25" />
           <div className="absolute inset-x-0 bottom-0 h-0.5 bg-black/45" />
         </div>
 
-        <div className="w-full h-[450px] sm:h-[550px] md:h-[650px] lg:h-[720px] relative">
+        <div className="w-full h-[320px] xs:h-[360px] sm:h-[480px] md:h-[600px] lg:h-[720px] relative">
           <HeroCarousel />
 
           {/* Botones solicitados en el carrusel (Imagen 2): Especies, Visita y Mapa */}
-          <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center justify-center gap-3 sm:gap-6 w-[94%] max-w-2xl px-2">
+          <div className="absolute bottom-2.5 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center justify-center gap-2 sm:gap-6 w-[96%] sm:w-[94%] max-w-2xl px-1 sm:px-2">
             <Link
               to="/especies"
-              className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/75 hover:bg-[#731c34] text-white border-2 border-amber-400/80 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-200 hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 font-sans font-bold text-sm sm:text-base tracking-wide group will-change-transform"
+              className="flex-1 max-w-[190px] flex items-center justify-center gap-1.5 sm:gap-2.5 py-2 sm:py-3.5 px-2 sm:px-5 rounded-xl sm:rounded-2xl bg-black/75 hover:bg-[#731c34] text-white border-2 border-amber-400/80 hover:border-amber-300 backdrop-blur-md shadow-xl transition-all duration-200 hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 font-sans font-bold text-xs sm:text-base tracking-wide group will-change-transform"
             >
-              <PawPrint className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-115 transition-transform duration-200" />
+              <PawPrint className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-115 transition-transform duration-200" />
               <span>{"Especies"}</span>
             </Link>
 
             <Link
               to="/visita"
-              className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/75 hover:bg-[#731c34] text-white border-2 border-amber-400/80 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-200 hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 font-sans font-bold text-sm sm:text-base tracking-wide group will-change-transform"
+              className="flex-1 max-w-[190px] flex items-center justify-center gap-1.5 sm:gap-2.5 py-2 sm:py-3.5 px-2 sm:px-5 rounded-xl sm:rounded-2xl bg-black/75 hover:bg-[#731c34] text-white border-2 border-amber-400/80 hover:border-amber-300 backdrop-blur-md shadow-xl transition-all duration-200 hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 font-sans font-bold text-xs sm:text-base tracking-wide group will-change-transform"
             >
-              <Ticket className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-115 transition-transform duration-200" />
+              <Ticket className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-115 transition-transform duration-200" />
               <span>{"Visita"}</span>
             </Link>
 
             <Link
               to="/mapa"
-              className="flex-1 max-w-[190px] flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-3.5 px-3 sm:px-5 rounded-2xl bg-black/75 hover:bg-[#731c34] text-white border-2 border-amber-400/80 hover:border-amber-300 backdrop-blur-md shadow-2xl transition-all duration-200 hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 font-sans font-bold text-sm sm:text-base tracking-wide group will-change-transform"
+              className="flex-1 max-w-[190px] flex items-center justify-center gap-1.5 sm:gap-2.5 py-2 sm:py-3.5 px-2 sm:px-5 rounded-xl sm:rounded-2xl bg-black/75 hover:bg-[#731c34] text-white border-2 border-amber-400/80 hover:border-amber-300 backdrop-blur-md shadow-xl transition-all duration-200 hover:-translate-y-1 hover:scale-105 active:translate-y-0.5 active:scale-95 font-sans font-bold text-xs sm:text-base tracking-wide group will-change-transform"
             >
-              <Map className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-115 transition-transform duration-200" />
+              <Map className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-115 transition-transform duration-200" />
               <span>{"Mapa"}</span>
             </Link>
           </div>
         </div>
 
         {/* Rustic Wood Beam Framing the Carousel (Photo 1 Style) */}
-        <div className="wood-texture-bg h-7 sm:h-9 w-full border-t-2 border-b-4 border-[#2b1706] shadow-2xl relative z-30">
+        <div className="wood-texture-bg h-6 sm:h-9 w-full border-t-2 border-b-4 border-[#2b1706] shadow-2xl relative z-30">
           <div className="absolute inset-x-0 top-0 h-0.5 bg-amber-200/25" />
           <div className="absolute inset-x-0 bottom-0 h-0.5 bg-black/45" />
         </div>

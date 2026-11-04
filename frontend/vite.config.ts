@@ -3,6 +3,7 @@ import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import fs from 'fs'
+import crypto from 'crypto'
 
 export default defineConfig({
   envDir: path.resolve(__dirname, '..'),
@@ -86,6 +87,85 @@ export default defineConfig({
 
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ url: `/assets/uploads/${uniqueName}` }));
+          } catch (err: any) {
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ error: String(err.message || err) }));
+          }
+        });
+
+        server.middlewares.use('/api/tts', async (req, res, next) => {
+          if (req.method !== 'POST') {
+            res.statusCode = 405;
+            res.end('Method Not Allowed');
+            return;
+          }
+
+          try {
+            let body = '';
+            for await (const chunk of req) body += chunk;
+            const parsed = JSON.parse(body || '{}');
+            const text = String(parsed.text || '').trim();
+            const language = parsed.language === 'en' ? 'en' : 'es';
+
+            if (!text) {
+              res.statusCode = 400;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: 'Text is required' }));
+              return;
+            }
+
+            const cleanText = text.replace(/[*"#]/g, '').replace(/\s+/g, ' ').trim().slice(0, 4000);
+            const hash = crypto.createHash('sha256').update(`${language}:${cleanText}`).digest('hex');
+
+            const outDir = path.resolve(__dirname, 'public', 'assets', 'tts');
+            fs.mkdirSync(outDir, { recursive: true });
+            const outFile = path.join(outDir, `${hash}.mp3`);
+            const publicUrl = `/assets/tts/${hash}.mp3`;
+
+            if (fs.existsSync(outFile)) {
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ url: publicUrl, provider: 'cache' }));
+              return;
+            }
+
+            // 1. Try node-edge-tts
+            try {
+              const { EdgeTTS } = await import('node-edge-tts');
+              const voice = language === 'en' ? 'en-US-AriaNeural' : 'es-MX-JorgeNeural';
+              const tts = new EdgeTTS({
+                voice,
+                lang: language === 'en' ? 'en-US' : 'es-MX',
+                outputFormat: 'audio-24khz-48kbitrate-mono-mp3',
+                timeout: 10000,
+              });
+              await tts.ttsPromise(cleanText, outFile);
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ url: publicUrl, provider: 'edge' }));
+              return;
+            } catch (edgeErr) {
+              // 2. Fallback to google-tts-api
+              try {
+                const googleTts = await import('google-tts-api');
+                const chunks = await googleTts.getAllAudioBase64(cleanText, {
+                  lang: language === 'en' ? 'en' : 'es',
+                  slow: false,
+                  host: language === 'en' ? 'https://translate.google.com' : 'https://translate.google.com.mx',
+                  splitPunct: '.,;:!?¿¡',
+                  timeout: 10000,
+                });
+                const audio = Buffer.concat(chunks.map(({ base64 }: any) => Buffer.from(base64, 'base64')));
+                fs.writeFileSync(outFile, audio);
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ url: publicUrl, provider: 'google' }));
+                return;
+              } catch (gErr) {
+                res.statusCode = 500;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ error: 'TTS generation failed' }));
+                return;
+              }
+            }
           } catch (err: any) {
             res.statusCode = 500;
             res.setHeader('Content-Type', 'application/json');

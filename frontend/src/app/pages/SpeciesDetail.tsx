@@ -4,12 +4,71 @@ import { Link, useParams, useSearchParams } from "react-router";
 import { Volume2, VolumeX, Globe, TreePine, MapPin, Sparkles, ShieldCheck, Play, Pause, ArrowLeft, Video, Camera } from "lucide-react";
 import { useZoo } from "../context/ZooContext";
 import { recordSpeciesVisit } from "../services/analytics";
-import { getLocalizedAnimal, useLocalizedAnimal } from "../services/speciesTranslator";
+import { getLocalizedAnimal, useLocalizedAnimal, translateAnimalName, translateTextAsync, LocalizedAnimalData } from "../services/speciesTranslator";
 import { pauseAllAudio, playChime, resumeAllAudio, speakNarration, stopAllAudio } from "../services/audioPlayer";
 import { generateServerNarration } from "../services/ttsService";
 import { Animal } from "../data/zooStore";
 
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
+
+function buildFullNarrationText(
+  data: {
+    name: string;
+    scientificName?: string;
+    category?: string;
+    status?: string;
+    funFact?: string;
+    habitat?: string;
+    diet?: string;
+  },
+  isEn: boolean
+): string {
+  const parts: string[] = [];
+
+  if (isEn) {
+    parts.push(`Official Wildlife Guide: ${data.name}.`);
+    if (data.scientificName) {
+      parts.push(`Scientific name: ${data.scientificName}.`);
+    }
+    if (data.category) {
+      parts.push(`Classification: ${data.category}.`);
+    }
+    if (data.status) {
+      parts.push(`Conservation status: ${data.status}.`);
+    }
+    if (data.funFact) {
+      parts.push(`About this species: ${data.funFact}.`);
+    }
+    if (data.habitat) {
+      parts.push(`Habitat and distribution: ${data.habitat}.`);
+    }
+    if (data.diet) {
+      parts.push(`Diet and feeding habits: ${data.diet}.`);
+    }
+  } else {
+    parts.push(`Ficha oficial de fauna: ${data.name}.`);
+    if (data.scientificName) {
+      parts.push(`Nombre científico: ${data.scientificName}.`);
+    }
+    if (data.category) {
+      parts.push(`Clasificación: ${data.category}.`);
+    }
+    if (data.status) {
+      parts.push(`Estado de conservación: ${data.status}.`);
+    }
+    if (data.funFact) {
+      parts.push(`Sobre esta especie: ${data.funFact}.`);
+    }
+    if (data.habitat) {
+      parts.push(`Hábitat y distribución: ${data.habitat}.`);
+    }
+    if (data.diet) {
+      parts.push(`Alimentación: ${data.diet}.`);
+    }
+  }
+
+  return parts.filter(Boolean).join(" ");
+}
 
 export function SpeciesDetail() {
   const { idOrSlug } = useParams<{ idOrSlug: string }>();
@@ -128,10 +187,37 @@ export function SpeciesDetail() {
   const loc = useLocalizedAnimal(species, !isEnglish);
 
   // Reproducción de audio en el idioma de la ficha
-  const startAudio = useCallback((targetLoc = loc) => {
+  const startAudio = useCallback(async (targetLoc = loc) => {
     if (!targetLoc) return;
+
+    stopAllAudio();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+
     playChime();
-    const narrationText = `${targetLoc.name}. ${targetLoc.scientificName ? `(${targetLoc.scientificName}).` : ""} ${targetLoc.funFact}. ${targetLoc.habitat}. ${targetLoc.diet}.`;
+
+    // Cuando la ficha está en inglés, garantizar que todos los textos estén traducidos
+    let activeLoc = targetLoc;
+    if (isEnglish) {
+      const [nameEn, funFactEn, habitatEn, dietEn] = await Promise.all([
+        translateAnimalName(activeLoc.name) || translateTextAsync(activeLoc.name, "es", "en"),
+        translateTextAsync(activeLoc.funFact, "es", "en"),
+        translateTextAsync(activeLoc.habitat, "es", "en"),
+        translateTextAsync(activeLoc.diet, "es", "en"),
+      ]);
+      activeLoc = {
+        ...activeLoc,
+        name: nameEn || activeLoc.name,
+        funFact: funFactEn || activeLoc.funFact,
+        habitat: habitatEn || activeLoc.habitat,
+        diet: dietEn || activeLoc.diet,
+      };
+    }
+
+    // Construir la narración completa que lee toda la ficha de la especie
+    const narrationText = buildFullNarrationText(activeLoc, isEnglish);
 
     const playGeneratedNarration = (audioUrl: string) => {
       const audio = new Audio(audioUrl);
@@ -156,8 +242,10 @@ export function SpeciesDetail() {
       });
     };
 
-    if (targetLoc.audioUrl && !targetLoc.audioUrl.includes("example.com")) {
-      const audio = new Audio(targetLoc.audioUrl);
+    // Si estamos en español y el animal tiene un audio personalizado subido, reproducirlo
+    // Pero si estamos en inglés, NUNCA reproducir el audio en español; leer toda la ficha en inglés
+    if (!isEnglish && activeLoc.audioUrl && !activeLoc.audioUrl.includes("example.com")) {
+      const audio = new Audio(activeLoc.audioUrl);
       audioRef.current = audio;
 
       audio.onplay = () => {
@@ -174,7 +262,7 @@ export function SpeciesDetail() {
         audioRef.current = null;
         speakNarration(
           narrationText,
-          !isEnglish,
+          true,
           () => setIsPlayingAudio(true),
           () => {
             setIsPlayingAudio(false);
@@ -187,7 +275,7 @@ export function SpeciesDetail() {
         audioRef.current = null;
         speakNarration(
           narrationText,
-          !isEnglish,
+          true,
           () => setIsPlayingAudio(true),
           () => {
             setIsPlayingAudio(false);
@@ -195,19 +283,33 @@ export function SpeciesDetail() {
           }
         );
       });
-    } else {
-      void generateServerNarration(narrationText, isEnglish ? "en" : "es")
-        .then((generated) => {
-          if (generated) {
-            playGeneratedNarration(generated.url);
-            return;
-          }
-          speakNarration(narrationText, !isEnglish, () => setIsPlayingAudio(true), () => setIsPlayingAudio(false));
-        })
-        .catch(() => {
-          speakNarration(narrationText, !isEnglish, () => setIsPlayingAudio(true), () => setIsPlayingAudio(false));
-        });
+      return;
     }
+
+    // Intentar primero con el servicio de narración del servidor (Edge Neural / Google TTS)
+    try {
+      const generated = await generateServerNarration(narrationText, isEnglish ? "en" : "es");
+      if (generated && generated.url) {
+        playGeneratedNarration(generated.url);
+        return;
+      }
+    } catch {
+      // Continuar al sintetizador del navegador
+    }
+
+    // Fallback con sintetizador de voz del navegador con chunking y keepalive
+    speakNarration(
+      narrationText,
+      !isEnglish,
+      () => {
+        setIsPlayingAudio(true);
+        setIsPausedAudio(false);
+      },
+      () => {
+        setIsPlayingAudio(false);
+        setIsPausedAudio(false);
+      }
+    );
   }, [loc, isEnglish]);
 
   const toggleAudio = useCallback(() => {
@@ -262,6 +364,10 @@ export function SpeciesDetail() {
   // Cambiar el idioma EXCLUSIVAMENTE de esta ficha sin afectar la página global
   const toggleLanguage = () => {
     stopAllAudio();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
     setIsPlayingAudio(false);
     setIsPausedAudio(false);
     const nextLang = isEnglish ? "es" : "en";

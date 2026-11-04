@@ -152,7 +152,7 @@ const memoryTranslationCache = new Map<string, string>();
 /**
  * Traduce un nombre común de animal al inglés limpiando paréntesis o subtítulos.
  */
-function translateAnimalName(rawName: string): string {
+export function translateAnimalName(rawName: string): string {
   const trimmed = rawName.trim();
   if (!trimmed) return "";
 

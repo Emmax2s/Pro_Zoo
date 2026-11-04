@@ -91,11 +91,17 @@ export function SpeciesDetail() {
             enclosureId: data.enclosureId ?? null,
             mediaImages: Array.isArray(data.mediaImages) ? data.mediaImages.slice(0, 4) : data.imageUrl ? [data.imageUrl] : [],
             mediaVideos: Array.isArray(data.mediaVideos) ? data.mediaVideos.slice(0, 2) : [],
+            lsmVideoUrl: data.lsmVideoUrl || "",
+            isVisibleToPublic: data.isVisibleToPublic !== false,
           });
         }
       })
       .catch(() => {
-        if (active) {
+        const match = findLocal();
+        if (active && match) {
+          setSpecies(match);
+          setError("");
+        } else if (active) {
           setError(t("speciesDetail.notFound", { lng: sheetLang }));
         }
       })

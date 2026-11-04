@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Navigate } from "react-router";
-import { Plus, Trash2, GripVertical, X, Image, Video, Eye, EyeOff, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Trash2, GripVertical, X, Image, Video, Eye, EyeOff, AlertTriangle, ChevronLeft, ChevronRight, Crop, Sparkles } from "lucide-react";
 import { useZoo } from "../../context/ZooContext";
 import { SlideItem } from "../../data/zooStore";
 import { useAuth } from "../../context/AuthContext";
+import { ImageCropperModal } from "../../components/admin/ImageCropperModal";
 
 const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
 
@@ -16,6 +17,7 @@ function AddSlideModal({ onSave, onClose }: { onSave: (s: NewSlide) => void; onC
   const { token } = useAuth();
   const [type, setType] = useState<"image" | "video">("image");
   const [form, setForm] = useState({ src: "", alt: "", poster: "" });
+  const [showAddCropper, setShowAddCropper] = useState(false);
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>, target: 'src' | 'poster') {
     const file = e.target.files?.[0];
@@ -129,9 +131,29 @@ function AddSlideModal({ onSave, onClose }: { onSave: (s: NewSlide) => void; onC
 
           {/* Preview */}
           {form.src && type === "image" && (
-            <div className="h-36 rounded-xl overflow-hidden bg-gray-100">
-              <img src={form.src} alt="preview" className="w-full h-full object-cover"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Vista previa:</span>
+                <button
+                  type="button"
+                  onClick={() => setShowAddCropper(true)}
+                  className="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <Crop size={13} className="text-amber-700" />
+                  <span>🎯 Ajustar / Centrar Imagen</span>
+                </button>
+              </div>
+              <div
+                className="h-36 rounded-xl overflow-hidden bg-stone-900 relative group cursor-pointer border border-stone-200"
+                onClick={() => setShowAddCropper(true)}
+                title="🎯 Clic para centrar y encuadrar imagen"
+              >
+                <img src={form.src} alt="preview" className="w-full h-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5">
+                  <Crop size={16} className="text-amber-300" /> Clic para ajustar encuadre
+                </div>
+              </div>
             </div>
           )}
 
@@ -146,6 +168,19 @@ function AddSlideModal({ onSave, onClose }: { onSave: (s: NewSlide) => void; onC
             </button>
           </div>
         </form>
+
+        {showAddCropper && form.src && (
+          <ImageCropperModal
+            imageUrl={form.src}
+            speciesName={form.alt || "Nuevo Slide de Carrusel"}
+            defaultAspectRatio="16/9"
+            onSave={(croppedDataUrl) => {
+              setForm((p) => ({ ...p, src: croppedDataUrl }));
+              setShowAddCropper(false);
+            }}
+            onClose={() => setShowAddCropper(false)}
+          />
+        )}
       </div>
     </div>
   );
@@ -200,6 +235,7 @@ export function AdminHome() {
   const { token } = useAuth();
 
   const [showAdd, setShowAdd] = useState(false);
+  const [cropperSlide, setCropperSlide] = useState<{ id: string; src: string; alt: string } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [dragging, setDragging] = useState<number | null>(null);
@@ -224,6 +260,38 @@ export function AdminHome() {
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.message || "No se pudo guardar el carrusel.");
     setSlides(result as SlideItem[]);
+  }
+
+  async function handleSaveCroppedSlide(croppedDataUrl: string) {
+    if (!cropperSlide) return;
+    let finalUrl = croppedDataUrl;
+    try {
+      const res = await fetch(`${API_BASE_URL || ""}/api/upload`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token || ""}`,
+        },
+        body: JSON.stringify({
+          filename: `carrusel-${(cropperSlide.alt || "slide").replace(/\s+/g, "_")}-${Date.now()}.jpg`,
+          data: croppedDataUrl,
+        }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.url) finalUrl = json.url;
+      }
+    } catch (err) {
+      console.warn("Upload fallback to dataUrl", err);
+    }
+
+    const nextSlides = slides.map((s) => (s.id === cropperSlide.id ? { ...s, src: finalUrl } : s));
+    try {
+      await persistSlides(nextSlides);
+      setCropperSlide(null);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "No se pudo guardar la imagen ajustada.");
+    }
   }
 
   async function addSlide(data: NewSlide) {
@@ -335,10 +403,25 @@ export function AdminHome() {
               </div>
 
               {/* Thumbnail */}
-              <div className="w-32 h-20 flex-shrink-0 relative bg-gray-100">
+              <div
+                className={`w-32 h-20 flex-shrink-0 relative bg-stone-900 overflow-hidden ${
+                  slide.type === "image" ? "group cursor-pointer" : ""
+                }`}
+                title={slide.type === "image" ? "🎯 Clic para centrar o ajustar encuadre del carrusel" : ""}
+                onClick={() => {
+                  if (slide.type === "image") {
+                    setCropperSlide({ id: slide.id, src: slide.src, alt: slide.alt });
+                  }
+                }}
+              >
                 {slide.type === "image" ? (
-                  <img src={slide.src} alt={slide.alt} className="w-full h-full object-cover"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  <>
+                    <img src={slide.src} alt={slide.alt} className="w-full h-full object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                      <Crop size={16} className="text-amber-300" />
+                    </div>
+                  </>
                 ) : (
                   <>
                     {slide.poster && (
@@ -351,7 +434,7 @@ export function AdminHome() {
                   </>
                 )}
                 {/* Order badge */}
-                <span className="absolute top-1 left-1 w-5 h-5 rounded-full bg-black/50 text-white text-xs flex items-center justify-center font-bold">
+                <span className="absolute top-1 left-1 w-5 h-5 rounded-full bg-black/60 text-white text-xs flex items-center justify-center font-bold">
                   {i + 1}
                 </span>
               </div>
@@ -368,7 +451,17 @@ export function AdminHome() {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-1 px-3 border-l border-gray-100 flex-shrink-0">
+              <div className="flex items-center gap-1.5 px-3 border-l border-gray-100 flex-shrink-0">
+                {slide.type === "image" && (
+                  <button
+                    onClick={() => setCropperSlide({ id: slide.id, src: slide.src, alt: slide.alt })}
+                    className="p-1.5 px-2.5 rounded-xl text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300 transition-all font-bold text-xs inline-flex items-center gap-1.5 shadow-xs cursor-pointer hover:scale-102"
+                    title="🎯 Centrar o encuadrar imagen para el carrusel de inicio"
+                  >
+                    <Crop size={14} className="text-amber-700" />
+                    <span>Ajustar Imagen</span>
+                  </button>
+                )}
                 <button onClick={() => moveUp(i)} disabled={i === 0}
                   className="p-1.5 text-gray-400 hover:text-gray-700 disabled:opacity-30 rounded-lg hover:bg-gray-100 transition-colors" title="Subir">
                   <ChevronLeft size={16} className="rotate-90" />
@@ -414,6 +507,16 @@ export function AdminHome() {
       )}
 
       {showPreview && <PreviewModal slides={slides} onClose={() => setShowPreview(false)} />}
+
+      {cropperSlide && (
+        <ImageCropperModal
+          imageUrl={cropperSlide.src}
+          speciesName={cropperSlide.alt || "Slide del Carrusel"}
+          defaultAspectRatio="16/9"
+          onSave={handleSaveCroppedSlide}
+          onClose={() => setCropperSlide(null)}
+        />
+      )}
     </div>
   );
 }

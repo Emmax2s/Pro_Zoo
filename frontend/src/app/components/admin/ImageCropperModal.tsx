@@ -4,14 +4,15 @@ import { X, ZoomIn, ZoomOut, RotateCcw, Check, Move, ArrowUp, ArrowDown, ArrowLe
 interface ImageCropperModalProps {
   imageUrl: string;
   speciesName?: string;
+  defaultAspectRatio?: "16/9" | "4/3" | "1/1";
   onSave: (croppedDataUrl: string) => Promise<void> | void;
   onClose: () => void;
 }
 
-export function ImageCropperModal({ imageUrl, speciesName, onSave, onClose }: ImageCropperModalProps) {
+export function ImageCropperModal({ imageUrl, speciesName, defaultAspectRatio = "4/3", onSave, onClose }: ImageCropperModalProps) {
   const [zoom, setZoom] = useState<number>(1.1);
   const [position, setPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [aspectRatio, setAspectRatio] = useState<"4/3" | "1/1">("4/3");
+  const [aspectRatio, setAspectRatio] = useState<"16/9" | "4/3" | "1/1">(defaultAspectRatio);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isSaving, setIsSaving] = useState(false);
@@ -114,8 +115,8 @@ export function ImageCropperModal({ imageUrl, speciesName, onSave, onClose }: Im
 
     setIsSaving(true);
     try {
-      const outputWidth = aspectRatio === "4/3" ? 800 : 800;
-      const outputHeight = aspectRatio === "4/3" ? 600 : 800;
+      const outputWidth = aspectRatio === "16/9" ? 1600 : aspectRatio === "4/3" ? 1200 : 1000;
+      const outputHeight = aspectRatio === "16/9" ? 900 : aspectRatio === "4/3" ? 900 : 1000;
 
       const canvas = document.createElement("canvas");
       canvas.width = outputWidth;
@@ -195,13 +196,41 @@ export function ImageCropperModal({ imageUrl, speciesName, onSave, onClose }: Im
 
         {/* Body Content */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-5 bg-[#faf8f2]">
-          {/* Instrucciones y presets de alineación */}
+          {/* Instrucciones, formato de aspecto y presets de alineación */}
           <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-stone-200 shadow-xs">
-            <div className="flex items-center gap-2 text-xs font-bold text-stone-700">
-              <Sparkles className="w-4 h-4 text-amber-600" />
-              <span>Alineación rápida:</span>
+            {/* Selector de formato / aspecto */}
+            <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-xl text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setAspectRatio("16/9")}
+                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                  aspectRatio === "16/9" ? "bg-white text-emerald-800 shadow-xs font-black" : "text-stone-600 hover:text-stone-900"
+                }`}
+              >
+                16:9 Carrusel
+              </button>
+              <button
+                type="button"
+                onClick={() => setAspectRatio("4/3")}
+                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                  aspectRatio === "4/3" ? "bg-white text-emerald-800 shadow-xs font-black" : "text-stone-600 hover:text-stone-900"
+                }`}
+              >
+                4:3 Ficha
+              </button>
+              <button
+                type="button"
+                onClick={() => setAspectRatio("1/1")}
+                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                  aspectRatio === "1/1" ? "bg-white text-emerald-800 shadow-xs font-black" : "text-stone-600 hover:text-stone-900"
+                }`}
+              >
+                1:1 Cuadrada
+              </button>
             </div>
-            <div className="flex flex-wrap gap-1.5">
+
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-bold text-stone-500 mr-1 hidden sm:inline">Alineación:</span>
               <button
                 type="button"
                 onClick={() => applyPreset("center")}
@@ -215,7 +244,7 @@ export function ImageCropperModal({ imageUrl, speciesName, onSave, onClose }: Im
                 className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 transition-colors cursor-pointer flex items-center gap-1"
                 title="Alinea hacia arriba para no cortar la cabeza del animal"
               >
-                <ArrowUp className="w-3.5 h-3.5" /> Cabeza / Arriba
+                <ArrowUp className="w-3.5 h-3.5" /> Arriba
               </button>
               <button
                 type="button"
@@ -229,28 +258,28 @@ export function ImageCropperModal({ imageUrl, speciesName, onSave, onClose }: Im
                 onClick={() => applyPreset("left")}
                 className="px-3 py-1.5 rounded-lg text-xs font-bold bg-stone-100 hover:bg-stone-200 text-stone-800 transition-colors cursor-pointer flex items-center gap-1"
               >
-                <ArrowLeft className="w-3.5 h-3.5" /> Izquierda
+                <ArrowLeft className="w-3.5 h-3.5" /> Izq
               </button>
               <button
                 type="button"
                 onClick={() => applyPreset("right")}
                 className="px-3 py-1.5 rounded-lg text-xs font-bold bg-stone-100 hover:bg-stone-200 text-stone-800 transition-colors cursor-pointer flex items-center gap-1"
               >
-                <ArrowRight className="w-3.5 h-3.5" /> Derecha
+                <ArrowRight className="w-3.5 h-3.5" /> Der
               </button>
             </div>
           </div>
 
           {/* Interactive Crop Frame Viewport */}
-          <div className="relative mx-auto max-w-lg">
+          <div className="relative mx-auto max-w-2xl">
             <div
               ref={containerRef}
               onMouseDown={handleMouseDown}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
-              style={{ aspectRatio: aspectRatio === "4/3" ? "4/3" : "1/1" }}
-              className="relative w-full rounded-3xl overflow-hidden bg-stone-950 border-4 border-amber-900/40 shadow-xl cursor-grab active:cursor-grabbing select-none flex items-center justify-center touch-none"
+              style={{ aspectRatio: aspectRatio === "16/9" ? "16/9" : aspectRatio === "4/3" ? "4/3" : "1/1" }}
+              className="relative w-full rounded-3xl overflow-hidden bg-stone-950 border-4 border-amber-900/40 shadow-xl cursor-grab active:cursor-grabbing select-none flex items-center justify-center touch-none transition-[aspect-ratio] duration-200"
             >
               {/* Image rendered inside viewport with pan and zoom */}
               <img

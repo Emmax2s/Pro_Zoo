@@ -218,7 +218,7 @@ export function Home() {
           <div className="absolute inset-x-0 bottom-0 h-0.5 bg-black/45" />
         </div>
 
-        <div className="w-full h-[320px] xs:h-[360px] sm:h-[480px] md:h-[600px] lg:h-[720px] relative">
+        <div className="w-full h-[320px] xs:h-[360px] sm:h-[480px] md:h-[600px] lg:h-[720px] relative my-[2mm]">
           <HeroCarousel />
 
           {/* Botones solicitados en el carrusel (Imagen 2): Especies, Visita y Mapa */}

@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router";
-import { Search, ChevronDown, Menu, X, Shield, FileText, Lock } from "lucide-react";
+import { Search, ChevronDown, Menu, X } from "lucide-react";
 import { 
   loadStoredDocuments, 
   InstitutionalDocument 
 } from "../../services/documentStore";
 import { DocumentModal } from "../ui/DocumentModal";
-import logoZoomat from "../../../assets/logo-zoomat.png";
 import logoChiapasGob from "../../../assets/logo-chiapas-gob.png";
 import logoCoordinacionZoomat from "../../../assets/logo-coordinacion-zoomat.png";
 
@@ -48,7 +47,7 @@ export function ChiapasGlyph({ className = "w-7 h-7" }: { className?: string }) 
 }
 
 export function Navigation() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [transparencyOpen, setTransparencyOpen] = useState(false);
@@ -91,7 +90,6 @@ export function Navigation() {
     if (doc) {
       setSelectedDoc(doc);
     } else {
-      // Fallback
       setSelectedDoc({
         id,
         category: "transparencia",
@@ -114,11 +112,11 @@ export function Navigation() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 select-none shadow-md">
-        {/* 1. BARRA SUPERIOR INSTITUCIONAL (chiapas.gob.mx - FOTO 2) */}
-        <div className="bg-[#212529] text-white border-b border-white/10 font-sans">
-          <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between min-h-[54px] sm:min-h-[58px] h-[54px] sm:h-[58px] py-1 sm:py-1.5">
-            {/* Izquierda: Logotipo oficial chiapas.gob.mx en la esquina */}
+      <header className="sticky top-0 z-40 select-none shadow-md font-sans">
+        {/* 1. BARRA SUPERIOR INSTITUCIONAL (chiapas.gob.mx) */}
+        <div className="bg-[#212529] text-white border-b border-white/10">
+          <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between min-h-[48px] sm:min-h-[52px] h-[48px] sm:h-[52px] py-1">
+            {/* Logotipo oficial chiapas.gob.mx */}
             <a
               href="https://www.chiapas.gob.mx"
               target="_blank"
@@ -128,17 +126,17 @@ export function Navigation() {
               <img
                 src={logoChiapasGob}
                 alt="Chiapas.gob.mx"
-                className="h-8 sm:h-9 md:h-10 w-auto object-contain group-hover:opacity-90 transition-opacity"
+                className="h-7 sm:h-8 w-auto object-contain group-hover:opacity-90 transition-opacity"
               />
             </a>
 
-            {/* Derecha: Enlaces Rápidos del Gobierno y Búsqueda (18px) */}
+            {/* Enlaces Rápidos del Gobierno y Búsqueda */}
             <div className="flex items-center gap-5 sm:gap-7 md:gap-8 text-stone-200">
               <a
                 href="https://www.chiapas.gob.mx/tramites"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ fontSize: "18px" }}
+                style={{ fontSize: "16px" }}
                 className="text-stone-300 hover:text-white transition-colors font-normal hidden sm:inline"
               >
                 {t("nav.procedures")}
@@ -147,7 +145,7 @@ export function Navigation() {
                 href="https://www.chiapas.gob.mx/gobierno"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ fontSize: "18px" }}
+                style={{ fontSize: "16px" }}
                 className="text-stone-300 hover:text-white transition-colors font-normal hidden sm:inline"
               >
                 {t("nav.government")}
@@ -156,14 +154,14 @@ export function Navigation() {
                 href="https://www.chiapas.gob.mx/participa"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ fontSize: "18px" }}
+                style={{ fontSize: "16px" }}
                 className="text-stone-300 hover:text-white transition-colors font-normal hidden md:inline"
               >
                 {t("nav.participate")}
               </a>
               <button
                 onClick={() => openDocById("transparencia-portal")}
-                className="text-stone-300 hover:text-white transition-colors font-normal cursor-pointer text-xs sm:text-[18px] hidden xs:inline"
+                className="text-stone-300 hover:text-white transition-colors font-normal cursor-pointer text-xs sm:text-[16px] hidden xs:inline"
               >
                 {t("nav.transparency")}
               </button>
@@ -172,30 +170,30 @@ export function Navigation() {
                 className="p-1 hover:text-white transition-colors cursor-pointer"
                 aria-label={t("nav.search")}
               >
-                <Search className="w-5 h-5 text-stone-300 hover:text-white" />
+                <Search className="w-4 h-4 sm:w-5 sm:h-5 text-stone-300 hover:text-white" />
               </button>
             </div>
           </div>
         </div>
 
-        {/* 2. BARRA PRINCIPAL DE NAVEGACIÓN (LOGOTIPO EN ESQUINA, TODO EN UNA SOLA LÍNEA, 20px) */}
+        {/* 2. BARRA PRINCIPAL DE NAVEGACIÓN */}
         <div className="bg-white border-b border-stone-200 shadow-sm">
-          <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between min-h-[54px] sm:min-h-[58px] h-[54px] sm:h-[58px] py-1 gap-2 sm:gap-4">
+          <div className="w-full h-[1.5cm] min-h-0 px-4 sm:px-6 lg:px-8 flex items-center justify-between py-0 gap-2 sm:gap-4 overflow-hidden">
             
-            {/* IZQUIERDA: LOGOTIPO EN LA ESQUINA DE LA FILA */}
-            <Link to="/" className="flex items-center flex-shrink-0 group h-full py-0.5">
+            {/* IZQUIERDA: LOGO OPTIMIZADO SIN SOBRESALIR */}
+            <Link to="/" className="flex items-center h-full max-h-full flex-shrink-0 py-0.5 group">
               <img
                 src={logoCoordinacionZoomat}
                 alt={t("nav.coordinationAlt")}
-                className="h-full max-h-[48px] sm:max-h-[52px] w-auto object-contain group-hover:opacity-95 transition-opacity"
+                className="h-[1.25cm] max-h-[1.25cm] w-auto object-contain object-left block group-hover:scale-105 transition-transform duration-200"
               />
             </Link>
 
-            {/* DERECHA: ENLACES DEL MENÚ EN UNA SOLA LÍNEA (20px, SIN NEGRITA) */}
+            {/* DERECHA: ENLACES DE NAVEGACIÓN */}
             <nav className="hidden lg:flex items-center flex-nowrap whitespace-nowrap gap-2 sm:gap-3 md:gap-4 xl:gap-5.5 2xl:gap-7 text-stone-800">
               <Link
                 to="/"
-                style={{ fontSize: "17px" }}
+                style={{ fontSize: "16px" }}
                 className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
                   isActive("/") && location.pathname === "/" ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}
@@ -205,7 +203,7 @@ export function Navigation() {
 
               <Link
                 to="/nosotros"
-                style={{ fontSize: "17px" }}
+                style={{ fontSize: "16px" }}
                 className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer ${
                   isActive("/nosotros") || isActive("/quienes-somos") ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}
@@ -215,7 +213,7 @@ export function Navigation() {
 
               <Link
                 to="/especies"
-                style={{ fontSize: "17px" }}
+                style={{ fontSize: "16px" }}
                 className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer ${
                   isActive("/especies") || isActive("/especie") || isActive("/animales") ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}
@@ -225,7 +223,7 @@ export function Navigation() {
 
               <Link
                 to="/comite-de-etica"
-                style={{ fontSize: "17px" }}
+                style={{ fontSize: "16px" }}
                 className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer ${
                   isActive("/comite-de-etica") || isActive("/codigo-de-etica") ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}
@@ -233,7 +231,7 @@ export function Navigation() {
                 {t("nav.ethics")}
               </Link>
 
-              {/* DROPDOWN TRANSPARENCIA (FOTO 4 - 14 ELEMENTOS) */}
+              {/* DROPDOWN TRANSPARENCIA */}
               <div
                 ref={transparencyRef}
                 className="relative"
@@ -242,7 +240,7 @@ export function Navigation() {
               >
                 <button
                   onClick={() => setTransparencyOpen(!transparencyOpen)}
-                  style={{ fontSize: "17px" }}
+                  style={{ fontSize: "16px" }}
                   className={`flex items-center gap-1 py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer ${
                     transparencyOpen ? "text-[#731c34] font-medium" : "text-stone-800"
                   }`}
@@ -252,7 +250,7 @@ export function Navigation() {
                 </button>
 
                 {transparencyOpen && (
-                  <div className="absolute left-0 top-full mt-1 w-80 bg-white rounded-xl shadow-2xl border border-stone-200 py-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 font-sans">
+                  <div className="absolute left-0 top-full mt-1 w-80 bg-white rounded-xl shadow-2xl border border-stone-200 py-2.5 z-50 animate-in fade-in zoom-in-95 duration-150">
                     <div className="px-4 py-1.5 mb-1 border-b border-stone-100 flex items-center justify-between text-xs font-bold text-stone-500 uppercase tracking-wider">
                       <span>{t("nav.transparencyPortal")}</span>
                       <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[11px]">14</span>
@@ -262,8 +260,8 @@ export function Navigation() {
                         <button
                           key={item.id}
                           onClick={() => openDocById(item.id)}
-                          style={{ fontSize: "15px" }}
-                          className="w-full text-left px-4 py-2.5 text-stone-700 hover:bg-stone-50 hover:text-[#731c34] transition-colors flex items-center justify-between group cursor-pointer font-sans font-normal"
+                          style={{ fontSize: "14px" }}
+                          className="w-full text-left px-4 py-2 text-stone-700 hover:bg-stone-50 hover:text-[#731c34] transition-colors flex items-center justify-between group cursor-pointer font-normal"
                         >
                           <span className="group-hover:text-[#731c34]">{item.title}</span>
                           {item.pdfUrl ? (
@@ -276,7 +274,7 @@ export function Navigation() {
                 )}
               </div>
 
-              {/* DROPDOWN DATOS PERSONALES (FOTO 3 - 2 ELEMENTOS) */}
+              {/* DROPDOWN DATOS PERSONALES */}
               <div
                 ref={datosRef}
                 className="relative"
@@ -285,7 +283,7 @@ export function Navigation() {
               >
                 <button
                   onClick={() => setDatosPersonalesOpen(!datosPersonalesOpen)}
-                  style={{ fontSize: "17px" }}
+                  style={{ fontSize: "16px" }}
                   className={`flex items-center gap-1 py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer ${
                     datosPersonalesOpen ? "text-[#731c34] font-medium" : "text-stone-800"
                   }`}
@@ -316,10 +314,9 @@ export function Navigation() {
                 )}
               </div>
 
-              {/* ENLACE RESTANTE: CONTACTO (Animales, Visita y Mapa se colocaron en el carrusel de inicio) */}
               <Link
                 to="/contacto"
-                style={{ fontSize: "17px" }}
+                style={{ fontSize: "16px" }}
                 className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap ${
                   isActive("/contacto") ? "text-[#731c34] font-medium" : "text-stone-800"
                 }`}
@@ -328,20 +325,18 @@ export function Navigation() {
               </Link>
             </nav>
 
-              {/* BOTÓN MÓVIL / PANTALLAS MEDIANAS */}
-              <div className="lg:hidden flex items-center gap-2">
-                <button
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="p-2.5 rounded-xl text-stone-800 hover:text-[#731c34] hover:bg-stone-100 transition-colors cursor-pointer"
-                  aria-label="Abrir menú"
-                >
-                  {mobileMenuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
-                </button>
-              </div>
+            <div className="lg:hidden flex items-center gap-2">
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2.5 rounded-xl text-stone-800 hover:text-[#731c34] hover:bg-stone-100 transition-colors cursor-pointer"
+                aria-label="Abrir menú"
+              >
+                {mobileMenuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
+              </button>
             </div>
           </div>
+        </div>
 
-        {/* MENÚ MÓVIL DESPLEGABLE */}
         {mobileMenuOpen && (
           <div className="lg:hidden bg-white border-b-2 border-[#731c34] shadow-2xl px-6 py-5 space-y-3.5 max-h-[80vh] overflow-y-auto">
             <Link
@@ -351,7 +346,6 @@ export function Navigation() {
             >
               Inicio
             </Link>
-
             <Link
               to="/nosotros"
               onClick={() => setMobileMenuOpen(false)}
@@ -359,7 +353,6 @@ export function Navigation() {
             >
               Quienes somos
             </Link>
-
             <Link
               to="/especies"
               onClick={() => setMobileMenuOpen(false)}
@@ -367,7 +360,6 @@ export function Navigation() {
             >
               Especies
             </Link>
-
             <Link
               to="/comite-de-etica"
               onClick={() => setMobileMenuOpen(false)}
@@ -375,7 +367,6 @@ export function Navigation() {
             >
               Comité de Ética
             </Link>
-
             <Link
               to="/contacto"
               onClick={() => setMobileMenuOpen(false)}
@@ -383,8 +374,6 @@ export function Navigation() {
             >
               Contacto
             </Link>
-
-            {/* Apartado Móvil Transparencia */}
             <div className="border-t border-stone-100 pt-2">
               <p className="text-xs font-bold text-[#731c34] uppercase tracking-wider mb-1">
                 Transparencia (14 apartados)
@@ -401,8 +390,6 @@ export function Navigation() {
                 ))}
               </div>
             </div>
-
-            {/* Apartado Móvil Datos Personales */}
             <div className="border-t border-stone-100 pt-2">
               <p className="text-xs font-bold text-[#731c34] uppercase tracking-wider mb-1">
                 Datos Personales
@@ -419,12 +406,10 @@ export function Navigation() {
                 ))}
               </div>
             </div>
-
           </div>
         )}
       </header>
 
-      {/* Modal Institucional para Ver o Descargar Documentos PDF */}
       <DocumentModal
         document={selectedDoc}
         onClose={() => setSelectedDoc(null)}

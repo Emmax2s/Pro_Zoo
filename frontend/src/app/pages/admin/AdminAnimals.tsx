@@ -724,7 +724,6 @@ export function AdminAnimals() {
         species: data.scientificName,
         category: data.category,
         enclosureId: data.enclosureId,
-        isVisibleToPublic: data.isVisibleToPublic,
         habitat: data.habitat,
         imageUrl: data.image,
         conservation: data.status,
@@ -734,6 +733,9 @@ export function AdminAnimals() {
         mediaImages: data.mediaImages.slice(0, 4),
         mediaVideos: data.mediaVideos.slice(0, 2),
         lsmVideoUrl: data.lsmVideoUrl,
+        ...(currentUser.role === "superadmin"
+          ? { isVisibleToPublic: data.isVisibleToPublic }
+          : {}),
       };
       try {
         const response = await fetch(

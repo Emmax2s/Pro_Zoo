@@ -305,7 +305,13 @@ function AnimalModal({
       : [];
 
     const saved = currentUser.role === "enclosure_admin"
-      ? { ...form, enclosureId: animal.enclosureId || userEnclosureIds[0] || null, isVisibleToPublic: animal.isVisibleToPublic !== false }
+      ? {
+          ...form,
+          enclosureId: userEnclosureIds.includes(String(form.enclosureId))
+            ? form.enclosureId
+            : userEnclosureIds[0] || null,
+          isVisibleToPublic: animal.isVisibleToPublic !== false,
+        }
       : form;
     onSave(saved);
   }
@@ -541,9 +547,17 @@ function AnimalModal({
               Recinto
             </label>
             {currentUser.role === "enclosure_admin" ? (
-              <div className="px-3.5 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-600 text-sm">
-                {availableEnclosures[0]?.icon} {availableEnclosures[0]?.name} — asignado automáticamente
-              </div>
+              <select
+                name="enclosureId"
+                value={form.enclosureId ?? ""}
+                onChange={handle}
+                required
+                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+              >
+                {availableEnclosures.map((enc) => (
+                  <option key={enc.id} value={enc.id}>{enc.icon} {enc.name}</option>
+                ))}
+              </select>
             ) : (
               <select
                 name="enclosureId"
@@ -1143,7 +1157,10 @@ export function AdminAnimals() {
 
       {modalState.open && (
         <AnimalModal
-          animal={modalState.animal ?? { ...emptyForm, enclosureId: currentUser.role === "enclosure_admin" ? currentUser.enclosureId : null }}
+          animal={modalState.animal ?? {
+            ...emptyForm,
+            enclosureId: currentUser.role === "enclosure_admin" ? userEnclosureIds[0] || null : null,
+          }}
           onSave={handleSave}
           onClose={() => setModalState({ open: false, animal: null })}
         />

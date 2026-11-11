@@ -70,11 +70,10 @@ const requireSpeciesMutationPermission = async (req, res, next) => {
       if (!assigned.includes(String(current.rows[0].enclosure_id))) {
         return res.status(403).json({ message: 'No tienes acceso a este recinto.' });
       }
-      if (
-        req.body.enclosureId !== undefined &&
-        String(req.body.enclosureId) !== String(current.rows[0].enclosure_id)
-      ) {
-        return res.status(403).json({ message: 'Solo un superadministrador puede reasignar recintos.' });
+      if (req.body.enclosureId !== undefined) {
+        if (!req.body.enclosureId || !assigned.includes(String(req.body.enclosureId))) {
+          return res.status(403).json({ message: 'Solo puedes asignar la especie a un recinto que tengas asignado.' });
+        }
       }
       if (req.body.isVisibleToPublic !== undefined) {
         return res.status(403).json({ message: 'Solo un superadministrador puede cambiar la visibilidad pública.' });

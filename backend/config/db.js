@@ -69,15 +69,31 @@ export const ensureDatabaseSchema = async () => {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
-    INSERT INTO enclosures (id, name, description, color, icon) VALUES
-      ('felinos', 'Felinos', 'Hábitat de grandes felinos chiapanecos', 'bg-orange-500', '🐆'),
-      ('vivario', 'Vivario', 'Reptiles y anfibios de la región', 'bg-emerald-600', '🐍'),
-      ('aviario', 'Aviario', 'Aves tropicales y rapaces', 'bg-sky-500', '🦜'),
-      ('nocturnario', 'Nocturnario', 'Especies de hábitos nocturnos', 'bg-indigo-600', '🦇'),
-      ('herpetario', 'Herpetario', 'Colección herpetológica', 'bg-teal-600', '🦎'),
-      ('acuario', 'Acuario', 'Fauna acuática dulceacuícola', 'bg-blue-600', '🐟'),
-      ('mariposario', 'Mariposario', 'Mariposas nativas de Chiapas', 'bg-pink-600', '🦋')
-    ON CONFLICT (id) DO NOTHING;
+    UPDATE species AS s
+    SET enclosure_id = registered.id
+    FROM enclosures AS legacy
+    JOIN enclosures AS registered
+      ON LOWER(registered.id) = LOWER(legacy.id)
+     AND registered.id <> legacy.id
+    WHERE s.enclosure_id = legacy.id;
+
+    UPDATE admin_users AS u
+    SET enclosure_id = registered.id
+    FROM enclosures AS legacy
+    JOIN enclosures AS registered
+      ON LOWER(registered.id) = LOWER(legacy.id)
+     AND registered.id <> legacy.id
+    WHERE u.enclosure_id = legacy.id;
+
+    DELETE FROM enclosures AS legacy
+    WHERE LOWER(legacy.id) IN ('felinos', 'vivario', 'aviario', 'nocturnario', 'herpetario', 'acuario', 'mariposario')
+      AND EXISTS (
+        SELECT 1
+        FROM enclosures AS registered
+        WHERE LOWER(registered.id) = LOWER(legacy.id)
+          AND registered.id <> legacy.id
+      );
+
   `);
 };
 

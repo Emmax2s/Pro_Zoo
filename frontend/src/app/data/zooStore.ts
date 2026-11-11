@@ -78,13 +78,6 @@ export interface AdminAuditLog {
 // ── Enclosures ──────────────────────────────────────────────────────────────
 
 export const DEFAULT_ENCLOSURES: Enclosure[] = [
-  { id: "felinos", name: "Felinos", description: "Hábitat de grandes felinos chiapanecos", color: "bg-orange-500", icon: "🐆" },
-  { id: "vivario", name: "Vivario", description: "Reptiles y anfibios de la región", color: "bg-emerald-600", icon: "🐍" },
-  { id: "aviario", name: "Aviario", description: "Aves tropicales y rapaces", color: "bg-sky-500", icon: "🦜" },
-  { id: "nocturnario", name: "Nocturnario", description: "Especies de hábitos nocturnos", color: "bg-indigo-600", icon: "🦇" },
-  { id: "herpetario", name: "Herpetario", description: "Colección herpetológica", color: "bg-teal-600", icon: "🦎" },
-  { id: "acuario", name: "Acuario", description: "Fauna acuática dulceacuícola", color: "bg-blue-600", icon: "🐟" },
-  { id: "mariposario", name: "Mariposario", description: "Mariposas nativas de Chiapas", color: "bg-pink-600", icon: "🦋" },
 ];
 
 // ── Animals ─────────────────────────────────────────────────────────────────
@@ -110,15 +103,6 @@ export const INITIAL_USERS: ZooUser[] = [
     role: "superadmin",
     enclosureId: null,
     enclosureIds: [],
-    status: "Activo",
-  },
-  {
-    id: 3,
-    name: "Jesús dom5",
-    email: "Vader8983@gmail.com",
-    role: "enclosure_admin",
-    enclosureId: "felinos",
-    enclosureIds: ["felinos"],
     status: "Activo",
   },
 ];

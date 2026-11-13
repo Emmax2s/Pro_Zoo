@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Search, X, AlertTriangle, MapPin, Volume2, QrCode, Download, Hand, Crop, Sparkles, Star, Check } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, X, AlertTriangle, MapPin, Volume2, QrCode, Download, Hand, Crop, Sparkles, Star, Check, Upload, Video } from "lucide-react";
 import QRCode from "qrcode";
 import { useZoo } from "../../context/ZooContext";
 import { useAuth } from "../../context/AuthContext";
@@ -330,296 +330,427 @@ function AnimalModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
       <div
-        className="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="relative bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white z-10">
-          <h2 className="text-xl font-bold text-gray-900">
-            {isEditing ? "Editar Especie" : "Nueva Especie"}
-          </h2>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white z-10 shadow-xs">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">
+              {isEditing ? "Editar Especie" : "Nueva Especie"}
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {isEditing ? "Modifica los datos y recursos multimedia de la especie" : "Completa la ficha técnica para registrar un nuevo ejemplar"}
+            </p>
+          </div>
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
             <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                Nombre Común <span className="text-red-500">*</span>
-              </label>
-              <input
-                name="name" value={form.name} onChange={handle} required
-                placeholder="Nombre común de la especie"
-                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Columna Izquierda: Información de la Especie (7 cols) */}
+            <div className="lg:col-span-7 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                  Nombre Común <span className="text-red-500">*</span>
+                </label>
+                <input
+                  name="name"
+                  value={form.name}
+                  onChange={handle}
+                  required
+                  placeholder="Nombre común de la especie"
+                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                  Nombre Científico
+                </label>
+                <input
+                  name="scientificName"
+                  value={form.scientificName}
+                  onChange={handle}
+                  placeholder="ej. Panthera onca"
+                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 italic text-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Categoría</label>
+                  <select
+                    name="category"
+                    value={form.category}
+                    onChange={handle}
+                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-sm"
+                  >
+                    {ANIMAL_CATEGORIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Estado de Conservación</label>
+                  <select
+                    name="status"
+                    value={form.status}
+                    onChange={handle}
+                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-sm"
+                  >
+                    {CONSERVATION_STATUSES.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Recinto */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                  <MapPin className="inline w-3.5 h-3.5 mr-1 text-emerald-700" />
+                  Recinto
+                </label>
+                {currentUser.role === "enclosure_admin" ? (
+                  <select
+                    name="enclosureId"
+                    value={form.enclosureId ?? ""}
+                    onChange={handle}
+                    required
+                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-sm"
+                  >
+                    {availableEnclosures.map((enc) => (
+                      <option key={enc.id} value={enc.id}>
+                        {enc.icon ? `${enc.icon} ` : ""}{enc.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <select
+                    name="enclosureId"
+                    value={form.enclosureId ?? ""}
+                    onChange={handle}
+                    disabled={currentUser.role !== "superadmin"}
+                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-sm"
+                  >
+                    <option value="">Sin recinto asignado</option>
+                    {enclosures.map((enc) => (
+                      <option key={enc.id} value={enc.id}>
+                        {enc.icon ? `${enc.icon} ` : ""}{enc.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Hábitat</label>
+                  <input
+                    name="habitat"
+                    value={form.habitat}
+                    onChange={handle}
+                    placeholder="ej. Selvas tropicales de Chiapas"
+                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Dieta</label>
+                  <input
+                    name="diet"
+                    value={form.diet}
+                    onChange={handle}
+                    placeholder="ej. Carnívoro: pecaríes, venados..."
+                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Audio URL Input Field */}
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 uppercase tracking-wider mb-1.5">
+                  <Volume2 className="w-4 h-4 text-emerald-600" />
+                  URL de Audio de la Especie (MP3 / Sonido Real)
+                </label>
+                <input
+                  name="audioUrl"
+                  value={form.audioUrl || ""}
+                  onChange={handle}
+                  placeholder="https://ejemplo.com/audio-jaguar.mp3"
+                  className="w-full px-3.5 py-2.5 border border-emerald-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-emerald-50/40 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Datos Curiosos</label>
+                <textarea
+                  name="funFact"
+                  value={form.funFact}
+                  onChange={handle}
+                  rows={3}
+                  placeholder="Un dato interesante sobre esta especie..."
+                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none text-sm"
+                />
+              </div>
             </div>
 
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4 space-y-4">
-              <div>
-                <p className="text-sm font-bold text-emerald-950">Galería multimedia</p>
-                <p className="text-xs text-emerald-800">Sube hasta 4 imágenes y 2 videos.</p>
-              </div>
-              <label className="block text-xs font-bold text-gray-600">
-                Imágenes ({form.mediaImages.length}/4)
-                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple
-                  disabled={form.mediaImages.length >= 4}
-                  onChange={(event) => void uploadMediaFiles(event.target.files, "image")}
-                  className="mt-1 block w-full text-sm" />
-              </label>
-              <label className="block text-xs font-bold text-gray-600">
-                Videos ({form.mediaVideos.length}/2)
-                <input type="file" accept="video/mp4" multiple
-                  disabled={form.mediaVideos.length >= 2}
-                  onChange={(event) => void uploadMediaFiles(event.target.files, "video")}
-                  className="mt-1 block w-full text-sm" />
-              </label>
-              <div className="flex gap-2">
-                <input
-                  value={videoUrl}
-                  onChange={(event) => setVideoUrl(event.target.value)}
-                  placeholder="https://sitio.com/video.mp4"
-                  className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={addVideoUrl}
-                  disabled={form.mediaVideos.length >= 2}
-                  className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-bold text-white disabled:opacity-50"
-                >
-                  Agregar URL
-                </button>
-              </div>
-              {/* Foto Principal de Portada */}
-              {form.image && (
-                <div className="bg-white p-3 rounded-xl border border-emerald-300 shadow-xs space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
-                      <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" /> Foto Principal (Portada de Ficha)
+            {/* Columna Derecha: Galería Multimedia (5 cols) */}
+            <div className="lg:col-span-5 space-y-4">
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4 sm:p-5 space-y-4 shadow-xs">
+                <div>
+                  <p className="text-sm font-bold text-emerald-950 flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    Galería multimedia
+                  </p>
+                  <p className="text-xs text-emerald-800 mt-0.5">Sube hasta 4 imágenes y 2 videos oficiales.</p>
+                </div>
+
+                {/* Botón Cargar Imágenes estilizado */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      Imágenes ({form.mediaImages.length}/4)
                     </span>
+                    {form.mediaImages.length >= 4 && (
+                      <span className="text-[11px] text-amber-700 font-bold">Máximo alcanzado</span>
+                    )}
+                  </div>
+                  <label
+                    className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs ${
+                      form.mediaImages.length >= 4
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
+                        : "bg-emerald-700 hover:bg-emerald-800 text-white cursor-pointer hover:shadow-md active:scale-[0.98]"
+                    }`}
+                  >
+                    <Upload size={16} />
+                    <span>{form.mediaImages.length >= 4 ? "Máximo 4 imágenes alcanzado" : "Cargar Imágenes"}</span>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      multiple
+                      disabled={form.mediaImages.length >= 4}
+                      onChange={(event) => {
+                        void uploadMediaFiles(event.target.files, "image");
+                        event.target.value = "";
+                      }}
+                      className="sr-only"
+                    />
+                  </label>
+                </div>
+
+                {/* Botón Cargar Videos y URL estilizados */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      Videos ({form.mediaVideos.length}/2)
+                    </span>
+                    {form.mediaVideos.length >= 2 && (
+                      <span className="text-[11px] text-amber-700 font-bold">Máximo alcanzado</span>
+                    )}
+                  </div>
+                  <label
+                    className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs ${
+                      form.mediaVideos.length >= 2
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
+                        : "bg-emerald-700 hover:bg-emerald-800 text-white cursor-pointer hover:shadow-md active:scale-[0.98]"
+                    }`}
+                  >
+                    <Video size={16} />
+                    <span>{form.mediaVideos.length >= 2 ? "Máximo 2 videos alcanzado" : "Cargar Videos (MP4)"}</span>
+                    <input
+                      type="file"
+                      accept="video/mp4"
+                      multiple
+                      disabled={form.mediaVideos.length >= 2}
+                      onChange={(event) => {
+                        void uploadMediaFiles(event.target.files, "video");
+                        event.target.value = "";
+                      }}
+                      className="sr-only"
+                    />
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      value={videoUrl}
+                      onChange={(event) => setVideoUrl(event.target.value)}
+                      placeholder="https://sitio.com/video.mp4"
+                      disabled={form.mediaVideos.length >= 2}
+                      className="min-w-0 flex-1 rounded-xl border border-gray-300 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                    />
                     <button
                       type="button"
-                      onClick={() => setCropperState({ open: true, imageUrl: form.image })}
-                      className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-xs cursor-pointer hover:scale-105"
+                      onClick={addVideoUrl}
+                      disabled={form.mediaVideos.length >= 2}
+                      className="rounded-xl bg-emerald-700 hover:bg-emerald-800 px-3.5 py-2 text-xs font-bold text-white disabled:opacity-50 transition-colors shadow-xs shrink-0 cursor-pointer"
                     >
-                      <Crop className="w-3.5 h-3.5" /> 🎯 Centrar / Ajustar
+                      Agregar URL
                     </button>
                   </div>
-                  <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden bg-stone-900 border border-stone-200">
-                    <img src={form.image} alt="Portada" className="h-full w-full object-cover object-center" />
-                  </div>
                 </div>
-              )}
 
-              {/* Miniaturas de la Galería con Acciones */}
-              <div className="space-y-1.5">
-                <span className="text-[11px] font-bold text-stone-600 uppercase tracking-wider">Miniaturas cargadas:</span>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {form.mediaImages.map((url, index) => {
-                    const isCover = form.image === url;
-                    return (
-                      <div key={url} className="relative aspect-square overflow-hidden rounded-xl bg-stone-900 border-2 border-stone-200 group">
-                        <img src={url} alt={`Imagen ${index + 1}`} className="h-full w-full object-cover object-center" />
-                        {isCover && (
-                          <span className="absolute top-1 left-1 bg-amber-500 text-stone-950 font-black text-[9px] px-1.5 py-0.5 rounded shadow-xs uppercase">
-                            Portada
-                          </span>
-                        )}
-                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-1">
-                          <button
-                            type="button"
-                            onClick={() => setCropperState({ open: true, imageUrl: url, imageIndex: index })}
-                            className="w-full py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-bold transition-colors cursor-pointer flex items-center justify-center gap-1"
-                          >
-                            <Crop className="w-3 h-3" /> Centrar
-                          </button>
-                          {!isCover && (
-                            <button
-                              type="button"
-                              onClick={() => setForm((p) => ({ ...p, image: url }))}
-                              className="w-full py-0.5 bg-amber-500 hover:bg-amber-600 text-stone-950 rounded text-[9px] font-bold transition-colors cursor-pointer"
-                            >
-                              Hacer Portada
-                            </button>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setForm((p) => ({ ...p, mediaImages: p.mediaImages.filter((_, i) => i !== index), image: p.mediaImages.filter((_, i) => i !== index)[0] || "" }))}
-                          className="absolute right-1 top-1 rounded-full bg-red-600/90 hover:bg-red-700 p-1 text-[10px] text-white transition-colors cursor-pointer"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    );
-                  })}
-                  {form.mediaVideos.map((url, index) => (
-                    <div key={url} className="relative aspect-square overflow-hidden rounded-xl bg-gray-900">
-                      <video src={url} muted playsInline controls className="h-full w-full object-cover" />
+                {/* Foto Principal de Portada */}
+                {form.image && (
+                  <div className="bg-white p-3 rounded-xl border border-emerald-300 shadow-xs space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
+                        <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" /> Foto Principal (Portada)
+                      </span>
                       <button
                         type="button"
-                        onClick={() => setForm((p) => ({ ...p, mediaVideos: p.mediaVideos.filter((_, i) => i !== index) }))}
-                        className="absolute right-1 top-1 rounded-full bg-red-600 px-2 py-1 text-xs text-white"
+                        onClick={() => setCropperState({ open: true, imageUrl: form.image })}
+                        className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-xs cursor-pointer hover:scale-105"
+                      >
+                        <Crop className="w-3.5 h-3.5" /> Centrar / Ajustar
+                      </button>
+                    </div>
+                    <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden bg-stone-900 border border-stone-200">
+                      <img src={form.image} alt="Portada" className="h-full w-full object-cover object-center" />
+                    </div>
+                  </div>
+                )}
+
+                {/* Miniaturas de la Galería */}
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-bold text-stone-600 uppercase tracking-wider">Miniaturas cargadas:</span>
+                  {form.mediaImages.length === 0 && form.mediaVideos.length === 0 ? (
+                    <p className="text-xs text-gray-400 italic">No hay archivos multimedia cargados aún.</p>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {form.mediaImages.map((url, index) => {
+                        const isCover = form.image === url;
+                        return (
+                          <div key={url} className="relative aspect-square overflow-hidden rounded-xl bg-stone-900 border-2 border-stone-200 group">
+                            <img src={url} alt={`Imagen ${index + 1}`} className="h-full w-full object-cover object-center" />
+                            {isCover && (
+                              <span className="absolute top-1 left-1 bg-amber-500 text-stone-950 font-black text-[9px] px-1.5 py-0.5 rounded shadow-xs uppercase">
+                                Portada
+                              </span>
+                            )}
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-1">
+                              <button
+                                type="button"
+                                onClick={() => setCropperState({ open: true, imageUrl: url, imageIndex: index })}
+                                className="w-full py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-bold transition-colors cursor-pointer flex items-center justify-center gap-1"
+                              >
+                                <Crop className="w-3 h-3" /> Centrar
+                              </button>
+                              {!isCover && (
+                                <button
+                                  type="button"
+                                  onClick={() => setForm((p) => ({ ...p, image: url }))}
+                                  className="w-full py-0.5 bg-amber-500 hover:bg-amber-600 text-stone-950 rounded text-[9px] font-bold transition-colors cursor-pointer"
+                                >
+                                  Portada
+                                </button>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setForm((p) => {
+                                  const filtered = p.mediaImages.filter((_, i) => i !== index);
+                                  return {
+                                    ...p,
+                                    mediaImages: filtered,
+                                    image: isCover ? filtered[0] || "" : p.image,
+                                  };
+                                })
+                              }
+                              className="absolute right-1 top-1 rounded-full bg-red-600 hover:bg-red-700 p-1 text-[10px] text-white transition-colors cursor-pointer shadow-xs"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                      {form.mediaVideos.map((url, index) => (
+                        <div key={url} className="relative aspect-square overflow-hidden rounded-xl bg-gray-900 border border-gray-300">
+                          <video src={url} muted playsInline controls className="h-full w-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setForm((p) => ({ ...p, mediaVideos: p.mediaVideos.filter((_, i) => i !== index) }))}
+                            className="absolute right-1 top-1 rounded-full bg-red-600 hover:bg-red-700 px-2 py-0.5 text-xs text-white shadow-xs cursor-pointer"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Sección Video LSM */}
+                <div className="border-t border-emerald-200 pt-3.5 space-y-2.5">
+                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-950">
+                    <Hand className="h-4 w-4 text-amber-500" />
+                    <span>Video en lengua de señas (LSM)</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      value={lsmVideoUrl}
+                      onChange={(event) => setLsmVideoUrl(event.target.value)}
+                      placeholder="https://video.zoologico.mx/lsm/puma"
+                      className="min-w-0 flex-1 rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={addLsmVideoUrl}
+                      className="rounded-xl bg-emerald-700 hover:bg-emerald-800 px-3.5 py-2 text-xs font-bold text-white transition-colors shadow-xs shrink-0 cursor-pointer"
+                    >
+                      Guardar URL
+                    </button>
+                  </div>
+                  <label className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white cursor-pointer transition-all shadow-xs hover:shadow-md active:scale-[0.98]">
+                    <Hand size={16} className="text-amber-300" />
+                    <span>Cargar Video LSM desde equipo</span>
+                    <input
+                      type="file"
+                      accept="video/mp4,video/webm,video/quicktime"
+                      className="sr-only"
+                      onChange={(event) => {
+                        void uploadMediaFiles(event.target.files, "lsm");
+                        event.target.value = "";
+                      }}
+                    />
+                  </label>
+                  <p className="text-[10px] text-emerald-700">Formatos locales: MP4, WebM o MOV. Proporción 16:9.</p>
+                  {form.lsmVideoUrl ? (
+                    <div className="relative overflow-hidden rounded-xl bg-slate-950 mt-2">
+                      <video src={form.lsmVideoUrl} muted playsInline controls className="aspect-video w-full object-contain" />
+                      <button
+                        type="button"
+                        onClick={() => setForm((previous) => ({ ...previous, lsmVideoUrl: "" }))}
+                        className="absolute right-2 top-2 rounded-full bg-red-600 hover:bg-red-700 px-2 py-1 text-xs text-white shadow-xs cursor-pointer"
                       >
                         ×
                       </button>
                     </div>
-                  ))}
+                  ) : null}
                 </div>
               </div>
-              <div className="border-t border-emerald-200 pt-4 space-y-3">
-                <div className="flex items-center gap-2 text-sm font-bold text-emerald-950">
-                  <Hand className="h-4 w-4 text-amber-500" />
-                  <span>Video en lengua de señas (LSM)</span>
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    value={lsmVideoUrl}
-                    onChange={(event) => setLsmVideoUrl(event.target.value)}
-                    placeholder="https://video.zoologico.mx/lsm/puma"
-                    className="min-w-0 flex-1 rounded-lg border border-emerald-300 bg-white px-3 py-2 text-sm"
-                  />
-                  <button
-                    type="button"
-                    onClick={addLsmVideoUrl}
-                    className="rounded-lg border border-emerald-500 px-3 py-2 text-xs font-bold text-emerald-800"
-                  >
-                    Guardar URL
-                  </button>
-                </div>
-                <label className="flex cursor-pointer items-center justify-center rounded-lg border border-dashed border-emerald-500 px-3 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-50">
-                  <input
-                    type="file"
-                    accept="video/mp4,video/webm,video/quicktime"
-                    className="sr-only"
-                    onChange={(event) => void uploadMediaFiles(event.target.files, "lsm")}
-                  />
-                  Subir video LSM desde el equipo
-                </label>
-                <p className="text-[10px] text-emerald-700">Formatos locales: MP4, WebM o MOV. Proporción recomendada 16:9.</p>
-                {form.lsmVideoUrl ? (
-                  <div className="relative overflow-hidden rounded-lg bg-slate-950">
-                    <video src={form.lsmVideoUrl} muted playsInline controls className="aspect-video w-full object-contain" />
-                    <button
-                      type="button"
-                      onClick={() => setForm((previous) => ({ ...previous, lsmVideoUrl: "" }))}
-                      className="absolute right-2 top-2 rounded-full bg-red-600 px-2 py-1 text-xs text-white"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                Nombre Científico
-              </label>
-              <input
-                name="scientificName" value={form.scientificName} onChange={handle}
-                placeholder="ej. Panthera onca"
-                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 italic"
-              />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Categoría</label>
-              <select name="category" value={form.category} onChange={handle}
-                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                {ANIMAL_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Estado de Conservación</label>
-              <select name="status" value={form.status} onChange={handle}
-                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                {CONSERVATION_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-          </div>
-
-          {/* Enclosure */}
-          <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-              <MapPin className="inline w-3.5 h-3.5 mr-1" />
-              Recinto
-            </label>
-            {currentUser.role === "enclosure_admin" ? (
-              <select
-                name="enclosureId"
-                value={form.enclosureId ?? ""}
-                onChange={handle}
-                required
-                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-              >
-                {availableEnclosures.map((enc) => (
-                  <option key={enc.id} value={enc.id}>{enc.icon} {enc.name}</option>
-                ))}
-              </select>
-            ) : (
-              <select
-                name="enclosureId"
-                value={form.enclosureId ?? ""}
-                onChange={handle}
-                disabled={currentUser.role !== "superadmin"}
-                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-              >
-                <option value="">Sin recinto asignado</option>
-                {enclosures.map((enc) => (
-                  <option key={enc.id} value={enc.id}>{enc.icon} {enc.name}</option>
-                ))}
-              </select>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Hábitat</label>
-            <input name="habitat" value={form.habitat} onChange={handle}
-              placeholder="ej. Selvas tropicales de Chiapas"
-              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Dieta</label>
-            <input name="diet" value={form.diet} onChange={handle}
-              placeholder="ej. Carnívoro: pecaríes, venados..."
-              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-          </div>
-
-          {/* Audio URL Input Field */}
-          <div>
-            <label className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 uppercase tracking-wider mb-1.5">
-              <Volume2 className="w-4 h-4 text-emerald-600" />
-              URL de Audio de la Especie (MP3 / Sonido Real)
-            </label>
-            <input
-              name="audioUrl"
-              value={form.audioUrl || ""}
-              onChange={handle}
-              placeholder="https://ejemplo.com/audio-jaguar.mp3"
-              className="w-full px-3.5 py-2.5 border border-emerald-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-emerald-50/40 text-sm"
-            />
-            <p className="text-[11px] text-gray-500 mt-1">
-              Ingresa el enlace al archivo de audio en formato MP3
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Datos Curiosos</label>
-            <textarea name="funFact" value={form.funFact} onChange={handle} rows={3}
-              placeholder="Un dato interesante sobre esta especie..."
-              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none" />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={onClose}
-              className="px-5 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
+          {/* Footer de botones */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer"
+            >
               Cancelar
             </button>
-            <button type="submit"
-              className="px-5 py-2.5 text-sm font-bold bg-emerald-700 text-white rounded-xl hover:bg-emerald-800 transition-colors">
+            <button
+              type="submit"
+              className="px-6 py-2.5 text-sm font-bold bg-emerald-700 text-white rounded-xl hover:bg-emerald-800 transition-colors shadow-xs cursor-pointer"
+            >
               {isEditing ? "Guardar Cambios" : "Crear Especie"}
             </button>
           </div>

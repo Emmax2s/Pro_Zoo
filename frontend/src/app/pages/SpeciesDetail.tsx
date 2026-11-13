@@ -73,7 +73,7 @@ function buildFullNarrationText(
 export function SpeciesDetail() {
   const { idOrSlug } = useParams<{ idOrSlug: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { animals } = useZoo();
+  const { animals, enclosures } = useZoo();
   const { t } = useTranslation();
 
   // El idioma de la ficha se maneja de forma local para no alterar el idioma del resto de la página (navbar, pie de página, etc.)
@@ -88,6 +88,27 @@ export function SpeciesDetail() {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isPausedAudio, setIsPausedAudio] = useState(false);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+
+  const matchedEnclosure = useMemo(() => {
+    if (!species) return null;
+    return enclosures.find(
+      (e) => e.id === species.enclosureId || e.name.toLowerCase() === String(species.enclosureId).toLowerCase()
+    );
+  }, [enclosures, species]);
+
+  const getStatusBadgeStyle = (status: string) => {
+    const s = (status || "").toLowerCase();
+    if (s.includes("peligro") || s === "endangered") {
+      return "bg-red-900/90 text-red-200 border-red-400/40";
+    }
+    if (s.includes("amenaz") || s === "threatened") {
+      return "bg-amber-900/90 text-amber-200 border-amber-400/40";
+    }
+    if (s.includes("proteg") || s.includes("special")) {
+      return "bg-blue-900/90 text-blue-200 border-blue-400/40";
+    }
+    return "bg-emerald-900/90 text-emerald-200 border-emerald-400/40";
+  };
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const visitLoggedRef = useRef(false);
@@ -516,11 +537,11 @@ export function SpeciesDetail() {
                 />
                 <div className="absolute top-3.5 left-3.5 z-20">
                   <span className="bg-black/75 backdrop-blur-md text-amber-300 border border-amber-400/40 text-xs font-black px-3.5 py-1 rounded-full uppercase tracking-wider shadow-md">
-                    {loc.category || species.category}
+                    {matchedEnclosure ? `${matchedEnclosure.icon ? `${matchedEnclosure.icon} ` : ""}${matchedEnclosure.name}` : (loc.category || species.category)}
                   </span>
                 </div>
                 <div className="absolute top-3.5 right-3.5 z-20">
-                  <span className="bg-emerald-900/90 backdrop-blur-md text-emerald-200 border border-emerald-400/40 text-xs font-black px-3.5 py-1 rounded-full shadow-md">
+                  <span className={`backdrop-blur-md border text-xs font-black px-3.5 py-1 rounded-full shadow-md ${getStatusBadgeStyle(loc.status || species.status)}`}>
                     {loc.status || species.status}
                   </span>
                 </div>

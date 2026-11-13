@@ -65,8 +65,12 @@ type ApiSpecies = {
 };
 
 const mapConservationStatus = (value: string | undefined): Animal["status"] => {
-  if (value?.toLowerCase().includes("peligro")) return "En Peligro de Extinción";
-  if (value?.toLowerCase().includes("vulnerable") || value?.toLowerCase().includes("amenaz")) return "Amenazada";
+  if (!value) return "Preocupación Menor";
+  const val = value.toLowerCase();
+  if (val.includes("peligro")) return "En Peligro de Extinción";
+  if (val.includes("vulnerable") || val.includes("amenaz")) return "Amenazada";
+  if (val.includes("proteg") || val.includes("especial")) return "Protegida Especial";
+  if (val.includes("menor") || val.includes("least")) return "Preocupación Menor";
   return "Preocupación Menor";
 };
 

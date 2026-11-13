@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router";
 import { Search, Filter, Volume2, MapPin, X, Info, Lightbulb, Globe, VolumeX, Mic, TreePine, Sparkles, Video } from "lucide-react";
 import { AnimalCard } from "../components/AnimalCard";
@@ -7,19 +7,39 @@ import { recordSpeciesVisit } from "../services/analytics";
 import { getLocalizedAnimal, useLocalizedAnimal } from "../services/speciesTranslator";
 import { playChime, speakNarration, stopAllAudio } from "../services/audioPlayer";
 
+const API_BASE_URL = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || "").replace(/\/$/, "");
+
 export function Animals() {
-  const { animals, currentLang } = useZoo();
+  const { animals, enclosures, setEnclosures, currentLang } = useZoo();
   const isEs = currentLang === "es";
   const { id: pathId } = useParams<{ id?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("Todos");
+  const [selectedEnclosure, setSelectedEnclosure] = useState<string>(() => {
+    return searchParams.get("recinto") || searchParams.get("categoria") || "Todos";
+  });
   const [selectedStatus, setSelectedStatus] = useState<string>("Todos");
   const [selectedAnimal, setSelectedAnimal] = useState<any | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const qrLoggedRef = useRef<Record<string, boolean>>({});
+
+  // Cargar recintos actualizados desde la API en montaje
+  useEffect(() => {
+    let active = true;
+    fetch(`${API_BASE_URL || ""}/api/enclosures`, { cache: "no-store" })
+      .then(async (res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && Array.isArray(data) && data.length > 0) {
+          setEnclosures(data);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [setEnclosures]);
 
   // Idioma exclusivo del modal de la especie para no afectar el resto de la página
   const [modalLang, setModalLang] = useState<"es" | "en">("es");
@@ -85,41 +105,91 @@ export function Animals() {
     );
   };
 
-  const categories = ["Todos", "Mamífero", "Ave", "Reptil", "Anfibio"];
-
-  const statuses = ["Todos", "En Peligro de Extinción", "Amenazada", "Protegida Especial"];
-
-  const isCategorySelected = (cat: string) => {
-    if (cat === "Todos" || cat === "All") {
-      return selectedCategory === "Todos" || selectedCategory === "All";
+  // Formateador elegante para nombres de recintos (ej. "MAMIFEROS" -> "Mamíferos")
+  const formatEnclosureLabel = useCallback((name: string) => {
+    if (!name) return "";
+    if (name === name.toUpperCase() && name.length > 2) {
+      return name
+        .toLowerCase()
+        .split(" ")
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ");
     }
-    return (
-      selectedCategory.toLowerCase() === cat.toLowerCase() ||
-      (cat === "Mammal" && selectedCategory === "Mamífero") ||
-      (cat === "Mamífero" && selectedCategory === "Mammal") ||
-      (cat === "Bird" && selectedCategory === "Ave") ||
-      (cat === "Ave" && selectedCategory === "Bird") ||
-      (cat === "Reptile" && selectedCategory === "Reptil") ||
-      (cat === "Reptil" && selectedCategory === "Reptile") ||
-      (cat === "Amphibian" && selectedCategory === "Anfibio") ||
-      (cat === "Anfibio" && selectedCategory === "Amphibian")
-    );
-  };
+    return name;
+  }, []);
 
-  const isStatusSelected = (st: string) => {
-    if (st === "Todos" || st === "All") {
-      return selectedStatus === "Todos" || selectedStatus === "All";
+  // Lista dinámica de botones de recintos obtenidos de la base de datos/contexto
+  const enclosureButtons = useMemo(() => {
+    const allLabel = isEs ? "Todos" : "All";
+    if (!enclosures || enclosures.length === 0) {
+      return [allLabel, "Mamífero", "Ave", "Reptil", "Anfibio"];
     }
-    return (
-      selectedStatus.toLowerCase() === st.toLowerCase() ||
-      (st === "Endangered" && selectedStatus === "En Peligro de Extinción") ||
-      (st === "En Peligro de Extinción" && selectedStatus === "Endangered") ||
-      (st === "Threatened" && selectedStatus === "Amenazada") ||
-      (st === "Amenazada" && selectedStatus === "Threatened") ||
-      (st === "Special Protection" && selectedStatus === "Protegida Especial") ||
-      (st === "Protegida Especial" && selectedStatus === "Special Protection")
-    );
-  };
+    const names = enclosures.map((e) => e.name.trim()).filter(Boolean);
+    const unique = Array.from(new Set(names));
+    return [allLabel, ...unique];
+  }, [enclosures, isEs]);
+
+  // Lista completa de estados de conservación según la NOM-059 y el panel administrativo (Foto 3)
+  const statuses = useMemo(
+    () => [
+      isEs ? "Todos" : "All",
+      "En Peligro de Extinción",
+      "Amenazada",
+      "Protegida Especial",
+      "Preocupación Menor",
+    ],
+    [isEs]
+  );
+
+  const isEnclosureSelected = useCallback(
+    (nameOrId: string) => {
+      if (nameOrId === "Todos" || nameOrId === "All") {
+        return selectedEnclosure === "Todos" || selectedEnclosure === "All";
+      }
+      return selectedEnclosure.toLowerCase() === nameOrId.toLowerCase();
+    },
+    [selectedEnclosure]
+  );
+
+  const isStatusSelected = useCallback(
+    (st: string) => {
+      if (st === "Todos" || st === "All") {
+        return selectedStatus === "Todos" || selectedStatus === "All";
+      }
+      const sel = selectedStatus.toLowerCase().trim();
+      const target = st.toLowerCase().trim();
+
+      if (sel === target) return true;
+
+      if (
+        (sel.includes("peligro") || sel === "endangered") &&
+        (target.includes("peligro") || target === "endangered")
+      ) {
+        return true;
+      }
+      if (
+        (sel.includes("amenaz") || sel === "threatened" || sel.includes("vulnerab")) &&
+        (target.includes("amenaz") || target === "threatened" || target.includes("vulnerab"))
+      ) {
+        return true;
+      }
+      if (
+        (sel.includes("proteg") || sel.includes("special")) &&
+        (target.includes("proteg") || target.includes("special"))
+      ) {
+        return true;
+      }
+      if (
+        (sel.includes("menor") || sel.includes("least")) &&
+        (target.includes("menor") || target.includes("least"))
+      ) {
+        return true;
+      }
+
+      return false;
+    },
+    [selectedStatus]
+  );
 
   const filteredAnimals = animals.filter((animal) => {
     const loc = getLocalizedAnimal(animal, isEs);
@@ -128,22 +198,74 @@ export function Animals() {
       animal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       loc.scientificName.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const isAllCat = selectedCategory === "Todos" || selectedCategory === "All";
-    const matchesCategory =
-      isAllCat ||
-      animal.category === selectedCategory ||
-      loc.category === selectedCategory ||
-      isCategorySelected(animal.category || "");
+    // 1. Filtrado dinámico por Recinto / Categoría
+    const isAllEnc = selectedEnclosure === "Todos" || selectedEnclosure === "All";
+    const matchesEnclosure =
+      isAllEnc ||
+      (() => {
+        const sel = selectedEnclosure.toLowerCase().trim();
 
+        // Coincidencia directa por enclosureId
+        if (animal.enclosureId) {
+          const aEnc = String(animal.enclosureId).toLowerCase().trim();
+          if (aEnc === sel) return true;
+        }
+
+        // Búsqueda de coincidencia con un recinto registrado
+        const targetEnc = enclosures.find(
+          (e) => e.name.toLowerCase().trim() === sel || e.id.toLowerCase().trim() === sel
+        );
+
+        if (targetEnc) {
+          if (animal.enclosureId) {
+            const aEnc = String(animal.enclosureId).toLowerCase().trim();
+            if (aEnc === targetEnc.id.toLowerCase().trim() || aEnc === targetEnc.name.toLowerCase().trim()) {
+              return true;
+            }
+          }
+
+          // Correlación de nombres entre recinto y categoría (ej. "MAMIFEROS" <-> "Mamífero")
+          const encNorm = targetEnc.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+          const catNorm = (animal.category || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+          if (catNorm && encNorm && (encNorm.includes(catNorm) || catNorm.includes(encNorm))) {
+            return true;
+          }
+        }
+
+        // Coincidencia fallback por categoría tradicional
+        const catNorm = (animal.category || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+        const selNorm = sel.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+        if (catNorm && selNorm && (catNorm.includes(selNorm) || selNorm.includes(catNorm))) {
+          return true;
+        }
+
+        return false;
+      })();
+
+    // 2. Filtrado por Estado de Conservación completo (NOM-059)
     const isAllStat = selectedStatus === "Todos" || selectedStatus === "All";
     const matchesStatus =
       isAllStat ||
-      animal.status === selectedStatus ||
-      loc.status === selectedStatus ||
-      isStatusSelected(animal.status || "");
+      isStatusSelected(animal.status || "") ||
+      (animal.translatedStatus ? isStatusSelected(animal.translatedStatus) : false) ||
+      (loc.status ? isStatusSelected(loc.status) : false);
 
-    return matchesSearch && matchesCategory && matchesStatus;
+    return matchesSearch && matchesEnclosure && matchesStatus;
   });
+
+  const getStatusBadgeClass = (status: string) => {
+    const s = (status || "").toLowerCase();
+    if (s.includes("peligro") || s === "endangered") {
+      return "bg-red-600/90 text-white";
+    }
+    if (s.includes("amenaz") || s === "threatened") {
+      return "bg-amber-500/90 text-white";
+    }
+    if (s.includes("proteg") || s.includes("special")) {
+      return "bg-blue-600/90 text-white";
+    }
+    return "bg-emerald-600/90 text-white";
+  };
 
   const selectedLoc = useLocalizedAnimal(selectedAnimal, isModalEs);
 
@@ -199,34 +321,34 @@ export function Animals() {
 
           {/* Filter Buttons */}
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-            {/* Category Filter */}
+            {/* Recinto / Categoría Filter (Foto 1 y Foto 2 sincronizados dinámicamente) */}
             <div className="flex-1">
               <label className="flex items-center text-sm font-black text-amber-900 uppercase tracking-widest mb-4">
-                <Filter className="w-4 h-4 mr-2 text-amber-700" />
-                {"Categoría"}
+                <MapPin className="w-4 h-4 mr-2 text-amber-700" />
+                {isEs ? "Recinto / Categoría" : "Enclosure / Category"}
               </label>
               <div className="flex flex-wrap gap-2.5">
-                {categories.map((category) => (
+                {enclosureButtons.map((btnName) => (
                   <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
+                    key={btnName}
+                    onClick={() => setSelectedEnclosure(btnName)}
                     className={`px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all duration-200 cursor-pointer will-change-transform hover:-translate-y-0.5 active:translate-y-0.5 active:scale-95 ${
-                      isCategorySelected(category)
+                      isEnclosureSelected(btnName)
                         ? "wood-texture-bg text-amber-200 border-2 border-amber-600 shadow-md wood-button-shadow scale-105"
                         : "bg-[#fcfaf5] text-stone-800 hover:bg-amber-100/60 hover:shadow-sm border border-amber-900/20"
                     }`}
                   >
-                    {category}
+                    {formatEnclosureLabel(btnName)}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Status Filter */}
+            {/* Status Filter (Completo según Foto 3: En Peligro, Amenazada, Protegida Especial, Preocupación Menor) */}
             <div className="flex-1">
               <label className="flex items-center text-sm font-black text-amber-900 uppercase tracking-widest mb-4">
                 <Filter className="w-4 h-4 mr-2 text-amber-700" />
-                {"Estado de Conservación"}
+                {isEs ? "Estado de Conservación" : "Conservation Status"}
               </label>
               <div className="flex flex-wrap gap-2.5">
                 {statuses.map((status) => (
@@ -239,7 +361,17 @@ export function Animals() {
                         : "bg-[#fcfaf5] text-stone-800 hover:bg-amber-100/60 hover:shadow-sm border border-amber-900/20"
                     }`}
                   >
-                    {status}
+                    {isEs
+                      ? status
+                      : status === "En Peligro de Extinción"
+                      ? "Endangered"
+                      : status === "Amenazada"
+                      ? "Threatened"
+                      : status === "Protegida Especial"
+                      ? "Special Protection"
+                      : status === "Preocupación Menor"
+                      ? "Least Concern"
+                      : status}
                   </button>
                 ))}
               </div>
@@ -277,13 +409,7 @@ export function Animals() {
                   status={animal.status}
                   funFact={animal.funFact}
                   category={animal.category}
-                  statusColor={
-                    animal.status === "En Peligro de Extinción"
-                      ? "bg-red-500/90 text-white"
-                      : animal.status === "Amenazada"
-                      ? "bg-amber-500/90 text-white"
-                      : "bg-emerald-600/90 text-white"
-                  }
+                  statusColor={getStatusBadgeClass(animal.status)}
                 />
               </div>
             ))}
@@ -296,7 +422,7 @@ export function Animals() {
             <button
               onClick={() => {
                 setSearchTerm("");
-                setSelectedCategory(categories[0]);
+                setSelectedEnclosure(enclosureButtons[0] || "Todos");
                 setSelectedStatus(statuses[0]);
               }}
               className="wood-texture-bg text-amber-200 hover:text-white px-8 py-3.5 rounded-2xl text-base font-adventure border-2 border-amber-600 shadow-md hover:scale-105 transition-all wood-button-shadow"

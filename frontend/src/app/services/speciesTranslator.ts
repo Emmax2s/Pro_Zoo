@@ -24,7 +24,7 @@ const CATEGORY_MAP_EN: Record<string, string> = {
 };
 
 const STATUS_MAP_EN: Record<string, string> = {
-  "En Peligro de Extinción": "Least Concern",
+  "En Peligro de Extinción": "Endangered",
   "Amenazada": "Threatened",
   "Protegida Especial": "Special Protection",
   "Preocupación Menor": "Least Concern",

@@ -2,6 +2,7 @@ import pkg from 'pg';
 import { env } from './env.js';
 
 const { Pool } = pkg;
+const EXAMPLE_ENCLOSURE_KEYS = ['aviario', 'felinos', 'vivario'];
 
 const pool = new Pool({
   host: env.postgresHost,
@@ -95,6 +96,25 @@ export const ensureDatabaseSchema = async () => {
       );
 
   `);
+
+  await pool.query(
+    `UPDATE species
+     SET enclosure_id = NULL
+     WHERE LOWER(TRIM(enclosure_id)) = ANY($1::text[])`,
+    [EXAMPLE_ENCLOSURE_KEYS]
+  );
+  await pool.query(
+    `UPDATE admin_users
+     SET enclosure_id = NULL, role = 'superadmin'
+     WHERE LOWER(TRIM(enclosure_id)) = ANY($1::text[])`,
+    [EXAMPLE_ENCLOSURE_KEYS]
+  );
+  await pool.query(
+    `DELETE FROM enclosures
+     WHERE LOWER(TRIM(id)) = ANY($1::text[])
+        OR LOWER(TRIM(name)) = ANY($1::text[])`,
+    [EXAMPLE_ENCLOSURE_KEYS]
+  );
 };
 
 export const getPool = () => pool;

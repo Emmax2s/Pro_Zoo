@@ -1221,20 +1221,20 @@ export function AdminAnimals() {
     if (!deleteTarget) return;
     const encName = enclosures.find((e) => e.id === deleteTarget.enclosureId)?.name || deleteTarget.enclosureId || "General";
 
-    if (API_BASE_URL && token) {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/species/${deleteTarget.id}`, {
-          method: "DELETE",
-          headers: { Authorization: "Bearer " + token },
-        });
-        const result = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          window.alert(result.message || "No se pudo eliminar la especie.");
-          return;
-        }
-      } catch (error) {
-        console.warn("API offline or error, deleting locally:", error);
+    try {
+      const response = await fetch(`${API_BASE_URL || ""}/api/species/${deleteTarget.id}`, {
+        method: "DELETE",
+        headers: { Authorization: "Bearer " + token },
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        window.alert(result.message || "No se pudo eliminar la especie.");
+        return;
       }
+    } catch (error) {
+      console.error("Error deleting species from database:", error);
+      window.alert("No se pudo eliminar la especie de la base de datos.");
+      return;
     }
 
     setAnimals(animals.filter((animal) => animal.id !== deleteTarget.id));

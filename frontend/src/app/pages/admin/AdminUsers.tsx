@@ -261,7 +261,6 @@ function UserModal({
                       >
                         {isSelected ? "✓" : ""}
                       </div>
-                      <span className="text-lg leading-none">{enc.icon}</span>
                       <div className="min-w-0 flex-1">
                         <p className={`text-xs font-bold truncate ${isSelected ? "text-white" : "text-gray-900"}`}>
                           {enc.name}
@@ -894,7 +893,6 @@ export function AdminUsers() {
                                     className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-full text-white shadow-xs ${enc.color}`}
                                     title={`Recinto asignado: ${enc.name}`}
                                   >
-                                    <span>{enc.icon}</span>
                                     <span>{enc.name}</span>
                                   </span>
                                 ))}

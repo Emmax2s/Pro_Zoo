@@ -131,6 +131,7 @@ function AnimalModal({
     isVisibleToPublic: animal.isVisibleToPublic !== false,
   });
   const [videoUrl, setVideoUrl] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [lsmVideoUrl, setLsmVideoUrl] = useState(animal.lsmVideoUrl || "");
   const [cropperState, setCropperState] = useState<{
     open: boolean;
@@ -266,6 +267,49 @@ function AnimalModal({
     } catch (error) {
       window.alert(error instanceof Error ? error.message : "No se pudo subir el archivo.");
     }
+  }
+
+  async function uploadAudioFile(file: File | undefined) {
+    if (!file) return;
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const fileReader = new FileReader();
+        fileReader.onload = () => resolve(String(fileReader.result));
+        fileReader.onerror = () => reject(new Error("No se pudo leer el archivo."));
+        fileReader.readAsDataURL(file);
+      });
+      const response = await fetch(`${API_BASE_URL}/api/upload`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + (sessionStorage.getItem("pro-zoo-admin-token") || ""),
+        },
+        body: JSON.stringify({ filename: file.name, data: dataUrl }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || typeof result.url !== "string") {
+        throw new Error(result.message || "No se pudo subir el audio.");
+      }
+      setForm((previous) => ({ ...previous, audioUrl: result.url }));
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "No se pudo subir el audio.");
+    }
+  }
+
+  function addImageUrl() {
+    const url = imageUrl.trim();
+    if (!url || form.mediaImages.length >= 4) return;
+    if (!/^https?:\/\/\S+$/i.test(url)) {
+      window.alert("Ingresa una URL válida para la imagen.");
+      return;
+    }
+
+    setForm((previous) => ({
+      ...previous,
+      mediaImages: [...previous.mediaImages, url].slice(0, 4),
+      image: previous.image || url,
+    }));
+    setImageUrl("");
   }
 
   function addVideoUrl() {
@@ -486,6 +530,19 @@ function AnimalModal({
                   placeholder="https://ejemplo.com/audio-jaguar.mp3"
                   className="w-full px-3.5 py-2.5 border border-emerald-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-emerald-50/40 text-sm"
                 />
+                <label className="mt-2 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white cursor-pointer transition-all shadow-xs hover:shadow-md active:scale-[0.98]">
+                  <Upload size={16} />
+                  <span>Cargar audio desde equipo</span>
+                  <input
+                    type="file"
+                    accept="audio/mpeg,audio/wav,audio/ogg,audio/webm,audio/mp4"
+                    className="sr-only"
+                    onChange={(event) => {
+                      void uploadAudioFile(event.target.files?.[0]);
+                      event.target.value = "";
+                    }}
+                  />
+                </label>
               </div>
 
               <div>
@@ -543,6 +600,23 @@ function AnimalModal({
                       className="sr-only"
                     />
                   </label>
+                  <div className="flex gap-2 mt-2">
+                    <input
+                      value={imageUrl}
+                      onChange={(event) => setImageUrl(event.target.value)}
+                      placeholder="https://sitio.com/imagen.jpg"
+                      disabled={form.mediaImages.length >= 4}
+                      className="min-w-0 flex-1 rounded-xl border border-gray-300 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={addImageUrl}
+                      disabled={form.mediaImages.length >= 4}
+                      className="rounded-xl bg-emerald-700 hover:bg-emerald-800 px-3.5 py-2 text-xs font-bold text-white disabled:opacity-50 transition-colors shadow-xs shrink-0 cursor-pointer"
+                    >
+                      Agregar URL
+                    </button>
+                  </div>
                 </div>
 
                 {/* Botón Cargar Videos y URL estilizados */}

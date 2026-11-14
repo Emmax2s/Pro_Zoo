@@ -12,6 +12,12 @@ const allowedTypes = new Map([
   ['image/png', 'png'],
   ['image/webp', 'webp'],
   ['image/gif', 'gif'],
+  ['audio/mpeg', 'mp3'],
+  ['audio/wav', 'wav'],
+  ['audio/x-wav', 'wav'],
+  ['audio/ogg', 'ogg'],
+  ['audio/webm', 'webm'],
+  ['audio/mp4', 'm4a'],
   ['video/mp4', 'mp4'],
   ['video/webm', 'webm'],
   ['video/ogg', 'ogv'],
@@ -25,10 +31,10 @@ router.post('/', verifyToken, async (req, res, next) => {
       return res.status(400).json({ message: 'Se requiere un archivo válido.' });
     }
 
-    const match = data.match(/^data:((?:image|video|application)\/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=\s]+)$/);
+    const match = data.match(/^data:((?:image|audio|video|application)\/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=\s]+)$/);
     const extension = match && allowedTypes.get(match[1].toLowerCase());
     if (!match || !extension) {
-      return res.status(400).json({ message: 'Formato no permitido. Usa JPG, PNG, WEBP, MP4, WEBM, OGG o PDF.' });
+      return res.status(400).json({ message: 'Formato no permitido. Usa imágenes, MP3, WAV, OGG, WEBM, MP4 o PDF.' });
     }
 
     const buffer = Buffer.from(match[2], 'base64');

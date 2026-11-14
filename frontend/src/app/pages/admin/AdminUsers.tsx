@@ -344,6 +344,98 @@ function DeleteUserDialog({
   );
 }
 
+function ResetPasswordModal({
+  user,
+  onConfirm,
+  onClose,
+}: {
+  user: ZooUser;
+  onConfirm: (password: string) => Promise<void>;
+  onClose: () => void;
+}) {
+  const [password, setPassword] = useState("");
+  const [confirmation, setConfirmation] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    if (password.length < 10) {
+      setErrorMessage("La contraseña debe tener al menos 10 caracteres.");
+      return;
+    }
+    if (password !== confirmation) {
+      setErrorMessage("Las contraseñas no coinciden.");
+      return;
+    }
+
+    setSaving(true);
+    setErrorMessage("");
+    try {
+      await onConfirm(password);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "No se pudo actualizar la contraseña.");
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={(event) => event.stopPropagation()}>
+        <div className="flex items-start justify-between gap-4 mb-5">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Recuperar contraseña</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Define una nueva contraseña para <strong>{user.name}</strong>.
+            </p>
+          </div>
+          <button type="button" onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg">
+            <X size={20} />
+          </button>
+        </div>
+
+        {errorMessage && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
+            <AlertTriangle size={16} className="flex-shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            minLength={10}
+            required
+            autoFocus
+            placeholder="Nueva contraseña (mínimo 10 caracteres)"
+            className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+          <input
+            type="password"
+            value={confirmation}
+            onChange={(event) => setConfirmation(event.target.value)}
+            minLength={10}
+            required
+            placeholder="Confirmar nueva contraseña"
+            className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-xl">
+              Cancelar
+            </button>
+            <button type="submit" disabled={saving} className="px-5 py-2.5 text-sm font-bold bg-emerald-700 text-white rounded-xl hover:bg-emerald-800 disabled:opacity-50">
+              {saving ? "Guardando..." : "Actualizar contraseña"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export function AdminUsers() {
   const { users, setUsers, enclosures, currentUser } = useZoo();
   const { token } = useAuth();
@@ -351,6 +443,7 @@ export function AdminUsers() {
   const [activeTab, setActiveTab] = useState<"users" | "audit">("users");
   const [modalState, setModalState] = useState<{ open: boolean; user: ZooUser | null }>({ open: false, user: null });
   const [deleteTarget, setDeleteTarget] = useState<ZooUser | null>(null);
+  const [resetPasswordTarget, setResetPasswordTarget] = useState<ZooUser | null>(null);
   const [auditLogs, setAuditLogs] = useState<AdminAuditLog[]>([]);
 
   // Audit filter state
@@ -499,6 +592,37 @@ export function AdminUsers() {
 
     refreshLogs();
     setModalState({ open: false, user: null });
+  }
+
+  async function handleResetPassword(password: string) {
+    if (!resetPasswordTarget) return;
+    const response = await fetch(`${API_BASE_URL || ""}/api/admin/${resetPasswordTarget.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ password }),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(result.message || "No se pudo actualizar la contraseña.");
+    }
+
+    saveAuditLog({
+      userId: currentUser.id || 1,
+      userName: currentUser.name || "Super Administrador",
+      userEmail: currentUser.email || "admin@zoomat.mx",
+      userRole: "superadmin",
+      assignedEnclosures: ["Todos los recintos"],
+      actionType: "ACTUALIZAR",
+      entityType: "administrador",
+      entityName: resetPasswordTarget.name,
+      enclosureName: "General",
+      details: `Superadmin restableció la contraseña de ${resetPasswordTarget.name}.`,
+    });
+    refreshLogs();
+    setResetPasswordTarget(null);
   }
 
   function applyLocalSave(data: UserFormData, isEditing: boolean) {
@@ -685,6 +809,13 @@ export function AdminUsers() {
                           >
                             ✏️
                           </button>
+                          <button
+                            onClick={() => setResetPasswordTarget(user)}
+                            className="p-2 text-blue-700 hover:bg-blue-50 rounded-xl transition-colors cursor-pointer"
+                            title="Recuperar contraseña"
+                          >
+                            <RefreshCw size={16} />
+                          </button>
                           {superAdmins.length > 1 && (
                             <button
                               onClick={() => setDeleteTarget(user)}
@@ -791,6 +922,13 @@ export function AdminUsers() {
                                 title="Editar recintos y permisos"
                               >
                                 <span className="text-sm">✏️</span>
+                              </button>
+                              <button
+                                onClick={() => setResetPasswordTarget(user)}
+                                className="p-2 text-blue-700 hover:bg-blue-50 rounded-xl transition-colors cursor-pointer"
+                                title="Recuperar contraseña"
+                              >
+                                <RefreshCw size={16} />
                               </button>
                               <button
                                 onClick={() => setDeleteTarget(user)}
@@ -1057,6 +1195,14 @@ export function AdminUsers() {
 
       {deleteTarget && (
         <DeleteUserDialog user={deleteTarget} onConfirm={handleDelete} onClose={() => setDeleteTarget(null)} />
+      )}
+
+      {resetPasswordTarget && (
+        <ResetPasswordModal
+          user={resetPasswordTarget}
+          onConfirm={handleResetPassword}
+          onClose={() => setResetPasswordTarget(null)}
+        />
       )}
     </div>
   );

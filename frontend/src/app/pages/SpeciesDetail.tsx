@@ -537,7 +537,7 @@ export function SpeciesDetail() {
                 />
                 <div className="absolute top-3.5 left-3.5 z-20">
                   <span className="bg-black/75 backdrop-blur-md text-amber-300 border border-amber-400/40 text-xs font-black px-3.5 py-1 rounded-full uppercase tracking-wider shadow-md">
-                    {matchedEnclosure ? `${matchedEnclosure.icon ? `${matchedEnclosure.icon} ` : ""}${matchedEnclosure.name}` : (loc.category || species.category)}
+                    {matchedEnclosure ? matchedEnclosure.name : (loc.category || species.category)}
                   </span>
                 </div>
                 <div className="absolute top-3.5 right-3.5 z-20">

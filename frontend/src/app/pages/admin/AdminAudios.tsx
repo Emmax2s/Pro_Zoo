@@ -201,7 +201,7 @@ export function AdminAudios() {
               <option value="none">Sin recinto</option>
               {enclosures.map((enc) => (
                 <option key={enc.id} value={enc.id}>
-                  {enc.icon} {enc.name}
+                  {enc.name}
                 </option>
               ))}
             </select>
@@ -267,7 +267,7 @@ export function AdminAudios() {
                   <div className="text-xs font-semibold text-gray-500 flex items-center gap-1.5 pt-1">
                     <span>Recinto:</span>
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-white text-[11px] ${enc.color}`}>
-                      {enc.icon} {enc.name}
+                      {enc.name}
                     </span>
                   </div>
                 )}

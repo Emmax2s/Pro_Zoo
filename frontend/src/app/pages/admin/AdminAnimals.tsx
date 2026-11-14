@@ -547,7 +547,7 @@ function AnimalModal({
                   >
                     {availableEnclosures.map((enc) => (
                       <option key={enc.id} value={enc.id}>
-                        {enc.icon ? `${enc.icon} ` : ""}{enc.name}
+                        {enc.name}
                       </option>
                     ))}
                   </select>
@@ -562,7 +562,7 @@ function AnimalModal({
                     <option value="">Sin recinto asignado</option>
                     {enclosures.map((enc) => (
                       <option key={enc.id} value={enc.id}>
-                        {enc.icon ? `${enc.icon} ` : ""}{enc.name}
+                        {enc.name}
                       </option>
                     ))}
                   </select>
@@ -1362,7 +1362,7 @@ export function AdminAnimals() {
             <option value="all">Todos los recintos</option>
             <option value="none">Sin recinto</option>
             {enclosures.map((enc) => (
-              <option key={enc.id} value={enc.id}>{enc.icon} {enc.name}</option>
+              <option key={enc.id} value={enc.id}>{enc.name}</option>
             ))}
           </select>
         )}
@@ -1429,7 +1429,7 @@ export function AdminAnimals() {
                     <td className="p-4">
                       {enc ? (
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full text-white ${enc.color}`}>
-                          {enc.icon} {enc.name}
+                          {enc.name}
                         </span>
                       ) : (
                         <span className="text-xs text-gray-400 italic">Sin recinto</span>

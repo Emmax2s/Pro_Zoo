@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { PublicChatButton } from "../components/PublicChatButton";
 
@@ -35,7 +35,6 @@ export function Login() {
         <input required value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Usuario o correo" className="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-600 transition-all duration-200" />
         <input required type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Contraseña" className="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-600 transition-all duration-200" />
         <button disabled={busy} className="w-full rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white py-3 font-bold disabled:opacity-60 hover:-translate-y-0.5 active:translate-y-0.5 active:scale-[0.98] transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg will-change-transform">{busy ? "Entrando..." : "Entrar"}</button>
-        <Link to="/recuperar-cuenta" className="block text-center text-sm text-emerald-700 hover:underline transition-colors">¿Olvidaste tu contraseña?</Link>
       </form>
       <PublicChatButton />
     </main>

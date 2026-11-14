@@ -139,6 +139,64 @@ function AnimalModal({
     imageIndex?: number;
   }>({ open: false, imageUrl: "" });
 
+  // ── Estado de validación: campos tocados y errores ──
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [showAllErrors, setShowAllErrors] = useState(false);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+
+  // Campos obligatorios con sus mensajes
+  const requiredFields: { key: keyof typeof form; label: string }[] = [
+    { key: "name", label: "Nombre Común" },
+    { key: "scientificName", label: "Nombre Científico" },
+    { key: "habitat", label: "Hábitat" },
+    { key: "diet", label: "Dieta" },
+    { key: "funFact", label: "Datos Curiosos" },
+  ];
+
+  function getFieldError(fieldKey: string): string | null {
+    const val = form[fieldKey as keyof typeof form];
+    if (typeof val === "string" && !val.trim()) {
+      return "Favor de llenar este campo";
+    }
+    return null;
+  }
+
+  function shouldShowError(fieldKey: string): boolean {
+    return (showAllErrors || touched[fieldKey] === true) && getFieldError(fieldKey) !== null;
+  }
+
+  // Detectar si el formulario tiene cambios sin guardar
+  function hasUnsavedChanges(): boolean {
+    return (
+      form.name !== animal.name ||
+      form.scientificName !== animal.scientificName ||
+      form.habitat !== animal.habitat ||
+      form.diet !== animal.diet ||
+      form.funFact !== animal.funFact ||
+      form.category !== animal.category ||
+      form.status !== animal.status ||
+      form.image !== animal.image ||
+      form.audioUrl !== (animal.audioUrl || "") ||
+      form.enclosureId !== animal.enclosureId ||
+      form.lsmVideoUrl !== (animal.lsmVideoUrl || "") ||
+      JSON.stringify(form.mediaImages) !== JSON.stringify(animal.mediaImages?.slice(0, 4) || (animal.image ? [animal.image] : [])) ||
+      JSON.stringify(form.mediaVideos) !== JSON.stringify(animal.mediaVideos?.slice(0, 2) || [])
+    );
+  }
+
+  // Manejo de cierre con validación de cambios sin guardar
+  function handleClose() {
+    if (hasUnsavedChanges()) {
+      setShowUnsavedDialog(true);
+    } else {
+      onClose();
+    }
+  }
+
+  function handleBlur(fieldKey: string) {
+    setTouched((prev) => ({ ...prev, [fieldKey]: true }));
+  }
+
   async function handleSaveCroppedImage(croppedDataUrl: string) {
     let finalUrl = croppedDataUrl;
     try {
@@ -335,12 +393,19 @@ function AnimalModal({
 
   function handle(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const { name, value } = e.target;
-    setForm((p) => ({ ...p, [name]: value === "" ? null : value }));
+    setForm((p) => ({ ...p, [name]: value === "" ? "" : value }));
+    setTouched((prev) => ({ ...prev, [name]: true }));
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.name.trim()) return;
+
+    // Validar todos los campos obligatorios
+    const hasErrors = requiredFields.some(({ key }) => getFieldError(key as string) !== null);
+    if (hasErrors) {
+      setShowAllErrors(true);
+      return;
+    }
 
     const userEnclosureIds = currentUser.enclosureIds && currentUser.enclosureIds.length > 0
       ? currentUser.enclosureIds
@@ -371,7 +436,7 @@ function AnimalModal({
     : enclosures;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={handleClose}>
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
       <div
         className="relative bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[92vh] overflow-y-auto"
@@ -386,7 +451,7 @@ function AnimalModal({
               {isEditing ? "Modifica los datos y recursos multimedia de la especie" : "Completa la ficha técnica para registrar un nuevo ejemplar"}
             </p>
           </div>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
+          <button onClick={handleClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
             <X size={20} />
           </button>
         </div>
@@ -403,10 +468,15 @@ function AnimalModal({
                   name="name"
                   value={form.name}
                   onChange={handle}
-                  required
+                  onBlur={() => handleBlur("name")}
                   placeholder="Nombre común de la especie"
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                  className={`w-full px-3.5 py-2.5 border rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm ${shouldShowError("name") ? "border-red-400 bg-red-50" : "border-gray-200"}`}
                 />
+                {shouldShowError("name") && (
+                  <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" /> Por favor, rellena este campo
+                  </p>
+                )}
               </div>
 
               <div>
@@ -417,9 +487,15 @@ function AnimalModal({
                   name="scientificName"
                   value={form.scientificName}
                   onChange={handle}
+                  onBlur={() => handleBlur("scientificName")}
                   placeholder="ej. Panthera onca"
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 italic text-sm"
+                  className={`w-full px-3.5 py-2.5 border rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 italic text-sm ${shouldShowError("scientificName") ? "border-red-400 bg-red-50" : "border-gray-200"}`}
                 />
+                {shouldShowError("scientificName") && (
+                  <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" /> Por favor, rellena este campo
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -500,9 +576,15 @@ function AnimalModal({
                     name="habitat"
                     value={form.habitat}
                     onChange={handle}
+                    onBlur={() => handleBlur("habitat")}
                     placeholder="ej. Selvas tropicales de Chiapas"
-                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                    className={`w-full px-3.5 py-2.5 border rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm ${shouldShowError("habitat") ? "border-red-400 bg-red-50" : "border-gray-200"}`}
                   />
+                  {shouldShowError("habitat") && (
+                    <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" /> Por favor, rellena este campo
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -511,9 +593,15 @@ function AnimalModal({
                     name="diet"
                     value={form.diet}
                     onChange={handle}
+                    onBlur={() => handleBlur("diet")}
                     placeholder="ej. Carnívoro: pecaríes, venados..."
-                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                    className={`w-full px-3.5 py-2.5 border rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm ${shouldShowError("diet") ? "border-red-400 bg-red-50" : "border-gray-200"}`}
                   />
+                  {shouldShowError("diet") && (
+                    <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" /> Por favor, rellena este campo
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -551,10 +639,16 @@ function AnimalModal({
                   name="funFact"
                   value={form.funFact}
                   onChange={handle}
+                  onBlur={() => handleBlur("funFact")}
                   rows={3}
                   placeholder="Un dato interesante sobre esta especie..."
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none text-sm"
+                  className={`w-full px-3.5 py-2.5 border rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none text-sm ${shouldShowError("funFact") ? "border-red-400 bg-red-50" : "border-gray-200"}`}
                 />
+                {shouldShowError("funFact") && (
+                  <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" /> Por favor, rellena este campo
+                  </p>
+                )}
               </div>
             </div>
 
@@ -838,6 +932,44 @@ function AnimalModal({
             onSave={handleSaveCroppedImage}
             onClose={() => setCropperState({ open: false, imageUrl: "" })}
           />
+        )}
+        {showUnsavedDialog && (
+          <div
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="unsaved-changes-title"
+            onClick={() => setShowUnsavedDialog(false)}
+          >
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+            <div
+              className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <h3 id="unsaved-changes-title" className="text-lg font-bold text-gray-900">
+                ¿Seguro que quieres cerrar sin guardar?
+              </h3>
+              <p className="mt-2 text-sm text-gray-600">
+                Se perderán los datos y cambios realizados en esta especie.
+              </p>
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowUnsavedDialog(false)}
+                  className="rounded-xl px-4 py-2.5 text-sm font-bold text-gray-600 transition-colors hover:bg-gray-100"
+                >
+                  Seguir editando
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-red-700"
+                >
+                  Cerrar sin guardar
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

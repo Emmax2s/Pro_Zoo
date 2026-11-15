@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import chatLauncherLogo from "../../assets/chat-launcher.jpg";
 
 export function PublicChatButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -53,7 +54,7 @@ export function PublicChatButton() {
           role="dialog"
           aria-modal="true"
           aria-label="Ventana del Asistente Virtual ZooMAT"
-          className={`fixed bottom-20 right-3 sm:bottom-24 sm:right-6 z-[1000] w-[calc(100vw-1.5rem)] sm:w-[420px] max-w-[420px] h-[calc(100dvh-6.5rem)] sm:h-[620px] max-h-[680px] rounded-2xl sm:rounded-3xl border-2 border-[#1c0d03]/25 bg-[#faf8f2] shadow-[0_12px_45px_rgba(28,13,3,0.35)] overflow-hidden flex flex-col transition-all duration-300 ease-out origin-bottom-right ${
+          className={`fixed bottom-22 right-3 sm:bottom-28 sm:right-6 z-[1000] w-[calc(100vw-1.5rem)] sm:w-[420px] max-w-[420px] h-[calc(100dvh-7rem)] sm:h-[620px] max-h-[680px] rounded-2xl sm:rounded-3xl border-2 border-[#1c0d03]/25 bg-[#faf8f2] shadow-[0_12px_45px_rgba(28,13,3,0.35)] overflow-hidden flex flex-col transition-all duration-300 ease-out origin-bottom-right ${
             isOpen
               ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
               : "opacity-0 scale-95 translate-y-4 pointer-events-none invisible"
@@ -91,27 +92,31 @@ export function PublicChatButton() {
         </div>
       )}
 
-      {/* Botón Flotante (Launcher) con Transición de Ícono */}
+      {/* Botón Flotante (Launcher) con el Logo Oficial del Asistente */}
       <button
         type="button"
         onClick={handleToggle}
         aria-expanded={isOpen}
-        aria-label={isOpen ? "Cerrar asistente virtual" : "Abrir asistente virtual"}
-        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[1000] flex h-13 w-13 sm:h-[70px] sm:w-[70px] cursor-pointer flex-col items-center justify-center rounded-full border-0 bg-[#ffcc00] shadow-[0_4px_10px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.35)] outline-none transition-all duration-200 ease-out hover:scale-[1.08] hover:-translate-y-1 hover:bg-[#e6b800] active:scale-90 active:-rotate-[5deg] will-change-transform"
+        aria-label={isOpen ? "Cerrar asistente virtual" : "Abrir asistente virtual ZooMAT"}
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[1000] flex h-14 w-14 sm:h-[78px] sm:w-[78px] cursor-pointer items-center justify-center rounded-full border-2 border-[#ffcc00] bg-[#231205] shadow-[0_6px_20px_rgba(35,18,5,0.4)] hover:shadow-[0_10px_26px_rgba(255,204,0,0.4)] outline-none transition-all duration-300 ease-out hover:scale-[1.08] hover:-translate-y-1 active:scale-95 will-change-transform group p-0 overflow-visible"
       >
         {isOpen ? (
-          <X className="h-6 w-6 sm:h-7 sm:w-7 text-[#111] transition-transform duration-200" />
+          <div className="flex h-full w-full items-center justify-center rounded-full bg-[#ffcc00] text-[#111] shadow-inner transition-colors duration-200">
+            <X className="h-7 w-7 sm:h-8 sm:w-8 transition-transform duration-200" />
+          </div>
         ) : (
-          <>
-            <span className="mb-0.5 font-sans text-[10px] sm:text-xs font-bold lowercase leading-none text-[#111]">
-              chat
+          <div className="relative h-full w-full rounded-full overflow-hidden bg-[#231205]">
+            <img
+              src={chatLauncherLogo}
+              alt="Asistente ZooMAT - ¿Quieres saber más?"
+              className="h-full w-full object-cover scale-[1.05] rounded-full transition-transform duration-300 group-hover:scale-110 select-none pointer-events-none"
+            />
+            {/* Indicador de estado en línea */}
+            <span className="absolute top-0.5 right-0.5 flex h-3.5 w-3.5 sm:h-4 sm:w-4">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#22c55e] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3.5 w-3.5 sm:h-4 sm:w-4 bg-[#22c55e] border-2 border-[#231205]"></span>
             </span>
-            <span className="relative flex h-4.5 w-5.5 sm:h-[26px] sm:w-8 items-center justify-center rounded-[50%_50%_50%_10%] bg-[#111]">
-              <span className="-mt-0.5 font-sans text-[10px] sm:text-sm font-bold leading-none tracking-[-1px] text-white">
-                •••
-              </span>
-            </span>
-          </>
+          </div>
         )}
       </button>
     </>

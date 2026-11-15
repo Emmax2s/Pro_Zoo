@@ -1,0 +1,52 @@
+# Entorno virtual
+venv/
+env/
+.venv/
+
+# Caches y bytecode de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+.pytest_cache/
+
+# Variables de entorno y credenciales (seguridad)
+.env
+.env.local
+
+# Archivos de audio temporales en uploads
+uploads/*
+!uploads/.gitkeep
+
+# Registros y logs de interacciones diarias (datos de runtime)
+logs/*
+!logs/.gitkeep
+
+# Archivos multimedia generados dinámicamente en tiempo de ejecución
+assets/respuesta.mp3
+assets/respuesta_en.mp3
+assets/respuesta.wav
+assets/logo_fondo_viejo.png
+
+# Base de datos vectorial (se reconstruye con python ingesta_datos.py)
+chroma_db_zoomat/
+
+# Historial y caches de Aider u otras herramientas
+.aider*
+
+# Prototipos y datos obsoletos descartados
+main.py
+datos/
+
+# Memoria y contexto de desarrollo IA (uso exclusivo local)
+GEMINI.md
+
+# Archivos de sistema operativo e IDE
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Archivos temporales de Microsoft Office
+~$*

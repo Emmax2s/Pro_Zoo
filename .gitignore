@@ -42,3 +42,27 @@ backend/uploads/tts/
 .gemini/
 brain/
 antigravity/
+GEMINI.md
+
+# Python / Chatbot venv & caches
+venv/
+.venv/
+env/
+**/venv/
+**/.venv/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+.pytest_cache/
+**/chroma_db_zoomat/
+**/.aider*
+chatbot/uploads/*
+!chatbot/uploads/.gitkeep
+chatbot/logs/*
+!chatbot/logs/.gitkeep
+chatbot/assets/respuesta.mp3
+chatbot/assets/respuesta_en.mp3
+chatbot/assets/respuesta.wav
+chatbot/main.py
+.git_chatbot_backup/

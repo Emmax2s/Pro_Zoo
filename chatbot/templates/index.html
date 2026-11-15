@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente Inteligente ZooMAT</title>
+    <!-- Iconos Material Design y Fuente Redondeada Amigable -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* 
+           PALETA DE COLORES (Sincronizada con rediseño web Pro_Zoo):
+           */
+        :root {
+            /* Tonos Madera Rústica Profunda */
+            --madera-oscura: #231205;
+            --madera-media: #361c0a;
+            --madera-clara: #4a2811;
+            --borde-madera: #1c0d03;
+
+            /* Fondos Cálidos Marfil y Tarjetas */
+            --color-fondo-app: #faf8f2;       /* Fondo marfil cálido de la web */
+            --color-puntos-fondo: rgba(133, 77, 14, 0.15); /* Puntos ámbar sutiles de Pro_Zoo */
+            --borde-tarjeta: #e2d5bd;         /* Borde beige arena de tarjetas */
+            
+            /* Acentos Dorados y Ámbar (Sincronizado con PublicChatButton y detalles Pro_Zoo) */
+            --acento-dorado: #ffcc00;         /* Amarillo dorado del botón flotante */
+            --acento-dorado-hover: #e6b800;   /* Hover dorado */
+            --acento-ambar: #b45309;          /* Ámbar profundo de foco e interacción */
+            --acento-ambar-suave: #fef3c7;    /* Fondo ámbar suave */
+            
+            /* Naturaleza y Biodiversidad */
+            --verde-zoomat: #065f46;          /* Verde esmeralda de naturaleza */
+            --menta-suave: #ecfdf5;           /* Fondo suave de insignias */
+            --menta-borde: #a7f3d0;           /* Borde verde claro */
+
+            /* Burbujas de Chat */
+            --color-burbuja-usuario: linear-gradient(180deg, #442510 0%, #2b1706 100%);
+            --color-texto-usuario: #fffaf0;
+            
+            --color-burbuja-bot: #ffffff;
+            --color-texto-bot: #292524;
+            --borde-burbuja-bot: #e2d5bd;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
+            background-color: transparent; 
+            display: flex; 
+            justify-content: center; 
+            width: 100vw; 
+            height: 100vh;
+            height: 100dvh;
+            margin: 0; 
+            padding: 0;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .chat-container { 
+            width: 100%; 
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            margin: 0;
+            padding: 0;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            background-color: var(--color-fondo-app);
+            /* Patrón de puntos sutiles idéntico a la sección principal de la web */
+            background-image: radial-gradient(var(--color-puntos-fondo) 1.2px, transparent 1.2px);
+            background-size: 24px 24px;
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 
+           ENCABEZADO ESTILO MADERA RÚSTICA (Optimizado para Iframe y Kiosco)
+            */
+        .header-bar { 
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(0, 0, 0, 0.06) 0px,
+                    rgba(0, 0, 0, 0.06) 2px,
+                    transparent 2px,
+                    transparent 20px
+                ),
+                linear-gradient(180deg, var(--madera-clara) 0%, var(--madera-media) 55%, var(--madera-oscura) 100%);
+            border-bottom: 3px solid var(--borde-madera);
+            color: #ffffff; 
+            padding: 10px clamp(12px, 3vw, 22px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 3px 12px rgba(28, 13, 3, 0.35); 
+            z-index: 10;
+            flex-shrink: 0;
+            gap: 8px;
+        }
+
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        .header-logo-badge {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #ffffff;
+            padding: 2px;
+            border: 2px solid var(--acento-dorado);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+            object-fit: cover;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        /* Destello cuando el asistente está hablando */
+        .header-logo-badge.speaking {
+            box-shadow: 0 0 0 4px rgba(255, 204, 0, 0.5);
+            animation: pulseAvatar 1.5s infinite;
+        }
+
+        @keyframes pulseAvatar {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.07); }
+        }
+
+        .header-titles {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .header-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: clamp(17px, 4vw, 22px);
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            color: #ffffff;
+            text-shadow: 1px 2px 0px var(--borde-madera);
+            line-height: 1.15;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: clamp(11.5px, 2.8vw, 13px);
+            color: var(--acento-dorado);
+            font-weight: 600;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #22c55e;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #22c55e;
+            flex-shrink: 0;
+        }
+
+        /* Botón para detener voz en el encabezado y selector de idioma */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .lang-switch-container {
+            display: inline-flex;
+            background: rgba(28, 13, 3, 0.65);
+            border: 1.5px solid var(--borde-tarjeta);
+            border-radius: 18px;
+            padding: 2px;
+            gap: 2px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: none;
+            color: #e2d5bd;
+            font-family: inherit;
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .lang-btn:hover {
+            color: #ffffff;
+        }
+
+        .lang-btn.active {
+            background: var(--acento-dorado);
+            color: #111111;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        }
+
+        .btn-stop-audio {
+            background: rgba(28, 13, 3, 0.75);
+            border: 1.5px solid var(--acento-dorado);
+            color: var(--acento-dorado);
+            border-radius: 20px;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+        .btn-stop-audio:hover {
+            background: var(--acento-dorado);
+            color: #111111;
+        }
+        .btn-stop-audio .material-icons {
+            font-size: 16px;
+        }
+
+        /* Botón de cierre en encabezado (activo dinámicamente si corre en iframe) */
+        .btn-close-header {
+            background: rgba(28, 13, 3, 0.75);
+            border: 1.5px solid var(--borde-tarjeta);
+            color: #e2d5bd;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        .btn-close-header:hover {
+            background: var(--acento-dorado);
+            color: #111111;
+            border-color: var(--acento-ambar);
+            transform: scale(1.05);
+        }
+        .btn-close-header .material-icons {
+            font-size: 17px;
+        }
+
+        /* =========================================
+           CONTENEDOR DEL CHAT Y MARCA DE AGUA VISIBLE
+           ========================================= */
+        .chat-content {
+            flex-grow: 1;
+            position: relative; 
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .chat-content::before {
+            content: "";
+            position: absolute;
+            top: 7%; left: 7%; right: 7%; bottom: 7%; 
+            background-image: url('/assets/logo_fondo.png'); 
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;      
+            opacity: 0.22; 
+            mix-blend-mode: multiply;
+            z-index: 0;
+            pointer-events: none; 
+        }
+
+        .chat-history { 
+            flex-grow: 1; 
+            overflow-y: auto; 
+            overflow-x: hidden;
+            display: flex; 
+            flex-direction: column; 
+            gap: 14px; 
+            padding: 16px clamp(12px, 3vw, 24px); 
+            z-index: 1;
+            scroll-behavior: smooth;
+        }
+
+        .chat-history::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-history::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .chat-history::-webkit-scrollbar-thumb {
+            background-color: rgba(54, 28, 10, 0.25);
+            border-radius: 10px;
+        }
+        .chat-history::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(54, 28, 10, 0.45);
+        }
+
+        /* =========================================
+           TARJETA DE BIENVENIDA Y CHIPS INTERACTIVOS
+           ========================================= */
+        .welcome-card {
+            background: rgba(255, 255, 255, 0.96);
+            border: 2px solid var(--borde-tarjeta);
+            border-radius: 18px;
+            padding: 18px 20px;
+            box-shadow: 0 6px 20px rgba(43, 23, 6, 0.08);
+            animation: fadeInPop 0.35s ease-out;
+        }
+
+        .welcome-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background-color: var(--menta-suave);
+            color: var(--verde-zoomat);
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .welcome-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: clamp(19px, 3.5vw, 23px);
+            color: #2b1810;
+            margin: 0 0 6px 0;
+        }
+
+        .welcome-text {
+            font-size: clamp(13.5px, 2.5vw, 15px);
+            color: #44403c;
+            margin: 0 0 14px 0;
+            line-height: 1.45;
+        }
+
+        .quick-chips-label {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #78350f;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .quick-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chip-btn {
+            background: #fcfaf5;
+            border: 1.5px solid rgba(120, 53, 15, 0.2);
+            color: #292524;
+            border-radius: 20px;
+            padding: 7px 14px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+        }
+
+        .chip-btn:hover {
+            background: var(--acento-dorado);
+            border-color: var(--acento-ambar);
+            color: #111111;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(255, 204, 0, 0.35);
+        }
+
+        /* 
+           BURBUJAS DE MENSAJES
+           */
+        @keyframes fadeInPop {
+            from { opacity: 0; transform: translateY(8px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .msg-row { 
+            display: flex; 
+            width: 100%; 
+            animation: fadeInPop 0.25s ease-out;
+        }
+        .msg-row.user { justify-content: flex-end; }
+        .msg-row.bot { justify-content: flex-start; }
+        .msg-row.system { justify-content: center; }
+        
+        .bot-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            align-self: flex-end;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 2px solid var(--acento-dorado);
+            background: #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .msg { 
+            padding: 11px 16px; 
+            border-radius: 18px; 
+            max-width: 82%; 
+            font-size: 14.5px;
+            line-height: 1.45;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .msg-user { 
+            background: var(--color-burbuja-usuario); 
+            color: var(--color-texto-usuario); 
+            border: 1px solid var(--borde-madera);
+            border-bottom: 3px solid var(--borde-madera);
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 3px 8px rgba(35, 18, 5, 0.25);
+            font-weight: 500;
+        }
+
+        .msg-bot { 
+            background-color: var(--color-burbuja-bot); 
+            color: var(--color-texto-bot); 
+            border: 2px solid var(--borde-burbuja-bot);
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 3px 10px rgba(43, 23, 6, 0.07);
+        }
+
+        .msg-system { 
+            color: #2b1810; 
+            font-size: 13.5px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.95); 
+            border: 1.5px solid var(--acento-dorado);
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+        }
+
+        .typing-dots {
+            display: inline-flex;
+            gap: 4px;
+        }
+        .typing-dots span {
+            width: 7px;
+            height: 7px;
+            background-color: var(--acento-dorado);
+            border-radius: 50%;
+            animation: bounceDot 1.2s infinite ease-in-out;
+        }
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounceDot {
+            0%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-5px); }
+        }
+        
+        /* =========================================
+           BARRA INFERIOR (Controles de Entrada)
+           ========================================= */
+        .footer-bar {
+            padding: 8px clamp(10px, 3vw, 20px) 12px;
+            background: linear-gradient(180deg, transparent 0%, rgba(250, 248, 242, 0.98) 40%);
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .input-row { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            width: 100%;
+            background: #ffffff; 
+            padding: 5px 8px 5px 16px; 
+            border-radius: 32px; 
+            border: 2px solid var(--borde-tarjeta);
+            box-shadow: 0 4px 14px rgba(43, 23, 6, 0.08);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-row:focus-within {
+            border-color: var(--acento-ambar);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25), 0 4px 14px rgba(43, 23, 6, 0.12);
+        }
+        
+        input[type="text"] { 
+            flex-grow: 1; 
+            min-width: 0; 
+            padding: 8px 4px; 
+            border: none; 
+            outline: none; 
+            font-family: inherit;
+            font-size: 14.5px;
+            color: #1c1917;
+            background: transparent;
+        }
+
+        input[type="text"]::placeholder {
+            color: #78716c;
+        }
+        
+        .icon-button { 
+            border: none; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            flex-shrink: 0; 
+            width: 40px;    
+            height: 40px;
+        }
+
+        #btn-mic {
+            background-color: #fcfaf5;
+            color: #451a03;
+        }
+        #btn-mic:hover {
+            background-color: var(--acento-ambar-suave);
+            color: #111111;
+        }
+        #btn-mic.recording { 
+            background-color: #ef4444;
+            color: #ffffff; 
+            animation: pulseMic 1.2s infinite;
+        }
+
+        @keyframes pulseMic {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+            70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        #btn-send {
+            background-color: var(--acento-dorado);
+            color: #111111;
+            box-shadow: 0 2px 8px rgba(255, 204, 0, 0.4);
+        }
+        #btn-send:hover {
+            background-color: var(--acento-dorado-hover);
+            transform: scale(1.05);
+        }
+        
+        .icon-button .material-icons { 
+            font-size: 22px; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <!-- Encabezado con textura de madera rústica -->
+    <div class="header-bar">
+        <div class="header-info">
+            <img src="/assets/bot_avatar.png" alt="Avatar ZooMAT" class="header-logo-badge" id="header-avatar">
+            <div class="header-titles">
+                <span class="header-title">Asistente ZooMAT</span>
+                <span class="header-status">
+                    <span class="status-dot"></span> <span id="header-subtitle">Guía Virtual • Fauna de Chiapas</span>
+                </span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <div class="lang-switch-container">
+                <button type="button" class="lang-btn active" id="btn-lang-es" onclick="cambiarIdioma('es')">ES</button>
+                <button type="button" class="lang-btn" id="btn-lang-en" onclick="cambiarIdioma('en')">EN</button>
+            </div>
+            <button class="btn-stop-audio" id="btn-stop-audio" title="Detener voz">
+                <span class="material-icons">volume_off</span> <span id="btn-stop-text">Silenciar</span>
+            </button>
+            <button class="btn-close-header" id="btn-close-header" title="Cerrar chat" onclick="cerrarChatModal()">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Contenedor del historial con marca de agua -->
+    <div class="chat-content">
+        <div class="chat-history" id="chat-history"></div>
+    </div>
+    
+    <!-- Barra de controles inferior -->
+    <div class="footer-bar">
+        <div class="input-row">
+            <input type="text" id="user-input" placeholder="Pregunta sobre una especie o tu visita...">
+            <button class="icon-button" id="btn-mic" title="Mantén presionado para hablar">
+                <span class="material-icons">mic</span>
+            </button>
+            <button class="icon-button" id="btn-send" title="Enviar consulta">
+                <span class="material-icons">send</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const chatHistory = document.getElementById('chat-history');
+    const userInput = document.getElementById('user-input');
+    const btnMic = document.getElementById('btn-mic');
+    const btnSend = document.getElementById('btn-send');
+    const headerAvatar = document.getElementById('header-avatar');
+    const btnStopAudio = document.getElementById('btn-stop-audio');
+    const headerSubtitle = document.getElementById('header-subtitle');
+    const btnStopText = document.getElementById('btn-stop-text');
+    const btnCloseHeader = document.getElementById('btn-close-header');
+    
+    // Detección de entorno Iframe para activar controles de cierre integrados
+    const estaEnIframe = window.self !== window.top;
+    if (estaEnIframe && btnCloseHeader) {
+        btnCloseHeader.style.display = 'inline-flex';
+    }
+
+    function cerrarChatModal() {
+        try {
+            window.parent.postMessage({ type: 'ZOOMAT_CHAT_CLOSE' }, '*');
+        } catch (e) {
+            console.warn("No se pudo notificar al contenedor padre:", e);
+        }
+    }
+    
+    // =========================================
+    // SISTEMA DE ROTACIÓN DINÁMICA DE AVATARES
+    // =========================================
+    const AVATARES_BOT = [
+        '/assets/bot_avatar.png',
+        '/assets/bot_avatar2.png',
+        '/assets/bot_avatar3.png'
+    ];
+
+    // Precarga de imágenes en memoria para transiciones instantáneas sin parpadeo
+    AVATARES_BOT.forEach(ruta => {
+        const img = new Image();
+        img.src = ruta;
+    });
+
+    let avatarActual = AVATARES_BOT[0];
+
+    function cambiarAvatarSesion() {
+        let ultimoGuardado = null;
+        try {
+            ultimoGuardado = localStorage.getItem('zoomat_ultimo_avatar');
+        } catch (e) {
+            console.warn("localStorage no disponible:", e);
+        }
+
+        // Filtra los avatares excluyendo el de la sesión anterior (garantiza no repetición consecutiva)
+        const candidatos = AVATARES_BOT.filter(ruta => ruta !== ultimoGuardado);
+        const seleccionado = candidatos[Math.floor(Math.random() * candidatos.length)] || AVATARES_BOT[0];
+
+        avatarActual = seleccionado;
+
+        try {
+            localStorage.setItem('zoomat_ultimo_avatar', avatarActual);
+        } catch (e) {}
+
+        // Actualiza el avatar del encabezado
+        if (headerAvatar) {
+            headerAvatar.src = avatarActual;
+        }
+
+        // Actualiza cualquier imagen de avatar del bot presente en el DOM
+        document.querySelectorAll('.bot-avatar, .loading-bot-avatar, .welcome-avatar').forEach(img => {
+            img.src = avatarActual;
+        });
+
+        return avatarActual;
+    }
+    
+    let audioPlayer = new Audio();
+    let idiomaActual = 'es';
+
+    const TEXTOS_UI = {
+        es: {
+            subtitle: "Guía Virtual • Fauna de Chiapas",
+            silenciar: "Silenciar",
+            welcomeBadge: "🌿 Biodiversidad Protegida",
+            welcomeTitle: "¡Bienvenido al ZooMAT!",
+            welcomeText: "Soy tu guía virtual. Pregúntame con tu voz o escribe sobre nuestras especies nativas de Chiapas, horarios o servicios del zoológico.",
+            quickLabel: "Sugerencias rápidas (toca una opción):",
+            chipCostos: "Costos",
+            chipHorarios: "Horarios",
+            chipBanos: "Ubicación de los baños",
+            qCostos: "¿Cuáles son los costos de entrada?",
+            qHorarios: "¿Cuál es el horario del zoológico?",
+            qBanos: "¿Dónde están ubicados los baños?",
+            placeholder: "Pregunta sobre una especie o tu visita...",
+            listening: "🔴 Escuchando... (Habla ahora)",
+            errorServer: "Error de conexión con el servidor.",
+            consultando: "Consultando fichas",
+            micAlert: "Tu navegador no soporta dictado por voz en tiempo real. Usa Google Chrome o Microsoft Edge."
+        },
+        en: {
+            subtitle: "Virtual Guide • Chiapas Wildlife",
+            silenciar: "Mute",
+            welcomeBadge: "🌿 Protected Biodiversity",
+            welcomeTitle: "Welcome to ZooMAT!",
+            welcomeText: "I am your virtual guide. Ask me by voice or text about our native Chiapas wildlife, schedules, or zoo services.",
+            quickLabel: "Quick suggestions (tap an option):",
+            chipCostos: "Costs",
+            chipHorarios: "Hours",
+            chipBanos: "Restrooms",
+            qCostos: "What are the entrance fees?",
+            qHorarios: "What are the zoo hours?",
+            qBanos: "Where are the restrooms located?",
+            placeholder: "Ask about a species or your visit...",
+            listening: "🔴 Listening... (Speak now)",
+            errorServer: "Server connection error.",
+            consultando: "Consulting records",
+            micAlert: "Your browser does not support real-time speech recognition. Please use Google Chrome or Microsoft Edge."
+        }
+    };
+    
+    audioPlayer.addEventListener('play', () => {
+        headerAvatar.classList.add('speaking');
+        btnStopAudio.style.display = 'inline-flex';
+    });
+
+    const detenerIndicadorVoz = () => {
+        headerAvatar.classList.remove('speaking');
+        btnStopAudio.style.display = 'none';
+    };
+
+    audioPlayer.addEventListener('ended', detenerIndicadorVoz);
+    audioPlayer.addEventListener('pause', detenerIndicadorVoz);
+
+    btnStopAudio.addEventListener('click', () => {
+        audioPlayer.pause();
+        audioPlayer.currentTime = 0;
+    });
+
+    // =========================================
+    // CAMBIO DE IDIOMA DINÁMICO
+    // =========================================
+    function cambiarIdioma(nuevoIdioma) {
+        if (idiomaActual === nuevoIdioma) return;
+        idiomaActual = nuevoIdioma;
+        
+        document.getElementById('btn-lang-es').classList.toggle('active', nuevoIdioma === 'es');
+        document.getElementById('btn-lang-en').classList.toggle('active', nuevoIdioma === 'en');
+        
+        const t = TEXTOS_UI[idiomaActual];
+        if (headerSubtitle) headerSubtitle.textContent = t.subtitle;
+        if (btnStopText) btnStopText.textContent = t.silenciar;
+        userInput.placeholder = t.placeholder;
+        
+        if (recognition) {
+            recognition.lang = nuevoIdioma === 'en' ? 'en-US' : 'es-MX';
+        }
+        
+        const welcomeCard = document.querySelector('.welcome-card');
+        if (welcomeCard) {
+            welcomeCard.remove();
+            mostrarBienvenida();
+        }
+    }
+
+    // =========================================
+    // TARJETA DE BIENVENIDA INTERACTIVA
+    // =========================================
+    function mostrarBienvenida() {
+        const t = TEXTOS_UI[idiomaActual];
+        const welcomeDiv = document.createElement('div');
+        welcomeDiv.className = 'welcome-card';
+        welcomeDiv.innerHTML = `
+            <div class="welcome-badge">${t.welcomeBadge}</div>
+            <h3 class="welcome-title">${t.welcomeTitle}</h3>
+            <p class="welcome-text">${t.welcomeText}</p>
+            <span class="quick-chips-label">${t.quickLabel}</span>
+            <div class="quick-chips">
+                <button class="chip-btn" onclick="enviarSugerencia('${t.qCostos}')">${t.chipCostos}</button>
+                <button class="chip-btn" onclick="enviarSugerencia('${t.qHorarios}')">${t.chipHorarios}</button>
+                <button class="chip-btn" onclick="enviarSugerencia('${t.qBanos}')">${t.chipBanos}</button>
+            </div>
+        `;
+        chatHistory.appendChild(welcomeDiv);
+    }
+
+    function enviarSugerencia(texto) {
+        userInput.value = texto;
+        btnSend.click();
+    }
+
+    // =========================================
+    // MODO KIOSCO: Limpieza automática del chat
+    // =========================================
+    let temporizadorInactividad;
+    const TIEMPO_INACTIVIDAD = 90000; // 90 segundos
+
+    function limpiarChat() {
+        chatHistory.innerHTML = ''; 
+        if (!audioPlayer.paused) {
+            audioPlayer.pause();
+            audioPlayer.currentTime = 0;
+        }
+        cambiarAvatarSesion();
+        mostrarBienvenida();
+    }
+
+    function reiniciarTemporizador() {
+        clearTimeout(temporizadorInactividad);
+        temporizadorInactividad = setTimeout(limpiarChat, TIEMPO_INACTIVIDAD);
+    }
+
+    document.addEventListener('mousemove', reiniciarTemporizador);
+    document.addEventListener('touchstart', reiniciarTemporizador);
+    document.addEventListener('keypress', reiniciarTemporizador);
+    document.addEventListener('click', reiniciarTemporizador);
+    
+    cambiarAvatarSesion();
+    mostrarBienvenida();
+    reiniciarTemporizador();
+
+    // =========================================
+    // RENDERIZADO DE MENSAJES
+    // =========================================
+    function addMessage(text, type, isLoading = false) {
+        const row = document.createElement('div');
+        row.className = `msg-row ${type}`;
+
+        if (type === 'bot') {
+            const avatar = document.createElement('img');
+            avatar.src = avatarActual; 
+            avatar.className = 'bot-avatar';
+            avatar.alt = 'Bot';
+            row.appendChild(avatar);
+        }
+
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `msg msg-${type}`;
+        
+        if (isLoading) {
+            const t = TEXTOS_UI[idiomaActual];
+            msgDiv.innerHTML = `<img src="${avatarActual}" alt="Bot" class="loading-bot-avatar" style="width: 22px; height: 22px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--acento-dorado);"> ${t.consultando} <span class="typing-dots"><span></span><span></span><span></span></span>`;
+        } else {
+            msgDiv.textContent = text;
+        }
+        
+        row.appendChild(msgDiv);
+        chatHistory.appendChild(row);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+        return row;
+    }
+
+    async function sendMessage(formData) {
+        const loadingRow = addMessage("", "system", true);
+        
+        try {
+            const response = await fetch('/chat', { method: 'POST', body: formData });
+            const data = await response.json();
+            
+            if (loadingRow.parentNode) {
+                chatHistory.removeChild(loadingRow);
+            }
+            
+            if(data.error) {
+                addMessage(data.error, "system");
+            } else {
+                addMessage(data.respuesta, "bot");
+                audioPlayer.src = data.audio_url + "?t=" + new Date().getTime(); 
+                audioPlayer.play();
+            }
+        } catch (error) {
+            if (loadingRow.parentNode) {
+                chatHistory.removeChild(loadingRow);
+            }
+            const t = TEXTOS_UI[idiomaActual];
+            addMessage(t.errorServer, "system");
+        }
+    }
+
+    // --- Lógica de Envío de Texto ---
+    btnSend.addEventListener('click', () => {
+        const text = userInput.value.trim();
+        if(!text) return;
+        
+        const welcomeCard = document.querySelector('.welcome-card');
+        if (welcomeCard) {
+            welcomeCard.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+            welcomeCard.style.opacity = '0';
+            welcomeCard.style.transform = 'translateY(-10px)';
+            setTimeout(() => welcomeCard.remove(), 200);
+        }
+
+        if (!audioPlayer.paused) {
+            audioPlayer.pause();
+            audioPlayer.currentTime = 0;
+        }
+
+        addMessage(text, "user");
+        userInput.value = '';
+        
+        const formData = new FormData();
+        formData.append('pregunta', text);
+        formData.append('idioma', idiomaActual);
+        sendMessage(formData);
+    });
+
+    userInput.addEventListener('keypress', (e) => { 
+        if(e.key === 'Enter') btnSend.click(); 
+    });
+
+    // --- Lógica de Micrófono en Tiempo Real (Web Speech API) ---
+    btnMic.addEventListener('contextmenu', e => e.preventDefault());
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition;
+
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = idiomaActual === 'en' ? 'en-US' : 'es-MX';
+
+        recognition.onstart = () => {
+            btnMic.classList.add('recording');
+            userInput.placeholder = TEXTOS_UI[idiomaActual].listening;
+            userInput.value = ""; 
+        };
+
+        recognition.onresult = (event) => {
+            let textoFinal = '';
+            let textoTemporal = '';
+
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    textoFinal += event.results[i][0].transcript;
+                } else {
+                    textoTemporal += event.results[i][0].transcript;
+                }
+            }
+            
+            userInput.value = textoFinal + textoTemporal;
+            reiniciarTemporizador();
+        };
+
+        recognition.onerror = (event) => {
+            console.error("Error en micrófono:", event.error);
+            userInput.placeholder = TEXTOS_UI[idiomaActual].placeholder;
+        };
+
+        recognition.onend = () => {
+            btnMic.classList.remove('recording');
+            userInput.placeholder = TEXTOS_UI[idiomaActual].placeholder;
+            
+            if(userInput.value.trim() !== '') {
+                btnSend.click(); 
+            }
+        };
+    } else {
+        btnMic.addEventListener('click', () => {
+            alert(TEXTOS_UI[idiomaActual].micAlert);
+        });
+    }
+
+    function startRecording(e) {
+        e.preventDefault();
+        audioPlayer.pause();
+        audioPlayer.currentTime = 0;
+        if (recognition) {
+            try { recognition.start(); } catch(err) {}
+        }
+    }
+
+    function stopRecording(e) {
+        e.preventDefault();
+        if (recognition) {
+            recognition.stop();
+        }
+    }
+
+    btnMic.addEventListener('mousedown', startRecording);
+    btnMic.addEventListener('touchstart', startRecording);
+    btnMic.addEventListener('mouseup', stopRecording);
+    btnMic.addEventListener('touchend', stopRecording);
+</script>
+</body>
+</html>

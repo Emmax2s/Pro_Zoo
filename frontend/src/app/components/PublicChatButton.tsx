@@ -2,6 +2,10 @@ import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import chatLauncherLogo from "../../assets/chat-launcher.jpg";
 
+const CHATBOT_URL =
+  (import.meta.env.VITE_CHATBOT_URL as string | undefined) ||
+  (import.meta.env.PROD ? "https://chatbot.pruzo.me" : "http://localhost:8000");
+
 export function PublicChatButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [hasOpened, setHasOpened] = useState(false);
@@ -79,7 +83,7 @@ export function PublicChatButton() {
           {/* Iframe que aloja el asistente Flask desacoplado */}
           <div className="relative flex-1 w-full h-full overflow-hidden bg-[#faf8f2]">
             <iframe
-              src="http://localhost:8000"
+              src={CHATBOT_URL}
               width="100%"
               height="100%"
               frameBorder="0"

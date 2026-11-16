@@ -347,3 +347,48 @@ select:focus-visible {
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+
+/* ── Ventana Flotante del Asistente Virtual ZooMAT (Responsividad y Modo Landscape) ── */
+.zoomat-chat-modal {
+  position: fixed;
+  z-index: 1000;
+  bottom: 5.5rem;
+  right: 0.75rem;
+  width: calc(100vw - 1.5rem);
+  max-width: 420px;
+  height: calc(100dvh - 7rem);
+  max-height: calc(100dvh - 96px);
+  border-radius: 1rem;
+}
+
+@media (min-width: 640px) {
+  .zoomat-chat-modal {
+    bottom: 7rem;
+    right: 1.5rem;
+    width: 420px;
+    height: 620px;
+    max-height: min(680px, calc(100dvh - 120px));
+    border-radius: 1.5rem;
+  }
+}
+
+/* Modo Landscape / Pantallas de baja altura en móviles */
+@media (max-height: 520px), (orientation: landscape) and (max-height: 540px) {
+  .zoomat-chat-modal {
+    top: 8px !important;
+    bottom: 8px !important;
+    right: 76px !important;
+    width: min(460px, calc(100vw - 92px)) !important;
+    height: calc(100dvh - 16px) !important;
+    max-height: calc(100dvh - 16px) !important;
+    border-radius: 1rem !important;
+  }
+
+  .zoomat-chat-launcher {
+    bottom: 8px !important;
+    right: 8px !important;
+    width: 56px !important;
+    height: 56px !important;
+  }
+}
+

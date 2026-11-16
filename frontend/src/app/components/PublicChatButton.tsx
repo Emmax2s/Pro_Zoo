@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, ExternalLink } from "lucide-react";
 import chatLauncherLogo from "../../assets/chat-launcher.jpg";
 
 const CHATBOT_URL =
@@ -58,26 +58,40 @@ export function PublicChatButton() {
           role="dialog"
           aria-modal="true"
           aria-label="Ventana del Asistente Virtual ZooMAT"
-          className={`fixed bottom-22 right-3 sm:bottom-28 sm:right-6 z-[1000] w-[calc(100vw-1.5rem)] sm:w-[420px] max-w-[420px] h-[calc(100dvh-7rem)] sm:h-[620px] max-h-[680px] rounded-2xl sm:rounded-3xl border-2 border-[#1c0d03]/25 bg-[#faf8f2] shadow-[0_12px_45px_rgba(28,13,3,0.35)] overflow-hidden flex flex-col transition-all duration-300 ease-out origin-bottom-right ${
+          className={`zoomat-chat-modal border-2 border-[#1c0d03]/25 bg-[#faf8f2] shadow-[0_12px_45px_rgba(28,13,3,0.35)] overflow-hidden flex flex-col transition-all duration-300 ease-out origin-bottom-right ${
             isOpen
               ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
               : "opacity-0 scale-95 translate-y-4 pointer-events-none invisible"
           }`}
         >
-          {/* Barra superior de control rápido para pantallas móviles */}
-          <div className="flex sm:hidden items-center justify-between px-3.5 py-2 bg-[#231205] text-white border-b border-[#361c0a] flex-shrink-0">
+          {/* Barra superior de control (Asistente ZooMAT, Pantalla Completa y Cerrar) */}
+          <div className="flex items-center justify-between px-3.5 py-2 bg-[#231205] text-white border-b border-[#361c0a] flex-shrink-0">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#22c55e] animate-pulse"></span>
-              <span className="text-xs font-bold text-[#ffcc00] tracking-wide">Asistente ZooMAT</span>
+              <span className="text-xs sm:text-sm font-bold text-[#ffcc00] tracking-wide">
+                Asistente ZooMAT
+              </span>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              aria-label="Cerrar asistente virtual"
-              className="flex items-center justify-center w-7 h-7 rounded-full bg-white/10 text-white/90 hover:bg-[#ffcc00] hover:text-[#111] transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => window.open(CHATBOT_URL, "_blank", "noopener,noreferrer")}
+                title="Abrir en pantalla completa"
+                aria-label="Abrir en pantalla completa"
+                className="flex items-center justify-center min-w-[32px] min-h-[32px] w-8 h-8 rounded-full bg-white/10 text-white/90 hover:bg-[#ffcc00] hover:text-[#111] transition-colors cursor-pointer"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                title="Cerrar asistente virtual"
+                aria-label="Cerrar asistente virtual"
+                className="flex items-center justify-center min-w-[32px] min-h-[32px] w-8 h-8 rounded-full bg-white/10 text-white/90 hover:bg-[#ffcc00] hover:text-[#111] transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Iframe que aloja el asistente Flask desacoplado */}
@@ -102,7 +116,7 @@ export function PublicChatButton() {
         onClick={handleToggle}
         aria-expanded={isOpen}
         aria-label={isOpen ? "Cerrar asistente virtual" : "Abrir asistente virtual ZooMAT"}
-        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[1000] flex h-14 w-14 sm:h-[78px] sm:w-[78px] cursor-pointer items-center justify-center rounded-full border-2 border-[#ffcc00] bg-[#231205] shadow-[0_6px_20px_rgba(35,18,5,0.4)] hover:shadow-[0_10px_26px_rgba(255,204,0,0.4)] outline-none transition-all duration-300 ease-out hover:scale-[1.08] hover:-translate-y-1 active:scale-95 will-change-transform group p-0 overflow-visible"
+        className="zoomat-chat-launcher fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[1000] flex h-14 w-14 sm:h-[78px] sm:w-[78px] cursor-pointer items-center justify-center rounded-full border-2 border-[#ffcc00] bg-[#231205] shadow-[0_6px_20px_rgba(35,18,5,0.4)] hover:shadow-[0_10px_26px_rgba(255,204,0,0.4)] outline-none transition-all duration-300 ease-out hover:scale-[1.08] hover:-translate-y-1 active:scale-95 will-change-transform group p-0 overflow-visible"
       >
         {isOpen ? (
           <div className="flex h-full w-full items-center justify-center rounded-full bg-[#ffcc00] text-[#111] shadow-inner transition-colors duration-200">

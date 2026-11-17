@@ -112,7 +112,7 @@ export function Navigation() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 select-none shadow-md font-sans">
+      <header className="sticky top-0 z-50 select-none shadow-md font-sans">
         {/* 1. BARRA SUPERIOR INSTITUCIONAL (chiapas.gob.mx) */}
         <div className="bg-[#212529] text-white border-b border-white/10">
           <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between min-h-[48px] sm:min-h-[52px] h-[48px] sm:h-[52px] py-1">
@@ -177,8 +177,8 @@ export function Navigation() {
         </div>
 
         {/* 2. BARRA PRINCIPAL DE NAVEGACIÓN */}
-        <div className="bg-white border-b border-stone-200 shadow-sm">
-          <div className="w-full h-[1.5cm] min-h-0 px-4 sm:px-6 lg:px-8 flex items-center justify-between py-0 gap-2 sm:gap-4 overflow-hidden">
+        <div className="bg-white border-b border-stone-200 shadow-sm relative">
+          <div className="w-full h-[1.5cm] min-h-0 px-4 sm:px-6 lg:px-8 flex items-center justify-between py-0 gap-2 sm:gap-4">
             
             {/* IZQUIERDA: LOGO OPTIMIZADO SIN SOBRESALIR */}
             <Link to="/" className="flex items-center h-full max-h-full flex-shrink-0 py-0.5 group">
@@ -190,7 +190,7 @@ export function Navigation() {
             </Link>
 
             {/* DERECHA: ENLACES DE NAVEGACIÓN */}
-            <nav className="hidden lg:flex items-center flex-nowrap whitespace-nowrap gap-2 sm:gap-3 md:gap-4 xl:gap-5.5 2xl:gap-7 text-stone-800">
+            <nav className="hidden lg:flex items-center flex-nowrap whitespace-nowrap gap-2 sm:gap-3 md:gap-4 xl:gap-5.5 2xl:gap-7 text-stone-800 overflow-visible">
               <Link
                 to="/"
                 style={{ fontSize: "16px" }}
@@ -212,16 +212,6 @@ export function Navigation() {
               </Link>
 
               <Link
-                to="/especies"
-                style={{ fontSize: "16px" }}
-                className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer ${
-                  isActive("/especies") || isActive("/especie") || isActive("/animales") ? "text-[#731c34] font-medium" : "text-stone-800"
-                }`}
-              >
-                {"Especies"}
-              </Link>
-
-              <Link
                 to="/comite-de-etica"
                 style={{ fontSize: "16px" }}
                 className={`py-1.5 px-1.5 transition-colors hover:text-[#731c34] font-normal whitespace-nowrap cursor-pointer ${
@@ -235,8 +225,6 @@ export function Navigation() {
               <div
                 ref={transparencyRef}
                 className="relative"
-                onMouseEnter={() => setTransparencyOpen(true)}
-                onMouseLeave={() => setTransparencyOpen(false)}
               >
                 <button
                   onClick={() => setTransparencyOpen(!transparencyOpen)}
@@ -250,7 +238,7 @@ export function Navigation() {
                 </button>
 
                 {transparencyOpen && (
-                  <div className="absolute left-0 top-full mt-1 w-80 bg-white rounded-xl shadow-2xl border border-stone-200 py-2.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute left-0 top-full mt-1 w-80 bg-white rounded-xl shadow-2xl border border-stone-200 py-2.5 z-[200] animate-in fade-in zoom-in-95 duration-150">
                     <div className="px-4 py-1.5 mb-1 border-b border-stone-100 flex items-center justify-between text-xs font-bold text-stone-500 uppercase tracking-wider">
                       <span>{t("nav.transparencyPortal")}</span>
                       <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[11px]">14</span>
@@ -278,8 +266,6 @@ export function Navigation() {
               <div
                 ref={datosRef}
                 className="relative"
-                onMouseEnter={() => setDatosPersonalesOpen(true)}
-                onMouseLeave={() => setDatosPersonalesOpen(false)}
               >
                 <button
                   onClick={() => setDatosPersonalesOpen(!datosPersonalesOpen)}
@@ -293,7 +279,7 @@ export function Navigation() {
                 </button>
 
                 {datosPersonalesOpen && (
-                  <div className="absolute left-0 top-full mt-1 w-72 bg-white rounded-xl shadow-2xl border border-stone-200 py-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 font-sans">
+                  <div className="absolute left-0 top-full mt-1 w-72 bg-white rounded-xl shadow-2xl border border-stone-200 py-2.5 z-[200] animate-in fade-in zoom-in-95 duration-150 font-sans">
                     <div className="px-4 py-1.5 mb-1 border-b border-stone-100 text-xs font-bold text-stone-500 uppercase tracking-wider">
                       {t("nav.dataProtection")}
                     </div>
@@ -352,13 +338,6 @@ export function Navigation() {
               className="block w-full text-left text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1.5"
             >
               Quienes somos
-            </Link>
-            <Link
-              to="/especies"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block w-full text-left text-sm font-semibold text-stone-800 hover:text-[#731c34] py-1.5"
-            >
-              Especies
             </Link>
             <Link
               to="/comite-de-etica"

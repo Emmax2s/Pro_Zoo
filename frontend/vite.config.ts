@@ -194,8 +194,25 @@ export default defineConfig({
       '/uploads': {
         target: 'http://127.0.0.1:4000',
         changeOrigin: true,
-      },
+      }
+    }
+  },
+  preview: {
+    headers: {
+      "Cross-Origin-Embedder-Policy": "require-corp",
+      "Cross-Origin-Opener-Policy": "same-origin"
     },
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:4000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/uploads': {
+        target: 'http://127.0.0.1:4000',
+        changeOrigin: true,
+      }
+    }
   },
   assetsInclude: ['**/*.svg', '**/*.csv'],
   root: __dirname,

@@ -492,19 +492,19 @@ export function SpeciesDetail() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-4">
-            <div>
+          <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-4 min-w-0">
+            <div className="min-w-0">
               <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-100/90 text-amber-950 text-xs font-black tracking-wide uppercase shadow-2xs border border-amber-300 mb-1.5">
                 <TreePine className="w-3.5 h-3.5 text-emerald-800" />
                 <span>{t("speciesDetail.qrGuide", { lng: sheetLang })}</span>
               </div>
-              <h1 className="font-adventure text-3xl sm:text-4xl lg:text-5xl text-[#2b1810] tracking-wide text-adventure-shadow leading-tight">
+              <h1 className="font-adventure text-3xl sm:text-4xl lg:text-5xl text-[#2b1810] tracking-wide text-adventure-shadow leading-tight break-words">
                 {loc.name || species.name}
               </h1>
             </div>
 
             {(loc.scientificName || species.scientificName) && (
-              <p className="text-lg sm:text-xl font-serif italic text-amber-900 font-medium sm:text-right">
+              <p className="text-lg sm:text-xl font-serif italic text-amber-900 font-medium sm:text-right break-words min-w-0">
                 ({loc.scientificName || species.scientificName})
               </p>
             )}
@@ -593,34 +593,34 @@ export function SpeciesDetail() {
           {/* Columna Derecha: Sobre esta especie + Atributos + LSM */}
           <div className="lg:col-span-7 space-y-4">
             {/* Sobre esta especie */}
-            <div className="interactive-card bg-white p-6 sm:p-7 rounded-3xl border border-[#e2d5bd] shadow-lg space-y-3">
+            <div className="interactive-card bg-white p-6 sm:p-7 rounded-3xl border border-[#e2d5bd] shadow-lg space-y-3 overflow-hidden">
               <h2 className="font-adventure text-2xl sm:text-3xl text-[#2b1810] flex items-center gap-2">
                 <Sparkles className="w-6 h-6 text-amber-600" />
                 <span>{t("speciesDetail.aboutSpecies", { lng: sheetLang })}</span>
               </h2>
-              <p className="text-stone-800 text-base sm:text-lg leading-relaxed font-medium">
+              <p className="text-stone-800 text-base sm:text-lg leading-relaxed font-medium break-words">
                 {loc.funFact || species.funFact}
               </p>
             </div>
 
             {/* Cuadrícula de Atributos: Hábitat y Alimentación */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="interactive-card bg-white p-5 rounded-2xl border border-amber-900/10 shadow-sm hover:border-amber-500/40 transition-colors">
+              <div className="interactive-card bg-white p-5 rounded-2xl border border-amber-900/10 shadow-sm hover:border-amber-500/40 transition-colors overflow-hidden">
                 <h3 className="font-adventure text-lg text-amber-950 mb-2 flex items-center gap-2">
                   <MapPin className="w-5 h-5 text-emerald-700 flex-shrink-0" />
                   <span>{t("speciesDetail.habitatRange", { lng: sheetLang })}</span>
                 </h3>
-                <p className="text-stone-700 text-sm sm:text-base leading-relaxed">
+                <p className="text-stone-700 text-sm sm:text-base leading-relaxed break-words">
                   {loc.habitat || species.habitat}
                 </p>
               </div>
 
-              <div className="interactive-card bg-white p-5 rounded-2xl border border-amber-900/10 shadow-sm hover:border-amber-500/40 transition-colors">
+              <div className="interactive-card bg-white p-5 rounded-2xl border border-amber-900/10 shadow-sm hover:border-amber-500/40 transition-colors overflow-hidden">
                 <h3 className="font-adventure text-lg text-amber-950 mb-2 flex items-center gap-2">
                   <ShieldCheck className="w-5 h-5 text-amber-700 flex-shrink-0" />
                   <span>{t("speciesDetail.dietHabits", { lng: sheetLang })}</span>
                 </h3>
-                <p className="text-stone-700 text-sm sm:text-base leading-relaxed">
+                <p className="text-stone-700 text-sm sm:text-base leading-relaxed break-words">
                   {loc.diet || species.diet}
                 </p>
               </div>

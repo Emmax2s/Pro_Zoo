@@ -51,6 +51,15 @@ export const ensureDatabaseSchema = async () => {
     ALTER TABLE species
       ALTER COLUMN image_url TYPE TEXT;
 
+    ALTER TABLE species
+      ALTER COLUMN habitat TYPE VARCHAR(1000),
+      ALTER COLUMN diet TYPE VARCHAR(1000),
+      ALTER COLUMN lifespan TYPE VARCHAR(1000),
+      ALTER COLUMN size TYPE VARCHAR(1000),
+      ALTER COLUMN weight TYPE VARCHAR(1000),
+      ALTER COLUMN activity TYPE VARCHAR(1000),
+      ALTER COLUMN distribution TYPE VARCHAR(1000);
+
     CREATE TABLE IF NOT EXISTS enclosures (
       id VARCHAR(100) PRIMARY KEY,
       name VARCHAR(150) NOT NULL,

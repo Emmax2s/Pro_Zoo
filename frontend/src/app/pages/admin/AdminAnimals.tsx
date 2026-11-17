@@ -575,6 +575,7 @@ function AnimalModal({
                   <input
                     name="habitat"
                     value={form.habitat}
+                    maxLength={1000}
                     onChange={handle}
                     onBlur={() => handleBlur("habitat")}
                     placeholder="ej. Selvas tropicales de Chiapas"
@@ -592,6 +593,7 @@ function AnimalModal({
                   <input
                     name="diet"
                     value={form.diet}
+                    maxLength={1000}
                     onChange={handle}
                     onBlur={() => handleBlur("diet")}
                     placeholder="ej. Carnívoro: pecaríes, venados..."
@@ -638,6 +640,7 @@ function AnimalModal({
                 <textarea
                   name="funFact"
                   value={form.funFact}
+                  maxLength={1000}
                   onChange={handle}
                   onBlur={() => handleBlur("funFact")}
                   rows={3}

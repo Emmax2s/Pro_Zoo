@@ -1725,5 +1725,5 @@ if __name__ == '__main__':
         regenerar_audios_estaticos()
     else:
         debug = os.getenv('CHATBOT_DEBUG', '').lower() in {'1', 'true', 'yes'}
-        port  = int(os.getenv('CHATBOT_PORT', 5000))
+        port  = int(os.getenv('CHATBOT_PORT', 8000))
         app.run(host='0.0.0.0', port=port, debug=debug)

@@ -67,7 +67,7 @@ services:
     container_name: prozoo_chromadb
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8001:8000"      # Host 8001 → contenedor 8000 (liberamos el 8000 para el chatbot)
     volumes:
       - chroma_data:/chroma/chroma
     environment:
@@ -138,12 +138,12 @@ services:
       OLLAMA_HOST: ollama
       OLLAMA_PORT: 11434
       # Flask
-      CHATBOT_PORT: 5000
+      CHATBOT_PORT: 8000
       FLASK_ENV: production
       # Clave para proteger el endpoint /ingestar (pon una clave segura en .env)
       INGEST_SECRET: ${INGEST_SECRET:-mi_clave_ingesta_secreta}
     ports:
-      - "5000:5000"
+      - "8000:8000"
     volumes:
       # Documentos fuente: se editan localmente, el contenedor los ve en tiempo real
       - ./chatbot/documentos_zoomat:/app/documentos_zoomat
@@ -182,7 +182,7 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3001}
-        VITE_CHATBOT_URL: ${VITE_CHATBOT_URL:-http://localhost:5000}
+        VITE_CHATBOT_URL: ${VITE_CHATBOT_URL:-http://localhost:8000}
     container_name: prozoo_frontend
     restart: unless-stopped
     depends_on:

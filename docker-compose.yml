@@ -191,6 +191,25 @@ services:
     ports:
       - "80:80"
 
+  # ─────────────────────────────────────────
+  # 8. SCHEDULER — Ingesta semanal (lunes 3AM)
+  # ─────────────────────────────────────────
+  scheduler:
+    build:
+      context: ./chatbot/scheduler
+      dockerfile: Dockerfile
+    container_name: prozoo_scheduler
+    restart: unless-stopped
+    depends_on:
+      - chatbot
+    environment:
+      TZ: America/Mexico_City
+    volumes:
+      # Socket de Docker: permite al scheduler ejecutar "docker exec" y "docker restart"
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Logs persistentes de cada ejecución de ingesta
+      - scheduler_logs:/var/log/prozoo
+
 # ─────────────────────────────────────────
 # VOLÚMENES PERSISTENTES
 # ─────────────────────────────────────────
@@ -201,3 +220,4 @@ volumes:
   uploads_data:
   ollama_data:          # Modelos LLM descargados (llama3.1 pesa ~4 GB)
   chroma_db_local:      # ChromaDB procesada desde documentos_zoomat/
+  scheduler_logs:       # Logs de cada ejecución de ingesta semanal

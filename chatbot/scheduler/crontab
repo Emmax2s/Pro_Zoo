@@ -1,0 +1,12 @@
+# ============================================================
+# Crontab del scheduler ZooMAT
+# Formato: minuto hora día_mes mes día_semana comando
+#   - día_semana: 1 = lunes
+#   - Zona horaria: America/Mexico_City (Chiapas, UTC-6)
+# ============================================================
+
+# Ingesta y reinicio del chatbot — todos los lunes a las 3:00 AM
+0 3 * * 1 /usr/local/bin/ingestar_y_reiniciar.sh
+
+# (Opcional) Ingesta de prueba — descomentar para probar a los 2 min de arrancar
+# */2 * * * * /usr/local/bin/ingestar_y_reiniciar.sh

@@ -2,6 +2,7 @@ import difflib
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
+import os
 import re
 import unicodedata
 from pathlib import Path
@@ -10,9 +11,12 @@ from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from enrutador_semantico import es_consulta_tematica_anfibios
 
-# Apuntamos a la nueva base de datos que creaste hoy con el script de ingesta
+# Si existe CHROMA_HOST en entorno (modo Docker), usar cliente HTTP remoto
+# Si no, usar la carpeta local (modo desarrollo)
 BASE_DIR = Path(__file__).resolve().parent
 RUTA_BASE_DATOS = str(BASE_DIR / "chroma_db_zoomat")
+CHROMA_HOST = os.getenv("CHROMA_HOST", "")
+CHROMA_PORT = int(os.getenv("CHROMA_PORT", 8000))
 
 
 def normalizar_texto(texto):
@@ -36,11 +40,20 @@ except Exception:
         model_name="paraphrase-multilingual-MiniLM-L12-v2"
     )
 
-# Conectamos con la base de datos vectorial de LangChain
-vectorstore = Chroma(
-    persist_directory=RUTA_BASE_DATOS, 
-    embedding_function=modelo_embeddings
-)
+# Conectamos con ChromaDB: remoto (Docker) o local (desarrollo)
+if CHROMA_HOST:
+    import chromadb
+    chroma_client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
+    vectorstore = Chroma(
+        client=chroma_client,
+        collection_name="zoomat",
+        embedding_function=modelo_embeddings,
+    )
+else:
+    vectorstore = Chroma(
+        persist_directory=RUTA_BASE_DATOS,
+        embedding_function=modelo_embeddings
+    )
 
 metadatos_chromadb = vectorstore.get(include=["metadatas"])["metadatas"]
 

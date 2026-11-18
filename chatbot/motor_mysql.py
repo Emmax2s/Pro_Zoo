@@ -7,13 +7,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Soporta tanto DB_HOST (nombre antiguo) como MYSQL_HOST (nombre Docker)
 REQUIRED_ENV_VARS = ('DB_HOST', 'DB_USER', 'DB_PASS', 'DB_NAME')
 DB_CONFIG_BASE = {
-    'host': os.getenv('DB_HOST'),
-    'user': os.getenv('DB_USER'),
-    'password': os.getenv('DB_PASS')
+    'host':     os.getenv('MYSQL_HOST') or os.getenv('DB_HOST'),
+    'port':     int(os.getenv('MYSQL_PORT') or os.getenv('DB_PORT', 3306)),
+    'user':     os.getenv('MYSQL_USER') or os.getenv('DB_USER'),
+    'password': os.getenv('MYSQL_PASSWORD') or os.getenv('DB_PASS'),
 }
-DB_NAME = os.getenv('DB_NAME')
+DB_NAME = os.getenv('MYSQL_DATABASE') or os.getenv('DB_NAME')
 
 # Datos oficiales de logística (formato directo para fácil edición por el personal)
 DATOS_LOGISTICA_MEMORIA = {

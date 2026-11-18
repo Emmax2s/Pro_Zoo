@@ -1,0 +1,171 @@
+version: "3.9"
+
+# ============================================================
+# PROZOO - Sistema Unificado
+# Servicios:
+#   - frontend    → React (Vite) en puerto 5173
+#   - backend     → Node.js/Express en puerto 3001
+#   - chatbot     → Python Flask en puerto 5000
+#   - postgres    → PostgreSQL (Pro_Zoo) en puerto 5432
+#   - mysql       → MySQL (Chatbot) en puerto 3306
+#   - chromadb    → ChromaDB (Chatbot RAG) en puerto 8000
+# ============================================================
+
+services:
+
+  # ─────────────────────────────────────────
+  # 1. BASE DE DATOS — PostgreSQL (Pro_Zoo)
+  # ─────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: prozoo_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-prozoo1234}
+      POSTGRES_DB: ${POSTGRES_DATABASE:-pro_zoo}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/01_init.sql
+      - ./backend/db/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────
+  # 2. BASE DE DATOS — MySQL (Chatbot)
+  # ─────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: prozoo_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-chatbot1234}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-chatbot_zoo}
+      MYSQL_USER: ${MYSQL_USER:-chatbot}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-chatbot1234}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-chatbot1234}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────
+  # 3. VECTOR DB — ChromaDB (Chatbot RAG)
+  # ─────────────────────────────────────────
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: prozoo_chromadb
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - CHROMA_SERVER_HOST=0.0.0.0
+      - CHROMA_SERVER_HTTP_PORT=8000
+
+  # ─────────────────────────────────────────
+  # 4. BACKEND — Node.js / Express (Pro_Zoo)
+  # ─────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: prozoo_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-prozoo1234}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE:-pro_zoo}
+      POSTGRES_SSL: "false"
+      JWT_SECRET: ${JWT_SECRET:-cambiar_esto_en_produccion}
+      UPLOAD_DIR: /app/uploads
+    ports:
+      - "3001:3001"
+    volumes:
+      - uploads_data:/app/uploads
+
+  # ─────────────────────────────────────────
+  # 5. CHATBOT — Python Flask / FastAPI
+  # ─────────────────────────────────────────
+  chatbot:
+    build:
+      context: ./chatbot
+      dockerfile: Dockerfile
+    container_name: prozoo_chatbot
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      chromadb:
+        condition: service_started
+    environment:
+      # MySQL
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: ${MYSQL_USER:-chatbot}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-chatbot1234}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-chatbot_zoo}
+      # Compatibilidad con nombres antiguos DB_*
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: ${MYSQL_USER:-chatbot}
+      DB_PASS: ${MYSQL_PASSWORD:-chatbot1234}
+      DB_NAME: ${MYSQL_DATABASE:-chatbot_zoo}
+      # ChromaDB remoto
+      CHROMA_HOST: chromadb
+      CHROMA_PORT: 8000
+      # Ollama (si se usa contenedor aparte; dejar vacío para usar local)
+      OLLAMA_HOST: ${OLLAMA_HOST:-localhost}
+      OLLAMA_PORT: ${OLLAMA_PORT:-11434}
+      # Flask
+      CHATBOT_PORT: 5000
+      FLASK_ENV: production
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./chatbot/chroma_db_zoomat:/app/chroma_db_zoomat
+      - ./chatbot/documentos_zoomat:/app/documentos_zoomat
+
+  # ─────────────────────────────────────────
+  # 6. FRONTEND — React / Vite (Pro_Zoo)
+  # ─────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3001}
+        VITE_CHATBOT_URL: ${VITE_CHATBOT_URL:-http://localhost:5000}
+    container_name: prozoo_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+      - chatbot
+    ports:
+      - "80:80"
+
+# ─────────────────────────────────────────
+# VOLÚMENES PERSISTENTES
+# ─────────────────────────────────────────
+volumes:
+  postgres_data:
+  mysql_data:
+  chroma_data:
+  uploads_data:

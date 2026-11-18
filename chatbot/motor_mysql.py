@@ -36,6 +36,7 @@ DATOS_LOGISTICA_MEMORIA = {
     ('boleto', 'credencial_desconocida'): 'Los descuentos oficiales válidos en taquilla son de 25 pesos presentando credencial escolar vigente, credencial docente o credencial de tercera edad del INAPAM o INSEN. Para cualquier otro convenio especial o credencial no contemplada, te sugerimos consultar directamente en taquilla.',
     ('boleto', 'escuelas'): 'Las escuelas públicas pueden obtener acceso gratuito al ZooMAT tramitando con anticipación una solicitud formal donde indiquen el número de alumnos, maestros y acompañantes. Las escuelas privadas no aplican para exoneración de pago, pero sus alumnos y profesores obtienen la tarifa preferencial de 25 pesos presentando su credencial escolar o docente.',
     ('boleto', 'biblioteca'): 'El acceso a la biblioteca del ZooMAT es completamente gratuito y se puede ingresar exclusivamente a ella sin pagar boleto del zoológico. Solo se requiere registrarse en la caseta de vigilancia dejando datos personales y una identificación oficial o credencial escolar.',
+    ('boleto', 'foraneo'): 'Los visitantes de otros estados o del extranjero pagan la tarifa general de 35 pesos para adultos y 25 pesos presentando credencial vigente de estudiante, maestro o INAPAM, mientras que los niños menores de un metro entran gratis. Los días martes también cubren esta tarifa habitual, ya que la gratuidad del Martes del Pueblo aplica exclusivamente con credencial INE expedida en Chiapas.',
 
     # --- SERVICIOS Y TOURS ---
     ('servicio', 'guiado_diurno'): 'El ZooMAT ofrece recorridos guiados diurnos que se solicitan directamente en el área de taquilla. El servicio tiene un costo adicional de 20 pesos por persona sobre el valor de su boleto de entrada.',
@@ -46,6 +47,7 @@ DATOS_LOGISTICA_MEMORIA = {
     ('servicio', 'aforo'): 'El ZooMAT no cuenta con un límite de cupo ni cierra taquilla por exceso de visitantes, ya que es una reserva natural abierta de gran extensión donde el público circula de manera continua.',
 
     # --- REGLAS Y RESTRICCIONES ---
+    ('regla', 'general'): 'Para proteger a la fauna silvestre y tu seguridad en el ZooMAT, es obligatorio permanecer siempre en los andadores marcados, y está estrictamente prohibido ingresar con mascotas o bebidas alcohólicas, así como tocar o alimentar a los animales. Además, solo se permiten carriolas con llantas de goma suave y los martes aplica la campaña de cero plásticos de un solo uso y unicel.',
     ('regla', 'mascotas'): 'Está estrictamente prohibido el ingreso con mascotas bajo cualquier circunstancia, con el fin de proteger la bioseguridad, salud y bienestar de la fauna silvestre del zoológico.',
     ('regla', 'alcohol'): 'Está estrictamente prohibido ingresar con cualquier tipo de bebida alcohólica al ZooMAT; las personas que intenten introducirlas serán detenidas en el acceso.',
     ('regla', 'plasticos'): 'Los días martes se implementa la campaña oficial de Cero Plásticos de un solo uso, por lo que está prohibido ingresar envases desechables y unicel. El resto de la semana se exhorta cordialmente a los visitantes a evitar su uso para cuidar la reserva.',

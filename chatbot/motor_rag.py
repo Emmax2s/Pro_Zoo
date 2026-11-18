@@ -233,7 +233,13 @@ def es_consulta_historia(pregunta):
         "estaba antes", "habia antes", "antes este lugar", "abrieron el", "abrieron la", "abrio el zoomat",
         "por que tiene ese nombre", "desde cuando existe", "nomina", "presupuesto", "de donde sale el dinero",
         "sueltos por los caminos", "en libertad", "cocodrilo viejo", "andador central", "no compran jirafas",
-        "desde su fundacion", "mancha urbana", "unicach", "en los ochenta"
+        "desde su fundacion", "mancha urbana", "unicach", "en los ochenta",
+        "sueltos", "sueltas", "libres", "andan sueltos", "andan libres", "animales libres", "fauna libre",
+        "animales sueltos", "especies libres", "fauna silvestre en libertad", "fauna en libertad",
+        "libro", "libros", "asi era chiapas", "animales silvestres de chiapas", "reptiles de chiapas",
+        "aves de chiapas", "mamiferos de chiapas", "aranas de chiapas", "libros de miguel", "libros de don miguel",
+        "redacta sus historias", "redacta historias", "como se llaman esos libros", "cuales son esos libros",
+        "sigue vivo", "esta vivo", "cuando murio", "cuando fallecio"
     ]
     if any(th in pregunta_normalizada for th in terminos_historia_rag):
         return True
@@ -254,7 +260,7 @@ def _detectar_especie_especifica_compuesta(pregunta_normalizada):
     """Detecta coincidencia directa de una especie específica compuesta o nombre científico."""
     # 0. Sinónimos regionales especiales registrados (ej. Sapo de rebaño / Chaac -> Sapo borracho)
     if "sapo borracho" in ESPECIES_CONOCIDAS:
-        for alias in ("sapo borracho", "sapo de rebano", "rhinophrynus dorsalis", "chaac"):
+        for alias in ("sapo borracho", "sapo de rebano", "sapo excavador", "rhinophrynus dorsalis", "rhinophrynus", "chaac"):
             if re.search(rf'\b{re.escape(alias)}\b', pregunta_normalizada):
                 return ESPECIES_CONOCIDAS["sapo borracho"]
 
@@ -388,7 +394,8 @@ SINONIMOS_HISTORIA = {
     "nombre": ["miguel alvarez del toro", "zoologico regional"],
     "1944": ["1944", "eliseo palacios", "miguel alvarez del toro", "asumio la direccion"],
     "direccion": ["1944", "director", "eliseo palacios", "miguel alvarez del toro"],
-    "sueltos": ["libertad", "saraguatos", "venados", "guaqueques", "andadores"],
+    "sueltos": ["libertad", "saraguatos", "venados", "guaqueques", "andadores", "fauna silvestre", "zapotal"],
+    "libres": ["libertad", "saraguatos", "venados", "guaqueques", "andadores", "fauna silvestre", "zapotal"],
     "caminos": ["libertad", "saraguatos", "andadores", "zapotal"],
     "aguila": ["aguila harpia", "brasil", "cites", "criadero"],
     "grandota": ["aguila harpia", "zopilote", "rey zopilote"],
@@ -412,6 +419,13 @@ SINONIMOS_HISTORIA = {
     "aroma": ["perfumes", "desodorantes", "olfato", "uniforme"],
     "acariciar": ["no domesticacion", "improntacion", "mascotas domesticas"],
     "perritos": ["no domesticacion", "improntacion", "mascotas domesticas"],
+    "libro": ["asi era chiapas", "animales silvestres de chiapas", "reptiles de chiapas", "aves de chiapas", "mamiferos de chiapas", "aranas de chiapas", "libros fundamentales"],
+    "libros": ["asi era chiapas", "animales silvestres de chiapas", "reptiles de chiapas", "aves de chiapas", "mamiferos de chiapas", "aranas de chiapas", "libros fundamentales"],
+    "miguel": ["don miguel alvarez del toro", "miguel alvarez del toro", "naturalista", "director", "pionero"],
+    "toro": ["don miguel alvarez del toro", "miguel alvarez del toro", "naturalista", "director"],
+    "vivo": ["1996", "fallecimiento", "muerte", "don miguel alvarez del toro", "murio"],
+    "murio": ["1996", "fallecimiento", "muerte", "don miguel alvarez del toro"],
+    "fallecio": ["1996", "fallecimiento", "muerte", "don miguel alvarez del toro"],
 }
 
 
@@ -594,6 +608,22 @@ def buscar_contexto(pregunta):
                         vistas.add(h.page_content)
             if resultados:
                 return "\n\n".join([doc.page_content for doc in resultados])
+
+        # Consulta descriptiva: ave roja / vistosa en el zoológico -> Guacamaya roja (Ara macao)
+        if any(a in pregunta_norm for a in ["ave", "pajaro", "pajarito", "pajaros", "aves", "bird", "birds"]) and any(r in pregunta_norm for r in ["rojo", "roja", "colores rojo", "color rojo", "plumaje rojo", "red"]):
+            if any(c in pregunta_norm for c in ["como se llama", "cual es", "que ave es", "que especie es", "como se llaman", "hay muchas", "what is its name", "what is it called", "jaula"]):
+                especie_guacamaya = None
+                for esp_n, esp_orig in ESPECIES_CONOCIDAS.items():
+                    if "guacamaya roja" in esp_n:
+                        especie_guacamaya = esp_orig
+                        break
+                if especie_guacamaya:
+                    res_guacamaya = vectorstore.max_marginal_relevance_search(
+                        pregunta, k=4, fetch_k=10, lambda_mult=0.7,
+                        filter={"nombre_comun": especie_guacamaya}
+                    )
+                    if res_guacamaya:
+                        return "\n\n".join([doc.page_content for doc in res_guacamaya])
 
         especie_detectada = detectar_especie(pregunta)
         resultados = []

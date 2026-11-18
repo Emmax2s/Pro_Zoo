@@ -108,6 +108,7 @@ PALABRAS_CLAVE_OFICIALES = {
     ('boleto', 'credencial_desconocida'): 'insem, issemym, imss, issste, convenio, convenios, sindicato, descuento credencial, alguna credencial',
     ('boleto', 'escuelas'): 'escuela, escuelas, escuela publica, escuelas publicas, escuelas privadas, colegio, colegios, particulares, oficio, exoneracion, visita escolar, viaje escolar',
     ('boleto', 'biblioteca'): 'biblioteca gratis, boleto biblioteca, pagar boleto del zoologico, caseta 1, entrada biblioteca, acceso biblioteca, caseta de vigilancia, consultar un libro',
+    ('boleto', 'foraneo'): 'otro estado, otros estados, foraneo, foraneos, foranea, foraneas, turista, turistas, extranjero, extranjeros, extranjera, extranjeras, fuera de chiapas, no soy de chiapas, no somos de chiapas, de fuera, other state, other states, foreigner, foreigners, tourist, tourists, abroad',
 
     ('servicio', 'guiado_diurno'): 'tour guiado, tours guiados, recorrido guiado, recorridos guiados, visita guiada, guia, guias, guia diurno, guia turistico, alguien que nos explique, asignar alguien, guided tour, guided tours, tour guide, day tour',
     ('servicio', 'recorrido_nocturno'): 'recorrido nocturno, recorridos nocturnos, tour nocturno, tours nocturnos, de noche, en la noche, visita nocturna, visitas nocturnas, caminatas en la oscuridad, recorridos de noche, nocturno, night tour, night tours, evening tour, night visit',
@@ -116,6 +117,7 @@ PALABRAS_CLAVE_OFICIALES = {
     ('servicio', 'curadores'): 'curador, curadores, biologo, biologos, entrevistar a un biologo, entrevista, entrevistas, proyecto escolar, area de difusion',
     ('servicio', 'aforo'): 'aforo, cupo, limite de personas, limite de visitantes, limite de gente, mucha gente, lleno, llena el cupo, aglomeracion, cupo limite, mucha afluencia',
 
+    ('regla', 'general'): 'reglamento, reglamentos, reglas, norma, normas, que reglamentos hay, cuales son las reglas, que esta prohibido, reglas del zoologico, rules, regulations, what is prohibited, prohibited, general rules, que normas hay',
     ('regla', 'mascotas'): 'mascota, mascotas, perro, perros, perrito, perrita, chihuahua, cachorro, gato, gatos, animal de compania, animal de compañia, pet, pets, dog, dogs, puppy, cat, cats, companion animal',
     ('regla', 'alcohol'): 'alcohol, cerveza, vino, licor, bebida alcoholica, bebidas alcoholicas, ebrio, tomar, chela, chelas, borracho, embriagante, hielera, beer, wine, liquor, alcoholic beverages, drinking, drunk',
     ('regla', 'plasticos'): 'plastico, plasticos, unicel, desechable, desechables, envases desechables, botellas desechables, cero plasticos, bolsas de plastico, popotes, quitan envases, plastic, plastics, styrofoam, single use plastics, plastic bags',
@@ -141,10 +143,12 @@ palabras_fuertes_boleto = [
     "boletos", "entrada", "entradas", "descuento", "descuentos", "rebaja",
     "cuanto cuesta", "cuánto cuesta", "cuanto vale", "cuánto vale", "pagar", "paga", "pagan",
     "credencial", "prepa", "preparatoria", "bachillerato",
+    "otro estado", "otros estados", "foraneo", "foraneos", "turista", "turistas", "extranjero", "extranjeros", "fuera de chiapas",
     "ticket", "tickets", "admission", "cost", "price", "fee", "free", "discount"
 ]
 
 palabras_fuertes_regla = [
+    "regla", "reglas", "reglamento", "reglamentos", "prohibido", "prohibida", "prohibiciones", "prohibicion", "norma", "normas",
     "mascota", "mascotas", "perro", "perros", "perrito", "perrita", "chihuahua", "cachorro",
     "gato", "gatos", "animal de compania", "animal de compañia",
     "alcohol", "cerveza", "chela", "chelas", "vino", "fumar", "cigarro", "bicicleta", "patineta", "armas",
@@ -161,7 +165,9 @@ PALABRAS_VACIAS_LOGISTICA = {
     'cuenta', 'ofrece', 'brinda', 'puede', 'pueden', 'debe', 'deben', 'tener',
     'tiene', 'tienen', 'haber', 'habra', 'sido', 'cada', 'todo', 'toda', 'todos',
     'todas', 'otro', 'otra', 'otros', 'otras', 'mismo', 'misma', 'mismos', 'mismas',
-    'zoomat', 'parque', 'visita', 'visitante', 'visitantes', 'publico'
+    'zoomat', 'parque', 'visita', 'visitante', 'visitantes', 'publico',
+    'tipo', 'tipos', 'puedo', 'usar', 'visitas', 'recorrido', 'recorridos',
+    'zoologico', 'animal', 'animales', 'especie', 'especies', 'conocer'
 }
 
 
@@ -282,10 +288,11 @@ def es_consulta_tematica_anfibios(pregunta):
         "pumiliotoxina", "batracotoxina", "pseudin", "aposematismo", "aposematism",
         "dendrobatid", "ranas dardo", "poison dart",
         "controladores de plagas", "biopolicias", "dengue", "malaria", "zika",
-        "lluvia de sapos", "lluvia de ranas", "caen sapos", "rain of frogs", "rain of toads",
+        "lluvia de sapos", "lluvia de ranas", "lluevan sapos", "lluevan ranas", "llueven sapos", "llueven ranas", "lluevan del cielo", "llueven del cielo", "caen sapos", "rain of frogs", "rain of toads",
         "sapo fuma", "fuma como", "cigarro", "cigarrillo", "fumar", "cigarette", "smoking",
         "glandulas parotidas", "parotoides", "falsa verruga", "falsas verrugas",
-        "escupen veneno", "escupir veneno", "escupitajo", "spit poison", "spit venom"
+        "escupen veneno", "escupir veneno", "escupitajo", "spit poison", "spit venom",
+        "sapo borracho", "sapo de rebano", "sapo excavador", "rhinophrynus", "chaac", "mayas", "antiguos mayas"
     ]
     if any(t in p_norm for t in terminos_inequivocos):
         return not es_logistica_parque
@@ -384,6 +391,8 @@ def analizar_intencion(pregunta):
         "abrieron el", "abrieron la", "abrio el zoomat", "por primera vez", "estaba antes", "habia antes",
         "antes este lugar", "por que tiene ese nombre", "desde cuando existe", "nomina", "presupuesto",
         "de donde sale el dinero", "sueltos por los caminos", "en libertad en el zapotal", "en libertad",
+        "estan libres", "estan sueltos", "que estan libres", "que andan sueltos", "animales andan sueltos",
+        "especies que estan libres", "animales libres", "fauna libre", "animales sueltos", "free animals", "roaming free", "free roaming",
         "cocodrilo viejo", "andador central", "no compran jirafas", "desde su fundacion", "mancha urbana",
         "unicach", "en los ochenta", "1944", "1942", "1980", "1982", "1987", "1990", "1996"
     ]
@@ -402,6 +411,17 @@ def analizar_intencion(pregunta):
     if ("originalmente" in preg_norm or "originally" in preg_norm or "en sus inicios" in preg_norm) and ("ubic" in preg_norm or "donde" in preg_norm or "where" in preg_norm or "localiz" in preg_norm):
         es_historia = True
 
+    # Obras y libros de Don Miguel Álvarez del Toro
+    pide_libros_miguel = (
+        ("libro" in preg_norm or "libros" in preg_norm or "book" in preg_norm or "books" in preg_norm)
+        and any(w in preg_norm for w in ["miguel", "alvarez del toro", "toro", "escribio", "redacta", "redacto", "autor", "historias", "publico", "cuales", "como se llaman", "sus historias", "wrote", "written", "author"])
+    ) or any(k in preg_norm for k in [
+        "como se llaman esos libros", "cuales son esos libros", "que libros escribio", "libros de don miguel", "libros de miguel",
+        "asi era chiapas", "animales silvestres de chiapas", "reptiles de chiapas", "aves de chiapas", "mamiferos de chiapas"
+    ])
+    if pide_libros_miguel:
+        es_historia = True
+
     if es_historia:
         return {"ruta": "rag", "entidad": "institucional", "tipo": "historia"}
 
@@ -410,7 +430,7 @@ def analizar_intencion(pregunta):
         return {"ruta": "rag", "entidad": None, "tipo": None}
 
     # Consultas temáticas/mitos/ecología/medicina de anfibios y Sapo Borracho se atienden vía RAG
-    if any(k in preg_norm for k in ["sapo borracho", "sapo de rebano", "rhinophrynus"]) or es_consulta_tematica_anfibios(pregunta):
+    if any(k in preg_norm for k in ["sapo borracho", "sapo de rebano", "sapo excavador", "rhinophrynus", "chaac"]) or es_consulta_tematica_anfibios(pregunta):
         return {"ruta": "rag", "entidad": None, "tipo": None}
 
     # Exclusión de consultas biológicas (hábitat, dieta, longevidad, reproducción, talla o cría/adulto) cuando NO hay señal logística
@@ -442,7 +462,12 @@ def analizar_intencion(pregunta):
     if any(coincide_palabra_clave(t, pregunta, lemas_usuario) for t in ["de noche", "en la noche"]) and not any(a in preg_norm for a in ["animal", "fauna", "especie"]):
         return {"ruta": "mysql", "entidad": "servicio", "tipo": "recorrido_nocturno"}
 
-    if any(coincide_palabra_clave(t, pregunta, lemas_usuario) for t in ["tour guiado", "tours guiados", "recorrido guiado", "recorridos guiados", "visita guiada", "guia diurno", "alguien que nos explique", "asignar alguien", "explique los animales"]):
+    if any(coincide_palabra_clave(t, pregunta, lemas_usuario) for t in [
+        "tour guiado", "tours guiados", "recorrido guiado", "recorridos guiados", "visita guiada",
+        "guia diurno", "guia", "guiado", "contratar un guia", "contratar a un guia", "contratar guia",
+        "guia durante el dia", "nos explique el recorrido", "explicar el recorrido",
+        "alguien que nos explique", "asignar alguien", "explique los animales", "guided tour", "day tour"
+    ]):
         return {"ruta": "mysql", "entidad": "servicio", "tipo": "guiado_diurno"}
 
     # Reglas de seguridad que prevalecen sobre precios/días/carriolas
@@ -452,10 +477,34 @@ def analizar_intencion(pregunta):
         return {"ruta": "mysql", "entidad": "regla", "tipo": "alcohol"}
     if re.search(r'\b(unicel|desechable|desechables|cero plasticos|envases desechables|botellas desechables|popotes)\b', preg_norm) or ("plastico" in preg_norm and not re.search(r'\b(carriola|carreola|rueda|ruedas|rueditas|llanta|llantas)\b', preg_norm)):
         return {"ruta": "mysql", "entidad": "regla", "tipo": "plasticos"}
-    if any(t in preg_norm for t in ["dar de comer", "darle comida", "darles de comer", "darle fruta", "dar comida", "aventarles", "alimentar animales", "alimentar a los"]):
+    if any(t in preg_norm for t in [
+        "dar de comer", "darle comida", "darles de comer", "darle fruta", "dar comida",
+        "aventarles", "aventar fruta", "alimentar animales", "alimentar a los", "alimentar",
+        "feed animals", "feed the animals", "give food"
+    ]) or re.search(r'\b(aventar\s+fruta|dar\s+comida|dar\s+de\s+comer|alimentar)\b', preg_norm):
         return {"ruta": "mysql", "entidad": "regla", "tipo": "alimentar_animales"}
     if any(t in preg_norm for t in ["tocar animales", "puedo tocar", "se puede tocar", "acariciar", "meto la mano", "meter la mano", "muerde", "mordedura"]):
         return {"ruta": "mysql", "entidad": "regla", "tipo": "tocar_animales"}
+
+    # Preguntas simultáneas de apertura y cierre / salida -> horario general
+    if any(op in preg_norm for op in ["abren", "abre", "apertura", "open", "opens", "a que hora abren"]) and any(cl in preg_norm for cl in ["cierran", "cierra", "cierre", "salir", "salen", "salida", "close", "closes", "exit", "salir del parque"]):
+        return {"ruta": "mysql", "entidad": "horario", "tipo": "general"}
+
+    # Preguntas combinadas de boletos adulto y niño -> boleto general
+    if any(ad in preg_norm for ad in ["adulto", "adultos", "adult", "adults"]) and any(ch in preg_norm for ch in ["nino", "ninos", "nina", "ninas", "menor", "menores", "child", "children", "kid", "kids"]):
+        return {"ruta": "mysql", "entidad": "boleto", "tipo": "general"}
+
+    # Visitantes de otros estados / foráneos / turistas
+    if re.search(r'\b(otro\s+estado|otros\s+estados|foraneo|foraneos|foranea|foraneas|turista|turistas|extranjero|extranjeros|extranjera|extranjeras|fuera\s+de\s+chiapas|no\s+soy\s+de\s+chiapas|no\s+somos\s+de\s+chiapas|de\s+fuera|other\s+state|other\s+states|foreigner|foreigners|tourist|tourists|abroad)\b', preg_norm):
+        return {"ruta": "mysql", "entidad": "boleto", "tipo": "foraneo"}
+
+    # Reglas generales abiertas del parque
+    if re.search(r'\b(que\s+reglamentos?\s+hay|cuales\s+son\s+las\s+reglas|reglas\s+del\s+zoologico|reglamento\s+del\s+zoologico|que\s+esta\s+prohibido|cuales\s+son\s+las\s+prohibiciones|general\s+rules|what\s+rules|what\s+is\s+prohibited)\b', preg_norm) and not any(r in preg_norm for r in ["mascota", "perro", "alcohol", "cerveza", "carriola", "plastico", "fumar", "cigarro", "tocar", "alimentar"]):
+        return {"ruta": "mysql", "entidad": "regla", "tipo": "general"}
+
+    # Palabras solitarias en inglés para horarios
+    if preg_norm in {"schedules", "schedule", "hours", "zoo hours", "opening hours"}:
+        return {"ruta": "mysql", "entidad": "horario", "tipo": "general"}
 
     # Prioridad de instalaciones con horario vs entrada/cierre
     if "biblioteca" in preg_norm:
@@ -522,6 +571,22 @@ def analizar_intencion(pregunta):
         }
 
     # 4. Si no coincidió ningún subtipo específico, buscar por categoría general
+    # Blindaje contra falsos positivos: si la pregunta es sobre tipos o clases de fauna para conocer o ver, no clasificar en regla
+    es_consulta_fauna_catalogo = any(
+        cl in preg_norm for cl in [
+            "ave", "aves", "reptil", "reptiles", "mamifero", "mamiferos", "anfibio", "anfibios",
+            "cocodrilo", "cocodrilos", "caiman", "caimanes", "felino", "felinos", "mono", "monos",
+            "aracnido", "aracnidos", "insecto", "insectos", "invertebrado", "invertebrados",
+            "fauna", "animal", "animales", "especie", "especies", "ejemplar", "ejemplares"
+        ]
+    ) and any(
+        v in preg_norm for v in ["tipo", "tipos", "clase", "clases", "conocer", "ver", "observar", "encontrar", "hay", "tienen", "albergan"]
+    ) and not any(
+        r in preg_norm for r in ["mascota", "mascotas", "perro", "perros", "gato", "gatos", "tocar", "alimentar", "dar comida", "aventar"]
+    )
+    if es_consulta_fauna_catalogo:
+        es_consulta_regla = False
+
     entidad_detectada = None
     if es_consulta_boleto:
         entidad_detectada = "boleto"
@@ -529,6 +594,8 @@ def analizar_intencion(pregunta):
         entidad_detectada = "regla"
     else:
         for entidad, palabras_clave in INTENCIONES_LOGISTICA.items():
+            if entidad == "regla" and es_consulta_fauna_catalogo:
+                continue
             for palabra in palabras_clave:
                 if coincide_palabra_clave(palabra, pregunta, lemas_usuario):
                     entidad_detectada = entidad
@@ -544,7 +611,7 @@ def analizar_intencion(pregunta):
         tipo_detectado = "credencial_desconocida"
     elif entidad_detectada == "regla":
         subtipos_regla = MAPA_SUBTIPOS.get("regla", {})
-        tipo_detectado = "vestimenta" if "vestimenta" in subtipos_regla else list(subtipos_regla.keys())[0]
+        tipo_detectado = "general" if "general" in subtipos_regla else list(subtipos_regla.keys())[0]
     else:
         subtipos_disponibles = MAPA_SUBTIPOS.get(entidad_detectada, {})
         tipo_detectado = "general" if "general" in subtipos_disponibles else list(subtipos_disponibles.keys())[0]

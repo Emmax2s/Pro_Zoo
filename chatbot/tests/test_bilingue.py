@@ -136,12 +136,16 @@ def test_catalogo_general_en():
 
 
 def test_archivos_audio_en_existen():
-    assert os.path.exists("assets/costos_en.mp3")
-    assert os.path.exists("assets/horarios_en.mp3")
-    assert os.path.exists("assets/banos_en.mp3")
-    assert os.path.getsize("assets/costos_en.mp3") > 1000
-    assert os.path.getsize("assets/horarios_en.mp3") > 1000
-    assert os.path.getsize("assets/banos_en.mp3") > 1000
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    p_costos = os.path.join(base_dir, "assets", "costos_en.mp3") if not os.path.exists("assets/costos_en.mp3") else "assets/costos_en.mp3"
+    p_horarios = os.path.join(base_dir, "assets", "horarios_en.mp3") if not os.path.exists("assets/horarios_en.mp3") else "assets/horarios_en.mp3"
+    p_banos = os.path.join(base_dir, "assets", "banos_en.mp3") if not os.path.exists("assets/banos_en.mp3") else "assets/banos_en.mp3"
+    assert os.path.exists(p_costos)
+    assert os.path.exists(p_horarios)
+    assert os.path.exists(p_banos)
+    assert os.path.getsize(p_costos) > 1000
+    assert os.path.getsize(p_horarios) > 1000
+    assert os.path.getsize(p_banos) > 1000
 
 
 def test_endpoint_chat_post_y_logs(monkeypatch):

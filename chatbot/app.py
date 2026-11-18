@@ -65,6 +65,26 @@ def quitar_acentos(texto):
     """Elimina tildes para comparar palabras sin importar cómo las escriba el usuario (ej. Cangúro -> canguro)."""
     return ''.join(c for c in unicodedata.normalize('NFD', texto.lower()) if unicodedata.category(c) != 'Mn')
 
+def limpiar_nombre_catalogo(nombre):
+    """Limpia prefijos residuales de archivos, corrige erratas y normaliza mayúsculas."""
+    if not nombre:
+        return ""
+    n = nombre.strip()
+    # Eliminar prefijos espurios al inicio como DE, DEL, EL, LA
+    n = re.sub(r'^(?:de|del|el|la)\s+', '', n, flags=re.IGNORECASE).strip()
+    if "dororado" in n.lower():
+        n = re.sub(r'(?i)dororado', 'dorado', n)
+    if n.isupper():
+        conectores = {"de", "del", "la", "el", "los", "las", "y", "en"}
+        palabras = n.lower().split()
+        if palabras:
+            palabras[0] = palabras[0].capitalize()
+            for i in range(1, len(palabras)):
+                if palabras[i] not in conectores:
+                    palabras[i] = palabras[i].capitalize()
+            n = " ".join(palabras)
+    return n
+
 def obtener_especies_registradas(filtro=None):
     """Obtiene dinámicamente especies válidas registradas en ChromaDB descartando metadatos espurios y categorías genéricas."""
     especies_genericas = {
@@ -77,10 +97,18 @@ def obtener_especies_registradas(filtro=None):
         'mitos y realidades', 'diferencias y adaptaciones', 'importancia ecologica', 'ecologia y medicina'
     ]
     especies_validas = [
-        nombre for norm, nombre in motor_rag.ESPECIES_CONOCIDAS.items()
+        limpiar_nombre_catalogo(nombre) for norm, nombre in motor_rag.ESPECIES_CONOCIDAS.items()
         if not any(excl in norm for excl in terminos_excluidos)
         and norm not in especies_genericas
     ]
+    vistas = set()
+    especies_validas_unicas = []
+    for esp in especies_validas:
+        if esp not in vistas:
+            vistas.add(esp)
+            especies_validas_unicas.append(esp)
+    especies_validas = especies_validas_unicas
+
     if not filtro:
         return especies_validas
         
@@ -89,15 +117,15 @@ def obtener_especies_registradas(filtro=None):
     # 1. Búsqueda taxonómica directa en ChromaDB por Clase o Familia biológica
     for clase_k, lista_esp in motor_rag.CLASES_CONOCIDAS.items():
         if filtro_norm == clase_k or (clase_k.endswith("s") and filtro_norm == clase_k[:-1]) or filtro_norm in clase_k:
-            res = [e for e in lista_esp if e in especies_validas]
+            res = [limpiar_nombre_catalogo(e) for e in lista_esp if limpiar_nombre_catalogo(e) in especies_validas]
             if res:
-                return res
+                return list(dict.fromkeys(res))
 
     for fam_k, lista_esp in motor_rag.FAMILIAS_CONOCIDAS.items():
         if filtro_norm == fam_k or (fam_k.endswith("s") and filtro_norm == fam_k[:-1]) or filtro_norm in fam_k:
-            res = [e for e in lista_esp if e in especies_validas]
+            res = [limpiar_nombre_catalogo(e) for e in lista_esp if limpiar_nombre_catalogo(e) in especies_validas]
             if res:
-                return res
+                return list(dict.fromkeys(res))
 
     # 2. Búsqueda por coincidencias léxicas y sinonimias comunes
     terminos_busqueda = [filtro_norm]
@@ -151,6 +179,7 @@ DATOS_LOGISTICA_EN = {
     ('boleto', 'credencial_desconocida'): "Official discounts at the ticket office are 25 pesos for valid student, teacher, or senior INAPAM or INSEN credentials. For any other agreement, please inquire directly at the ticket office.",
     ('boleto', 'escuelas'): "Public schools can receive free access by submitting an advance official request letter detailing student and teacher counts. Private schools do not receive fee waivers, but their students and teachers pay the 25 pesos discounted rate with valid ID.",
     ('boleto', 'biblioteca'): "Access to the scientific library is completely free and you can visit it without purchasing a zoo ticket. Simply register at the security booth at the entrance with your personal details and an ID.",
+    ('boleto', 'foraneo'): "Visitors from other states or abroad pay the general admission fee of 35 pesos for adults and 25 pesos with a valid student, teacher, or senior ID, while children under one meter tall enter for free. Regular admission fees also apply on Tuesdays for out-of-state visitors, as free Tuesday admission is exclusively for Chiapas residents with a local ID.",
 
     ('servicio', 'guiado_diurno'): "ZooMAT offers daytime guided tours requested directly at the ticket booth. The service has an additional cost of 20 pesos per person on top of general admission.",
     ('servicio', 'recorrido_nocturno'): "Night tours take place Tuesday through Saturday at 19:00 and 20:00 hours and require advance reservation. The base cost is 1,200 pesos for groups of 1 to 12 people, with an additional 100 pesos per person up to a maximum of 15 people.",
@@ -159,6 +188,7 @@ DATOS_LOGISTICA_EN = {
     ('servicio', 'curadores'): "Meetings with curators, biologists, or researchers for academic projects must be requested in advance through the Environmental Education and Diffusion Office.",
     ('servicio', 'aforo'): "ZooMAT does not currently have a visitor capacity limit; the park is fully open without quota restrictions.",
 
+    ('regla', 'general'): "To protect wildlife and ensure your safety at ZooMAT, visitors must stay on marked pathways at all times, and bringing pets, alcoholic beverages, or touching and feeding the animals is strictly prohibited. Additionally, only strollers with soft rubber wheels are allowed, and single-use plastics and styrofoam are prohibited on Tuesdays.",
     ('regla', 'mascotas'): "Pets of any kind are strictly prohibited inside ZooMAT to protect the health, biosecurity, and tranquility of our native wildlife.",
     ('regla', 'alcohol'): "Alcoholic beverages, beer, smoking, and weapons are strictly prohibited inside the entire zoo facility.",
     ('regla', 'plasticos'): "Single-use plastics, plastic bags, and styrofoam containers are prohibited within park premises.",
@@ -255,6 +285,7 @@ ANIMALES_INGLES_A_ESP = {
 
 ANIMALES_EXOTICOS_EN = sorted([
     "lion", "lions", "elephant", "elephants", "giraffe", "giraffes",
+    "jirafe", "jirafes", "girafe", "girafes",
     "rhino", "rhinos", "rhinoceros", "hippo", "hippos", "hippopotamus", "zebra", "zebras",
     "kangaroo", "kangaroos", "polar bear", "polar bears", "panda", "pandas",
     "brown bear", "brown bears", "penguin", "penguins", "tiger", "tigers",
@@ -541,9 +572,15 @@ async def generar_audio_hibrido(texto, nombre_archivo, idioma='es'):
 
 def preguntar_a_llama(prompt_usuario, instrucciones_sistema=""):
     """Envía la consulta a Llama 3.1 y limpia cualquier formato o razonamiento residual con reintentos."""
+    es_ingles = "virtual guide" in (instrucciones_sistema or "").lower() or "in english" in (instrucciones_sistema or "").lower()
+    if not es_ingles:
+        candado_es = "RESPONDE ESTRICTA Y ÚNICAMENTE EN ESPAÑOL. Está prohibido responder en inglés cuando el idioma solicitado es español."
+        if candado_es not in (instrucciones_sistema or ""):
+            instrucciones_sistema = f"{candado_es} {instrucciones_sistema}".strip()
+
     ollama_host = os.getenv("OLLAMA_HOST", "localhost")
     ollama_port = os.getenv("OLLAMA_PORT", "11434")
-    url = f"http://{ollama_host}:{ollama_port}/api/generate"
+    url = f"http://{ollama_host}:{ollama_port}/api/generate" 
     payload = {
         "model": "llama3.1",
         "system": instrucciones_sistema,
@@ -572,8 +609,16 @@ def preguntar_a_llama(prompt_usuario, instrucciones_sistema=""):
                     r'^(?:la respuesta a tu pregunta es(?: que)?|en el fragmento se (?:describe|menciona|indica)(?: que)?)\s+',
                     '', texto_respuesta, flags=re.IGNORECASE
                 ).strip()
-                # Eliminamos posibles justificaciones de razonamiento al inicio
-                texto_respuesta = re.sub(r'^(?:lo siento,?\s+pero\s+)?(?:el visitante no mencion[oó]|la pregunta del visitante es demasiado vaga).*?(?:\.\s*|\:\s*)', '', texto_respuesta, flags=re.IGNORECASE).strip()
+                # Eliminamos posibles justificaciones de razonamiento al inicio y meta-lenguaje
+                texto_respuesta = re.sub(
+                    r'^(?:la respuesta a tu pregunta es(?: que)?|en el fragmento se (?:describe|menciona|indica)(?: que)?|la pregunta del visitante sobre .*? se relaciona con|la pregunta del visitante se refiere a|respecto a la pregunta del visitante,?)\s*',
+                    '', texto_respuesta, flags=re.IGNORECASE
+                ).strip()
+                texto_respuesta = re.sub(
+                    r'\b(?:seg[uú]n|de acuerdo con)\s+(?:el\s+fragmento(?:\s+oficial)?|la\s+ficha(?:\s+oficial)?|el\s+texto)\s*,?\s*',
+                    '', texto_respuesta, flags=re.IGNORECASE
+                ).strip()
+                texto_respuesta = re.sub(r'^(?:lo siento,?\s+pero\s+)?(?:no encontr[eé]|no se encontr[oó]|el visitante no|la consulta del visitante|la pregunta del visitante).*?(?:\.\s*|\:\s*)', '', texto_respuesta, flags=re.IGNORECASE).strip()
                 # Eliminamos disculpas espurias ("Lo siento, ...") cuando SÍ se está dando una respuesta positiva
                 texto_sin_disculpa = re.sub(
                     r'^lo siento,?\s+(?:pero\s+)?(?!en mis registros|no cuento|no tengo|no contamos|no dispongo|no se cuenta)',
@@ -581,6 +626,10 @@ def preguntar_a_llama(prompt_usuario, instrucciones_sistema=""):
                 ).strip()
                 if texto_sin_disculpa:
                     texto_respuesta = texto_sin_disculpa[0].upper() + texto_sin_disculpa[1:]
+                # Eliminamos conectores adversativos huérfanos al inicio ("Sin embargo,", "No obstante,", etc.)
+                texto_sin_conector = re.sub(r'^(?:Sin embargo|No obstante|Pero|Aunque|However|Nevertheless),?\s*', '', texto_respuesta, flags=re.IGNORECASE).strip()
+                if texto_sin_conector:
+                    texto_respuesta = texto_sin_conector[0].upper() + texto_sin_conector[1:]
                 # Limpieza de meta-lenguaje sobre "fragmento" / "fragment"
                 oraciones_sin_meta = [
                     o.strip() for o in re.split(r'(?<!\d)\.(?!\d)\s+', texto_respuesta)
@@ -588,6 +637,10 @@ def preguntar_a_llama(prompt_usuario, instrucciones_sistema=""):
                 ]
                 if oraciones_sin_meta and len(oraciones_sin_meta) < len([o for o in re.split(r'(?<!\d)\.(?!\d)\s+', texto_respuesta) if o.strip()]):
                     texto_respuesta = '. '.join(o.rstrip('.') for o in oraciones_sin_meta) + '.'
+                # Eliminamos conectores adversativos huérfanos al inicio que hayan quedado expuestos tras limpiar meta-lenguaje
+                texto_sin_conector = re.sub(r'^(?:Sin embargo|No obstante|Pero|Aunque|However|Nevertheless),?\s*', '', texto_respuesta, flags=re.IGNORECASE).strip()
+                if texto_sin_conector:
+                    texto_respuesta = texto_sin_conector[0].upper() + texto_sin_conector[1:]
                 if re.search(r'\b(?:el\s+fragmento|el\s+texto|la\s+ficha|el\s+documento)\b.*?\b(?:no\s+(?:contiene|menciona|especifica|proporciona|incluye|cuenta|brinda|da))\b', texto_respuesta, flags=re.IGNORECASE):
                     texto_respuesta = "Lo siento, en mis registros oficiales del ZooMAT no cuento con información específica sobre ese dato."
                 elif re.search(r'\b(?:the\s+fragment|the\s+text|the\s+document)\b.*?\b(?:does\s+not\s+(?:contain|mention|provide|include|give|state)|is\s+not\s+(?:specified|mentioned|provided))\b', texto_respuesta, flags=re.IGNORECASE):
@@ -619,6 +672,87 @@ def preguntar_a_llama(prompt_usuario, instrucciones_sistema=""):
                 time.sleep(0.5)
                 continue
             return f"Ocurrió un error inesperado: {str(e)}"
+
+# --- Memoria Contextual Ligera de Último Turno (Expiración de 90 segundos) ---
+ESTADO_ULTIMO_TURNO = {
+    "ultimo_sujeto": None,   # ej. "miguel alvarez del toro", "jaguar", etc.
+    "ultima_especie": None,  # ej. "Panthera onca" o "jaguar"
+    "ultima_ruta": None,     # "rag" o "mysql"
+    "timestamp": 0.0         # time.time()
+}
+
+def reiniciar_memoria_turno():
+    """Restablece el estado contextual del último turno a sus valores iniciales."""
+    global ESTADO_ULTIMO_TURNO
+    ESTADO_ULTIMO_TURNO = {
+        "ultimo_sujeto": None,
+        "ultima_especie": None,
+        "ultima_ruta": None,
+        "timestamp": 0.0
+    }
+
+def actualizar_memoria_turno(pregunta, respuesta, decision=None):
+    """Actualiza la memoria contextual con el sujeto, especie y ruta del turno exitoso."""
+    global ESTADO_ULTIMO_TURNO
+    ahora = time.time()
+    p_norm = quitar_acentos(pregunta.lower())
+    
+    # Si la respuesta fue vacía o un filtro básico de ayuda/gibberish, no sobrescribir memoria activa
+    if not respuesta or any(f in respuesta.lower() for f in ["por favor, escribe", "no comprendi", "could not understand"]):
+        return
+
+    # 1. Sujeto: Libros u obras de Don Miguel
+    if any(b in p_norm for b in ["libro", "libros", "obra", "obras", "redacta sus historias", "asi era chiapas"]):
+        if any(m in p_norm for m in ["miguel", "toro", "fundador", "autor", "escritor"]) or ESTADO_ULTIMO_TURNO.get("ultimo_sujeto") in ["miguel alvarez del toro", "libros miguel alvarez del toro"]:
+            ESTADO_ULTIMO_TURNO["ultimo_sujeto"] = "libros miguel alvarez del toro"
+            ESTADO_ULTIMO_TURNO["ultima_especie"] = None
+            ESTADO_ULTIMO_TURNO["ultima_ruta"] = "rag_historia"
+            ESTADO_ULTIMO_TURNO["timestamp"] = ahora
+            return
+
+    # 2. Sujeto: Don Miguel Álvarez del Toro
+    if any(m in p_norm for m in ["miguel alvarez del toro", "don miguel", "fundador del zoologico", "director general", "quien fue miguel", "director"]):
+        ESTADO_ULTIMO_TURNO["ultimo_sujeto"] = "miguel alvarez del toro"
+        ESTADO_ULTIMO_TURNO["ultima_especie"] = None
+        ESTADO_ULTIMO_TURNO["ultima_ruta"] = "rag_historia"
+        ESTADO_ULTIMO_TURNO["timestamp"] = ahora
+        return
+
+    # 2.5 Sujeto: Sanitarios / Baños
+    if any(b in p_norm for b in ["bano", "banos", "sanitario", "sanitarios", "wc", "restroom", "restrooms", "bathroom", "bathrooms"]) or any(
+        b in (respuesta or "").lower() for b in ["cuatro modulos de sanitarios", "modulos de sanitarios", "four restroom modules"]
+    ):
+        ESTADO_ULTIMO_TURNO["ultimo_sujeto"] = "ubicacion_baños"
+        ESTADO_ULTIMO_TURNO["ultima_especie"] = None
+        ESTADO_ULTIMO_TURNO["ultima_ruta"] = "mysql"
+        ESTADO_ULTIMO_TURNO["timestamp"] = ahora
+        return
+
+    # 3. Sujeto: Especie animal
+    especie_det = motor_rag.detectar_especie(pregunta)
+    if not especie_det:
+        for clave, nombre in FAUNA_CHIAPAS_EMBLEMATICA.items():
+            if re.search(rf'\b{re.escape(clave)}\b', p_norm):
+                especie_det = clave
+                break
+    if not especie_det:
+        for esp_norm, esp_orig in motor_rag.ESPECIES_CONOCIDAS.items():
+            if re.search(rf'\b{re.escape(esp_norm)}\b', p_norm):
+                especie_det = esp_orig
+                break
+
+    if especie_det:
+        ESTADO_ULTIMO_TURNO["ultimo_sujeto"] = especie_det
+        ESTADO_ULTIMO_TURNO["ultima_especie"] = especie_det
+        ESTADO_ULTIMO_TURNO["ultima_ruta"] = "rag"
+        ESTADO_ULTIMO_TURNO["timestamp"] = ahora
+        return
+
+    if decision and decision.get("ruta") == "mysql":
+        ESTADO_ULTIMO_TURNO["ultimo_sujeto"] = f"{decision.get('entidad')}_{decision.get('tipo')}"
+        ESTADO_ULTIMO_TURNO["ultima_especie"] = None
+        ESTADO_ULTIMO_TURNO["ultima_ruta"] = "mysql"
+        ESTADO_ULTIMO_TURNO["timestamp"] = ahora
 
 def verificar_interaccion_basica(pregunta, idioma='es'):
     """Evalúa la entrada en Python puro (<0.01s) para responder o filtrar saludos, modismos, despedidas y gibberish (ES / EN)."""
@@ -689,6 +823,94 @@ def verificar_interaccion_basica(pregunta, idioma='es'):
         return f"Hoy es {dia_nom}, {hoy.strftime('%d/%m/%Y')}.{aviso}"
 
     # 1.8 Filtro de capacidades del asistente
+    # 1.71 Solicitud de Cambio de Idioma por Texto
+    peticion_idioma_es = [
+        "cambiar el idioma", "cambiar idioma", "cambia de idioma", "cambia el idioma", "ponlo en ingles",
+        "hablas ingles", "puedes hablar ingles", "puedes hablar en ingles", "hablas espanol",
+        "hablas en ingles", "cambiar al ingles", "cambiar a ingles"
+    ]
+    peticion_idioma_en = [
+        "change language", "switch language", "change to english", "change to spanish",
+        "speak spanish", "can you speak spanish", "can you speak english", "do you speak english", "do you speak spanish"
+    ]
+    if any(pi in p_solo_letras for pi in peticion_idioma_en) or (idioma == 'en' and any(pi in p_solo_letras for pi in peticion_idioma_es)):
+        return "Yes, I offer bilingual support! To switch the entire chat and voice to English or Spanish, simply press the selector button [ ES | EN ] located in the upper right corner of the header."
+    if any(pi in p_solo_letras for pi in peticion_idioma_es) or (re.search(r'\b(cambiar|cambia|cambio|poner|hablas|hablar)\b', p_solo_letras) and re.search(r'\b(idioma|ingles|espanol)\b', p_solo_letras)):
+        return "¡Sí, cuento con soporte bilingüe! Para cambiar todo el chat y la voz al idioma inglés o español, simplemente presiona el botón selector [ ES | EN ] ubicado en la esquina superior derecha del encabezado."
+
+    # 1.72 Solicitud de Mapas, Croquis, Fotos, Imágenes o Videos y Pronombres Enclíticos ("Puedes mostrarlos")
+    pide_banos = any(b in p_solo_letras for b in ["bano", "banos", "sanitario", "sanitarios", "restroom", "restrooms", "bathroom", "bathrooms", "toilet", "toilets", "wc"])
+    pide_mapa = any(m in p_solo_letras for m in ["mapa", "mapas", "croquis", "mostrarlos", "mostrar", "mostrame", "verlos", "map", "maps", "show"])
+    pide_encliticos = any(e in p_solo_letras for e in ["mostrarlos", "mostrarlas", "mostrame", "mostramelos", "ensenarlos", "ensenarlas", "verlos en pantalla", "verlas en pantalla", "show them"])
+
+    ultimo_sujeto_str = str(ESTADO_ULTIMO_TURNO.get("ultimo_sujeto", "")).lower()
+    es_seguimiento_banos = any(b in ultimo_sujeto_str for b in ["bano", "sanitario", "ubicacion_baños", "ubicacion_banos"])
+
+    if (pide_banos and pide_mapa) or (pide_encliticos and es_seguimiento_banos):
+        if idioma == 'en':
+            return "As a virtual assistant I operate exclusively through text and voice, so I cannot display visual maps or images on screen. However, ZooMAT has four restroom areas: the first is in the restaurant area before starting the tour, the second in Monkey Plaza behind the Casa Blanca taco restaurant, the third on the right side of the river otter habitat, and the fourth on the left side of the harpy eagle habitat."
+        return "Como asistente virtual opero únicamente mediante texto y voz, por lo que no puedo mostrar mapas visuales ni imágenes en pantalla. Sin embargo, el ZooMAT cuenta con cuatro módulos de sanitarios: el primero se ubica en el área de restaurantes antes de comenzar el recorrido, el segundo en plaza monos detrás del restaurante de tacos Casa Blanca, el tercero del lado derecho del hábitat de las nutrias y el cuarto a un costado izquierdo del hábitat del águila harpía."
+
+    if pide_encliticos or (re.search(r'\b(mapa|croquis|map|sketch)\b', p_solo_letras) and not any(cl in p_solo_letras for cl in ["como llegar", "ruta 30", "colectivo", "transporte", "how to get"])):
+        if idioma == 'en':
+            return "As a virtual assistant I provide information exclusively through text and voice, so I do not have graphic maps or sketches on screen. ZooMAT is located at Calzada Cerro Hueco s/n, within El Zapotal Nature Reserve, and we recommend relying on the physical signs and trail maps along the park's walkways."
+        return "Como asistente virtual brindo información exclusivamente por texto y voz, por lo que no dispongo de mapas gráficos ni croquis en pantalla. El ZooMAT se ubica en Calzada Cerro Hueco sin número, dentro de la Reserva Natural El Zapotal, y te sugerimos apoyarte en la señalización física y mapas ubicados a lo largo de los andadores del parque."
+
+    if any(f in p_solo_letras for f in ["foto", "fotos", "imagen", "imagenes", "fotografia", "fotografias", "dibujo", "dibujos", "video", "videos", "photo", "photos", "picture", "pictures", "image", "images"]):
+        if idioma == 'en':
+            return "As a virtual assistant I operate exclusively through text and voice, so I cannot display photographs, images, or videos in the chat. However, I would gladly provide a detailed description of the physical traits, coloration, plumage, or coat of any Chiapas native species you wish to consult."
+        return "Como asistente virtual opero únicamente a través de texto y voz, por lo que no puedo mostrar fotografías, imágenes o videos en el chat. No obstante, con mucho gusto puedo describirte detalladamente las características físicas, coloración, plumaje o pelaje de cualquier especie nativa de Chiapas que desees consultar."
+
+    # 1.73 Distancias en Kilómetros, Tiempos de Viaje y Puntos Externos (Cerro Mactumatzá)
+    if "mactumatza" in p_solo_letras or ("mactumatz" in p_norm) or (
+        any(k in p_solo_letras for k in ["kilometros", "kilometro", "distancia en kilometros", "distancia hablando en kilometros", "a cuantos kilometros", "tiempo esta y a que distancia"])
+        and any(loc in p_solo_letras for loc in ["cerro", "centro", "ciudad", "tuxtla", "distancia"])
+    ):
+        if idioma == 'en':
+            return "I do not calculate distances in kilometers or live travel times from external landmarks like Cerro Mactumatza. ZooMAT is located in the southeastern area of Tuxtla Gutierrez at Calzada Cerro Hueco s/n inside El Zapotal Nature Reserve, whereas Cerro Mactumatza is situated in the far southwestern part of the city."
+        return "No cuento con cálculo de distancias en kilómetros ni tiempos de traslado en vivo desde otros puntos como el Cerro Mactumatzá. Te comparto que el ZooMAT se ubica al suroriente de Tuxtla Gutiérrez en Calzada Cerro Hueco sin número, dentro de la Reserva Natural El Zapotal, mientras que el Cerro Mactumatzá se encuentra en el extremo suroeste de la ciudad."
+
+    # 1.74 Ubicación del Visitante / GPS
+    patrones_gps_es = [
+        "sabes desde donde te estoy escribiendo", "sabes de donde te escribo", "sabes desde donde escribo",
+        "sabes donde estoy", "sabes mi ubicacion", "donde estoy", "donde me encuentro", "rastreas mi ubicacion",
+        "tienes mi gps", "desde donde te escribo"
+    ]
+    patrones_gps_en = [
+        "do you know where i am", "where am i writing from", "track my location", "do you have my gps", "where am i"
+    ]
+    if any(pg in p_solo_letras for pg in patrones_gps_en) or (idioma == 'en' and any(pg in p_solo_letras for pg in patrones_gps_es)):
+        return "For privacy and security reasons I do not track visitors' geographic location or use GPS. My purpose is to provide you with official information regarding wildlife, schedules, admission fees, and services at ZooMAT in Tuxtla Gutierrez."
+    if any(pg in p_solo_letras for pg in patrones_gps_es):
+        return "Por motivos de privacidad y seguridad no rastreo la ubicación geográfica ni utilizo GPS de los visitantes. Mi función es brindarte información oficial sobre la fauna, horarios, costos y servicios del ZooMAT en Tuxtla Gutiérrez."
+
+    # 1.75 Preguntas Biológicas Incompletas sin Sujeto
+    if re.search(r'^(cuantos?\s+anos?\s+vive|cuanto\s+tiempo\s+vive|cuanto\s+vive|que\s+come|que\s+comen|cuanto\s+pesa|cuanto\s+mide|donde\s+vive|donde\s+viven)$', p_solo_letras):
+        if idioma == 'en':
+            return "To give you the exact information, please include the name of the animal in your question, for example: How long does the tapir live? or What does the jaguar eat?"
+        return "Para darte el dato exacto, por favor escribe el nombre del animal en tu pregunta, como por ejemplo: ¿Cuántos años vive el tapir? o ¿Qué come el jaguar?"
+
+    # 1.76 Cortesía de Estado de Ánimo
+    patrones_animo_es = ["como estas amigo", "como estas", "como esta", "que tal estas amigo", "que tal estas", "que tal te va"]
+    patrones_animo_en = ["how are you friend", "how are you", "how are you doing", "how do you do"]
+    if any(pa in p_solo_letras for pa in patrones_animo_en) or (idioma == 'en' and any(pa in p_solo_letras for pa in patrones_animo_es)):
+        return "Hello! I am doing great, thank you so much for asking, ready to assist you during your visit to ZooMAT. What would you like to know today about our Chiapas species, schedules, or admission fees?"
+    if any(pa in p_solo_letras for pa in patrones_animo_es):
+        return "¡Hola! Estoy muy bien, muchas gracias por preguntar, listo para acompañarte en tu visita al ZooMAT. ¿Qué te gustaría conocer hoy sobre nuestras especies de Chiapas, horarios o tarifas?"
+
+    # 1.77 Juegos, conteos y pasatiempos fuera de dominio
+    patrones_juegos_es = [
+        "puedo jugar conmigo", "jugar conmigo", "jugamos", "juguemos", "puedes jugar", "quiero jugar",
+        "unos dos tres que sigue", "uno dos tres que sigue", "1 2 3 que sigue", "que sigue 1 2 3",
+        "cuentame un chiste", "dime un chiste", "chiste", "adivinanza"
+    ]
+    patrones_juegos_en = ["play with me", "can you play with me", "tell me a joke", "play a game", "one two three what comes next"]
+    if any(pj in p_solo_letras for pj in patrones_juegos_en) or (idioma == 'en' and any(pj in p_solo_letras for pj in patrones_juegos_es)):
+        return "As the official informative assistant of ZooMAT, I do not play games, riddles, or pastimes. My role is to provide you with information regarding native Chiapas wildlife, schedules, admission fees, and zoo services. I would love to share amazing facts about the jaguar, tapir, or quetzal with you!"
+    if any(pj in p_solo_letras for pj in patrones_juegos_es):
+        return "Como asistente virtual informativo del ZooMAT no tengo la función de realizar juegos, acertijos o pasatiempos. Mi labor es orientarte sobre la maravillosa fauna nativa de Chiapas, horarios, tarifas y servicios del zoológico. ¡Con gusto puedo contarte datos asombrosos sobre el jaguar, el tapir o el quetzal!"
+
+    # 1.8 Filtro de capacidades del asistente
     patrones_capacidades_es = ["que te puedo preguntar", "que me puedes responder", "que preguntas puedo hacer", "que sabes hacer", "que informacion tienes", "que sabes"]
     patrones_capacidades_en = ["what can i ask you", "what can you do", "what do you know", "what questions can i ask"]
     if any(c in p_solo_letras or c in p_sin_repeticion for c in patrones_capacidades_en) or (idioma == 'en' and any(c in p_solo_letras for c in patrones_capacidades_es)):
@@ -746,12 +968,31 @@ def verificar_interaccion_basica(pregunta, idioma='es'):
         "que tal", "hola buenos dias", "hola buenas tardes", "hola buenas noches", "hey",
         "que onda", "y que onda", "que hubo", "que tranza", "que hay", "saludos"
     ]
-    if p_solo_letras in saludos_en or p_sin_repeticion in saludos_en or any(p_sin_repeticion.startswith(s + " ") for s in ["hello", "hi", "hey"]):
-        return "Hello! Welcome to ZooMAT. Which regional species or zoo information would you like to know about today?"
-    if p_solo_letras in saludos_exactos or p_sin_repeticion in saludos_exactos or any(p_sin_repeticion.startswith(s + " ") for s in ["hola", "ola", "buenas", "que onda"]):
-        if idioma == 'en':
+    vocativos = {"amigo", "amiga", "bot", "guia", "asistente", "zoomat", "companero", "carnal", "we", "wey", "todos", "gente", "friend", "there", "everyone"}
+
+    # Saludos en inglés
+    es_saludo_en_exacto = p_solo_letras in saludos_en or p_sin_repeticion in saludos_en
+    prefijo_en = next((s for s in ["good morning", "good afternoon", "good evening", "hello", "hi", "hey"] if p_sin_repeticion == s or p_sin_repeticion.startswith(s + " ")), None)
+    if es_saludo_en_exacto or prefijo_en:
+        resto_en = p_sin_repeticion[len(prefijo_en):].strip() if prefijo_en and p_sin_repeticion.startswith(prefijo_en + " ") else ""
+        palabras_resto = resto_en.split()
+        if not palabras_resto or all(w in vocativos for w in palabras_resto):
             return "Hello! Welcome to ZooMAT. Which regional species or zoo information would you like to know about today?"
-        return "¡Hola! Bienvenido al ZooMAT. ¿Sobre qué especie regional o información del zoológico te gustaría saber hoy?"
+
+    # Saludos en español
+    prefijos_es = [
+        "hola buenos dias", "hola buenas tardes", "hola buenas noches",
+        "buenos dias", "buenas tardes", "buenas noches", "hola", "ola", "olaa",
+        "buenas", "que onda", "y que onda", "que hubo", "que tranza", "que hay", "saludos", "hey"
+    ]
+    prefijo_es = next((s for s in prefijos_es if p_sin_repeticion == s or p_sin_repeticion.startswith(s + " ")), None)
+    if p_solo_letras in saludos_exactos or p_sin_repeticion in saludos_exactos or prefijo_es:
+        resto_es = p_sin_repeticion[len(prefijo_es):].strip() if prefijo_es and p_sin_repeticion.startswith(prefijo_es + " ") else ""
+        palabras_resto = resto_es.split()
+        if not palabras_resto or all(w in vocativos for w in palabras_resto):
+            if idioma == 'en':
+                return "Hello! Welcome to ZooMAT. Which regional species or zoo information would you like to know about today?"
+            return "¡Hola! Bienvenido al ZooMAT. ¿Sobre qué especie regional o información del zoológico te gustaría saber hoy?"
 
     # 5. Filtro de Negaciones breves
     negaciones_en = ["no", "nope", "no thanks", "none", "nothing", "nothing else"]
@@ -947,7 +1188,7 @@ def consultar_catalogo_general(pregunta, idioma='es'):
 
     # 0.5 Consultas temáticas de anfibios (mitos, diferencias, medicina, bioturbación, plagas, protección) y Sapo Borracho van a RAG
     if enrutador_semantico.es_consulta_tematica_anfibios(pregunta) or any(
-        k in p_norm for k in ["sapo borracho", "sapo de rebano", "rhinophrynus", "chaac", "diferencia", "diferencias", "salamandra", "protegerlos", "proteger a los"]
+        k in p_norm for k in ["sapo borracho", "sapo de rebano", "sapo excavador", "rhinophrynus", "chaac", "diferencia", "diferencias", "salamandra", "protegerlos", "proteger a los"]
     ):
         return None
 
@@ -1027,28 +1268,61 @@ def consultar_catalogo_general(pregunta, idioma='es'):
     palabras_consulta_inventario = [
         "hay", "tienen", "tiene", "albergan", "alberga", "exhiben", "exhibe",
         "podemos ver", "puedo ver", "se puede ver", "se pueden ver", "ver", 
+        "conocer", "conozco", "encontrar", "observar", "admirar",
+        "tipos de", "tipo de", "clases de", "clase de", "que tipos", "cuales tipos",
+        "durante mi visita", "en mi visita", "visita", "recorrido",
         "cuentan", "muestrame", "cuales son", "cuales", "lista", "del zoomat", "en el zoomat",
-        "do you have", "are there", "can we see", "can i see", "show me", "which", "list"
+        "do you have", "are there", "can we see", "can i see", "show me", "which", "list",
+        "know", "meet", "find", "types of", "kinds of"
     ]
     
-    grupo_consultado = None
+    es_consulta_inventario = any(inv in p_norm for inv in palabras_consulta_inventario) or any(
+        p in p_norm for p in ["que tipos", "cuales tipos", "que clases", "cuales clases", "what types", "what kinds"]
+    )
+
+    # Detectar todas las clases o grupos taxonómicos mencionados en la consulta
+    grupos_detectados = {} # {nombre_grupo: (clave_original, clave_filtro)}
     for clave, nombre_grupo in grupos.items():
         if re.search(rf'\b{clave}\b', p_norm):
-            if any(inv in p_norm for inv in palabras_consulta_inventario):
-                grupo_consultado = (clave, nombre_grupo)
-                break
-            
-    if grupo_consultado:
-        clave, nombre_grupo = grupo_consultado
-        # Mapear clave en inglés a la clave canónica de filtro
-        clave_filtro = ANIMALES_INGLES_A_ESP.get(clave, clave)
-        if clave_filtro in ["bird", "birds"]: clave_filtro = "ave"
-        elif clave_filtro in ["mammal", "mammals"]: clave_filtro = "mamifero"
-        elif clave_filtro in ["reptile", "reptiles"]: clave_filtro = "reptil"
-        elif clave_filtro in ["frog", "frogs"]: clave_filtro = "rana"
-        elif clave_filtro in ["toad", "toads"]: clave_filtro = "sapo"
-        elif clave_filtro in ["caecilian", "caecilians"]: clave_filtro = "cecilia"
+            if nombre_grupo not in grupos_detectados:
+                clave_filtro = ANIMALES_INGLES_A_ESP.get(clave, clave)
+                if clave_filtro in ["bird", "birds"]: clave_filtro = "ave"
+                elif clave_filtro in ["mammal", "mammals"]: clave_filtro = "mamifero"
+                elif clave_filtro in ["reptile", "reptiles"]: clave_filtro = "reptil"
+                elif clave_filtro in ["frog", "frogs"]: clave_filtro = "rana"
+                elif clave_filtro in ["toad", "toads"]: clave_filtro = "sapo"
+                elif clave_filtro in ["caecilian", "caecilians"]: clave_filtro = "cecilia"
+                grupos_detectados[nombre_grupo] = (clave, clave_filtro)
 
+    if grupos_detectados and es_consulta_inventario:
+        # Si se consultaron dos o más clases biológicas distintas (ej. "¿Qué tipos de aves o reptiles puedo conocer?")
+        if len(grupos_detectados) >= 2:
+            partes_es = []
+            partes_en = []
+            for n_grupo, (c_orig, c_filtro) in list(grupos_detectados.items())[:2]:
+                especies_g = obtener_especies_registradas(c_filtro)
+                if especies_g:
+                    muestras_g = random.sample(especies_g, min(2, len(especies_g)))
+                    ej_es = " y ".join(muestras_g) if len(muestras_g) > 1 else muestras_g[0]
+                    ej_en = " and ".join(muestras_g) if len(muestras_g) > 1 else muestras_g[0]
+                    partes_es.append(f"{n_grupo} como {ej_es}")
+                    partes_en.append(f"{n_grupo} such as {ej_en}")
+                else:
+                    partes_es.append(f"{n_grupo}")
+                    partes_en.append(f"{n_grupo}")
+            
+            if idioma == 'en':
+                return (
+                    f"At ZooMAT we house various species of {partes_en[0]}, and {partes_en[1]}, "
+                    f"among many other native animals of Chiapas. We cordially invite you to discover and meet them during your visit!"
+                )
+            return (
+                f"En el ZooMAT contamos con diversas especies de {partes_es[0]}, y de {partes_es[1]}, "
+                f"entre muchas otras más de la región. ¡Te invitamos cordialmente a descubrirlas y conocerlas durante tu visita!"
+            )
+
+        # Si solo se consultó un grupo taxonómico
+        nombre_grupo, (clave, clave_filtro) = list(grupos_detectados.items())[0]
         especies_grupo = obtener_especies_registradas(clave_filtro)
         
         if especies_grupo:
@@ -1118,13 +1392,11 @@ def formatear_nombre_especie(nombre):
     """Aplica formato de nombre propio sin dejar en mayúsculas completas los nombres de archivo/metadatos."""
     if not nombre:
         return ""
-    nombre = nombre.strip()
-    if nombre.isupper():
-        return nombre.title()
-    return nombre[0].upper() + nombre[1:]
+    return limpiar_nombre_catalogo(nombre)
 
 ANIMALES_EXOTICOS = sorted([
     "leon", "leona", "leones", "elefante", "elefantes", "jirafa", "jirafas",
+    "jirafe", "jirafes", "girafe", "girafes",
     "rinoceronte", "rinocerontes", "rinocero", "hipopotamo", "hipopotamos", "cebra", "cebras",
     "canguro", "canguros", "oso polar", "osos polares", "oso panda", "osos pandas",
     "oso pardo", "osos pardos", "pinguino", "pinguinos", "tigre", "tigres",
@@ -1158,6 +1430,11 @@ PALABRAS_DESCARTADAS_EXISTENCIA = {
     'ver', 'para', 'con', 'del', 'los', 'las', 'les', 'que', 'una', 'uno', 'unos', 'unas', 'por', 'sobre',
     'zoomat', 'zoologico', 'parque', 'aqui', 'alla', 'dentro', 'ejemplar', 'ejemplares', 'algun', 'alguna',
     'algunos', 'algunas', 'tipo', 'tipos', 'clase', 'clases', 'visita', 'visitar', 'recorrido',
+    'gusta', 'gustan', 'encanta', 'encantan', 'jaula', 'jaulas', 'recinto', 'recintos', 'habitat', 'habitats',
+    'bonito', 'bonita', 'bonitos', 'bonitas', 'hermoso', 'hermosa', 'color', 'colores', 'rojo', 'roja', 'rojos', 'rojas',
+    'verde', 'verdes', 'azul', 'azules', 'amarillo', 'amarilla', 'negro', 'negra', 'blanco', 'blanca',
+    'grande', 'grandes', 'pequeno', 'pequena', 'llama', 'llaman', 'especie', 'especies',
+    'hola', 'ola', 'buenos', 'buenas', 'dias', 'tardes', 'noches', 'saludos', 'hello', 'hey',
     'do', 'you', 'have', 'does', 'the', 'zoo', 'are', 'there', 'is', 'can', 'we', 'see', 'i', 'find',
     'house', 'exhibit', 'any'
 }
@@ -1168,6 +1445,8 @@ def responder_consulta_existencia_animal(pregunta, idioma='es'):
     
     # 0. Filtros de exclusión: consultas históricas, temáticas de anfibios, preguntas de causa/tiempo, biológicas o logísticas
     if motor_rag.es_consulta_historia(pregunta) or enrutador_semantico.es_consulta_tematica_anfibios(pregunta):
+        return None
+    if any(desc in p_norm for desc in ["como se llama", "como se llaman", "que ave es", "que animal es", "que especie es", "ave muy bonita", "ave roja", "ave de colores"]):
         return None
     if re.match(r'^(por que|desde cuando|como|cuantos|cuantas|quien|quienes)\b', p_norm):
         return None
@@ -1246,10 +1525,7 @@ def responder_consulta_existencia_animal(pregunta, idioma='es'):
         return None
 
     # 1. Animales exóticos (no pertenecen a la fauna regional de Chiapas)
-    for exotico in ANIMALES_EXOTICOS_EN:
-        if re.search(rf'\b{re.escape(exotico)}\b', p_norm):
-            return f"No, at ZooMAT we do not have {exotico}, as our zoo exclusively houses and preserves species native to the state of Chiapas and not exotic wildlife from other continents."
-    for exotico in ANIMALES_EXOTICOS:
+    for exotico in ANIMALES_EXOTICOS + ANIMALES_EXOTICOS_EN:
         if re.search(rf'\b{re.escape(exotico)}\b', p_norm):
             if idioma == 'en':
                 return f"No, at ZooMAT we do not have {exotico}, as our zoo exclusively houses and preserves species native to the state of Chiapas and not exotic wildlife from other continents."
@@ -1310,10 +1586,7 @@ def responder_fuera_de_dominio_o_especie(pregunta, idioma='es'):
     p_norm = quitar_acentos(pregunta.lower())
     
     # 1. Animales no regionales / exóticos
-    for exotico in ANIMALES_EXOTICOS_EN:
-        if re.search(rf"\b{re.escape(exotico)}\b", p_norm):
-            return "ZooMAT is a zoo dedicated exclusively to the regional wildlife of Chiapas, so we do not house exotic species from other continents."
-    for exotico in ANIMALES_EXOTICOS:
+    for exotico in ANIMALES_EXOTICOS + ANIMALES_EXOTICOS_EN:
         if re.search(rf"\b{re.escape(exotico)}\b", p_norm):
             if idioma == 'en':
                 return "ZooMAT is a zoo dedicated exclusively to the regional wildlife of Chiapas, so we do not house exotic species from other continents."
@@ -1420,7 +1693,7 @@ def es_fuera_de_dominio(pregunta):
 
     return False
 
-def procesar_logica_hibrida(pregunta, idioma='es'):
+def _procesar_logica_hibrida_interna(pregunta, idioma='es'):
     """Contiene la lógica de enrutamiento RAG y MySQL blindada contra fugas y falsos positivos (ES / EN)."""
     p_norm_clean = re.sub(r'[^\w\s]', '', quitar_acentos(pregunta.lower())).strip()
 
@@ -1448,6 +1721,40 @@ def procesar_logica_hibrida(pregunta, idioma='es'):
         if idioma == 'en':
             return "Access to the ZooMAT scientific library is completely free without purchasing a zoo ticket by registering with an ID at the security booth, and it is open Tuesday through Friday from 09:00 to 15:00 hours."
         return "El acceso a la biblioteca del ZooMAT es completamente gratuito y puedes ingresar sin pagar boleto del zoológico registrándote en la caseta de vigilancia con una identificación, y brinda atención al público de martes a viernes de 09:00 a 15:00 horas."
+
+    # 1.7.1 Consulta explícita sobre el estado de vida o muerte de Don Miguel Álvarez del Toro
+    menciona_don_miguel = any(m in p_norm_clean for m in ["don miguel", "miguel alvarez del toro", "alvarez del toro", "fundador"])
+    menciona_vida_muerte = any(v in p_norm_clean for v in [
+        "sigue vivo", "esta vivo", "vive aun", "vive todavia", "fallecio", "murio", 
+        "ano murio", "ano fallecio", "fecha de muerte", "ano de muerte",
+        "alive", "still alive", "is alive", "when did he die", "did he die", "die"
+    ])
+    if menciona_don_miguel and menciona_vida_muerte:
+        if idioma == 'en':
+            return "Don Miguel Alvarez del Toro passed away in 1996. He was an eminent zoologist and researcher who served as director of ZooMAT from 1942 until his death in 1996, dedicating his life to studying and conserving Chiapas wildlife."
+        return "Don Miguel Álvarez del Toro falleció en el año de 1996. Fue un insigne zoólogo e investigador que ejerció la dirección general del ZooMAT desde 1942 hasta su muerte en 1996, dejando un legado histórico fundamental en la conservación y estudio de la fauna de Chiapas."
+
+    # 1.7.2 Horario de apertura combinado con costo de entrada para estudiantes (ES / EN)
+    pide_apertura = any(h in p_norm_clean for h in [
+        "what time do you open", "what time does it open", "opening hours", "when do you open",
+        "a que hora abren", "hora de apertura", "a que hora abre", "horario de taquilla"
+    ]) or (any(h in p_norm_clean for h in ["open", "abren", "abre", "apertura", "what time", "a que hora"]) and any(h in p_norm_clean for h in ["taquilla", "horario", "hours", "ticket office", "park"]))
+    
+    pide_estudiante = any(e in p_norm_clean for e in ["student", "students", "estudiante", "estudiantes", "credencial de estudiante"]) and any(c in p_norm_clean for c in ["admission", "ticket", "cost", "price", "how much", "costo", "precio", "boleto", "cobran", "cuanto", "tarifa"])
+    
+    if pide_apertura and pide_estudiante:
+        if idioma == 'en':
+            return "The ZooMAT ticket office opens from Tuesday to Sunday from 09:00 to 16:00 hours, and admission for students with a valid ID is 25 pesos. The park is closed on Mondays."
+        return "La taquilla del ZooMAT abre de martes a domingo de 09:00 a 16:00 horas, y el costo de entrada para estudiantes con credencial vigente es de 25 pesos. Los días lunes el parque permanece cerrado."
+
+    # 1.7.3 Ubicación de baños combinada con ingreso de mascotas / perros (ES / EN)
+    pide_banos_comb = any(b in p_norm_clean for b in ["restroom", "restrooms", "bathroom", "bathrooms", "toilet", "toilets", "bano", "banos", "sanitario", "sanitarios"]) and any(u in p_norm_clean for u in ["where", "location", "located", "donde", "ubicacion", "estan", "queda"])
+    pide_mascotas_comb = any(m in p_norm_clean for m in ["dog", "dogs", "pet", "pets", "puppy", "perro", "perros", "mascota", "mascotas", "animal domestico"]) and any(p in p_norm_clean for p in ["bring", "enter", "allow", "allowed", "can i bring", "entrar", "ingresar", "llevar", "pasar", "permitido", "puedo llevar", "puedo entrar"])
+    
+    if pide_banos_comb and pide_mascotas_comb:
+        if idioma == 'en':
+            return "ZooMAT has four restroom modules: the first in the restaurant area before starting the tour, the second in Plaza Monos behind tacos Casa Blanca, the third to the right of the otter habitat, and the fourth next to the harpy eagle habitat. Regarding pets, bringing dogs or domestic animals is strictly prohibited to protect wildlife."
+        return "El ZooMAT cuenta con cuatro módulos de sanitarios: el primero en el área de restaurantes antes de iniciar el recorrido, el segundo en plaza monos detrás de tacos Casa Blanca, el tercero a la derecha del hábitat de nutrias y el cuarto junto al hábitat del águila harpía. En cuanto a las mascotas, está estrictamente prohibido ingresar con perros o cualquier animal doméstico para proteger a la fauna silvestre."
 
     # PASO 1.8: Consultas de catálogo general de especies o definiciones
     catalogo_resp = consultar_catalogo_general(pregunta, idioma=idioma)
@@ -1523,13 +1830,26 @@ def procesar_logica_hibrida(pregunta, idioma='es'):
     if decision["ruta"] == "rag":
         contexto_zoomat = motor_rag.buscar_contexto(pregunta)
         if contexto_zoomat:
-            # Solo remover la línea de plantilla en Dieta si el resto del documento sí detalla presas o alimentación (ej. Hábitos)
-            ctx_sin_dieta_vacia = re.sub(r'Dieta:\s*No se contiene informaci[oó]n acerca de esto\.?\s*', '', contexto_zoomat, flags=re.IGNORECASE)
-            if any(k in quitar_acentos(ctx_sin_dieta_vacia) for k in ["presas", "se alimenta", "comen ", "consume ", "cazan", "frugivor", "carnivor", "fitofag", "depredador"]):
-                contexto_zoomat = ctx_sin_dieta_vacia
-            ctx_sin_cat_vacia = re.sub(r'Categoria:\s*No se contiene informaci[oó]n acerca de esto\.?\s*', '', contexto_zoomat, flags=re.IGNORECASE)
-            if any(k in quitar_acentos(ctx_sin_cat_vacia) for k in ["nom-059", "iucn", "uicn", "cites", "peligro de extincion", "preocupacion menor", "amenazada"]):
-                contexto_zoomat = ctx_sin_cat_vacia
+            preg_norm_sin_acentos = quitar_acentos(pregunta.lower())
+            pide_dieta_usuario = bool(re.search(r'\b(come|comen|dieta|alimenta|alimentan|alimentacion|presas|que come|what does it eat|diet)\b', preg_norm_sin_acentos))
+            if not pide_dieta_usuario:
+                # Si el usuario no preguntó por dieta (ej. solo escribió el nombre de la especie),
+                # eliminamos la línea de dieta vacía para evitar que Llama responda que falta la dieta
+                # en lugar de brindar el resumen descriptivo de la especie.
+                contexto_zoomat = re.sub(r'Dieta:\s*No se contiene informaci[oó]n acerca de esto\.?\s*', '', contexto_zoomat, flags=re.IGNORECASE)
+            else:
+                # Solo remover la línea de plantilla en Dieta si el resto del documento sí detalla presas o alimentación (ej. Hábitos)
+                ctx_sin_dieta_vacia = re.sub(r'Dieta:\s*No se contiene informaci[oó]n acerca de esto\.?\s*', '', contexto_zoomat, flags=re.IGNORECASE)
+                if any(k in quitar_acentos(ctx_sin_dieta_vacia) for k in ["presas", "se alimenta", "comen ", "consume ", "cazan", "frugivor", "carnivor", "fitofag", "depredador"]):
+                    contexto_zoomat = ctx_sin_dieta_vacia
+            
+            pide_cat_usuario = bool(re.search(r'\b(categoria|proteccion|riesgo|extincion|estatus|nom-059|iucn|uicn|cites)\b', preg_norm_sin_acentos))
+            if not pide_cat_usuario:
+                contexto_zoomat = re.sub(r'Categoria:\s*No se contiene informaci[oó]n acerca de esto\.?\s*', '', contexto_zoomat, flags=re.IGNORECASE)
+            else:
+                ctx_sin_cat_vacia = re.sub(r'Categoria:\s*No se contiene informaci[oó]n acerca de esto\.?\s*', '', contexto_zoomat, flags=re.IGNORECASE)
+                if any(k in quitar_acentos(ctx_sin_cat_vacia) for k in ["nom-059", "iucn", "uicn", "cites", "peligro de extincion", "preocupacion menor", "amenazada"]):
+                    contexto_zoomat = ctx_sin_cat_vacia
         
         # CANDADO DINÁMICO: Si no es una especie registrada del ZooMAT y la palabra buscada no existe en el fragmento
         if not contexto_zoomat or (not especie_detectada and not contexto_es_relevante(pregunta, contexto_zoomat)):
@@ -1575,16 +1895,17 @@ Direct answer to visitor:"""
             if falta_longevidad and not respuesta_ia.startswith("__MOCK_RAG__|"):
                 respuesta_ia = "I apologize, in my official ZooMAT records I do not have specific information regarding the lifespan of this species."
         else:
-            reglas_rag = "Eres el asistente virtual oficial del ZooMAT. Respondes dudas biológicas sobre animales de Chiapas basándote estrictamente en el fragmento oficial proporcionado."
+            reglas_rag = "RESPONDE ESTRICTA Y ÚNICAMENTE EN ESPAÑOL. Está prohibido responder en inglés cuando el idioma solicitado es español. Eres el asistente virtual oficial del ZooMAT. Respondes dudas biológicas sobre animales de Chiapas basándote estrictamente en el fragmento oficial proporcionado."
             prompt_usuario = f"""FRAGMENTO DE BASE DE DATOS OFICIAL:
 {contexto_zoomat}
 
 CONSULTA DEL VISITANTE: "{pregunta}"
 
 INSTRUCCIONES OBLIGATORIAS:
+- IDIOMA OBLIGATORIO: RESPONDE ESTRICTA Y ÚNICAMENTE EN ESPAÑOL. Está prohibido responder en inglés cuando el idioma solicitado es español.
 - Responde directamente a la consulta del visitante de manera amable, fluida y natural usando exclusivamente los datos del fragmento.
 - DESAMBIGUACIÓN MULTI-ESPECIE: Si el fragmento incluye información de varias especies emparentadas (por ejemplo distintas chachalacas, monos, águilas, cocodrilos, alacranes o armadillos), integra la respuesta aclarando explícitamente a qué especies registradas del ZooMAT corresponde cada dato.
-- SINÓNIMOS BIOLÓGICOS Y PRESAS: Los términos "comida", "alimento", "presas", "alimentación", "qué come" y "dieta" son estrictamente equivalentes. Si el documento dice "Dieta: No se contiene información" pero en la sección de Hábitos u otra parte del texto describe sus presas o lo que caza (por ejemplo, mamíferos arborícolas, monos, aves, reptiles), DEBES responder con esas presas como su comida y alimentación. De igual modo, "dónde vive", "distribución" y "hábitat" son equivalentes; en cambio, "años que vive", "edad" y "longevidad" preguntan SOLO por duración de vida y NO deben sustituirse por hábitat.
+- SINÓNIMOS BIOLÓGICOS Y PRESAS: Los términos "comida", "alimento", "presas", "alimentación", "qué come" y "dieta" son estrictamente equivalentes. Si en la sección de Hábitos u otra parte del texto se describen sus presas, frutos o lo que come (por ejemplo, semillas, frutas, granos, mamíferos arborícolas, monos, aves, reptiles), DEBES responder con esos alimentos como su comida y alimentación. De igual modo, "dónde vive", "distribución" y "hábitat" son equivalentes; en cambio, "años que vive", "edad" y "longevidad" preguntan SOLO por duración de vida y NO deben sustituirse por hábitat.
 - HISTORIA E INSTITUCIÓN: Si el visitante pregunta sobre la historia, fundación, antecedentes o creadores del ZooMAT, responde con los hechos y fechas documentados en el fragmento (preguntas como "desde cuándo existe", "cuándo abrió" o "año de inicio" se responden directamente con el año de fundación documentado 1942 sin decir que falta el dato).
 - MITOS Y CIENCIA DE ANFIBIOS: Si el visitante pregunta por mitos, leyendas o creencias populares sobre sapos, ranas o anfibios, desmiente explícitamente lo que sea falso y explica la realidad científica o importancia ecológica documentada en el fragmento sin inventar datos.
 - PREGUNTAS HÍBRIDAS (BIOLOGÍA + HISTORIA): Responde ambas partes directamente en un máximo de 2 o 3 oraciones concisas, sin introducciones ni disculpas iniciales.
@@ -1603,6 +1924,58 @@ Respuesta directa al visitante:"""
             
     return respuesta_ia
 
+def procesar_logica_hibrida(pregunta, idioma='es'):
+    """Resuelve preguntas elípticas de seguimiento (<90s) y ejecuta la lógica híbrida actualizando la memoria contextual."""
+    global ESTADO_ULTIMO_TURNO
+    ahora = time.time()
+    memoria_activa = (ahora - ESTADO_ULTIMO_TURNO.get("timestamp", 0.0)) <= 90.0
+
+    if not memoria_activa:
+        ESTADO_ULTIMO_TURNO["ultimo_sujeto"] = None
+        ESTADO_ULTIMO_TURNO["ultima_especie"] = None
+        ESTADO_ULTIMO_TURNO["ultima_ruta"] = None
+
+    p_norm_q = quitar_acentos(pregunta.lower()).strip()
+    p_clean_q = re.sub(r'[^\w\s]', '', p_norm_q).strip()
+    p_clean_sub = p_clean_q[2:].strip() if p_clean_q.startswith("y ") else p_clean_q
+
+    # Resolución contextual de preguntas elípticas o de seguimiento (<90 segundos)
+    if memoria_activa:
+        # Caso 1: Sigue vivo / falleció Don Miguel Álvarez del Toro
+        patron_vivo_muerto = r'^(sigue\s+vivo|esta\s+vivo|cuando\s+murio|cuando\s+fallecio|en\s+que\s+ano\s+murio|en\s+que\s+ano\s+fallecio|ano\s+en\s+que\s+murio|ano\s+en\s+que\s+fallecio|vive\s+todavia|vive\s+aun|is\s+he\s+alive|still\s+alive|when\s+did\s+he\s+die)$'
+        if re.search(patron_vivo_muerto, p_clean_sub):
+            subj = ESTADO_ULTIMO_TURNO.get("ultimo_sujeto")
+            if subj in ["miguel alvarez del toro", "libros miguel alvarez del toro"] or (subj and "miguel" in str(subj)):
+                if idioma == 'en':
+                    pregunta = "Is Don Miguel Alvarez del Toro still alive and in what year did he pass away?"
+                else:
+                    pregunta = "¿Sigue vivo Don Miguel Álvarez del Toro y en qué año falleció?"
+
+        # Caso 2: Libros u obras de Don Miguel
+        patron_libros = r'^(como\s+se\s+llaman\s+esos\s+libros|cuales\s+son\s+esos\s+libros|cuales\s+libros|que\s+libros|que\s+libros\s+son|como\s+se\s+llaman\s+los\s+libros|como\s+se\s+llaman|cuales\s+son|cuales\s+escribio|what\s+are\s+those\s+books|which\s+books)$'
+        if re.search(patron_libros, p_clean_sub):
+            subj = ESTADO_ULTIMO_TURNO.get("ultimo_sujeto")
+            if subj in ["miguel alvarez del toro", "libros miguel alvarez del toro"] or (subj and "miguel" in str(subj)):
+                if idioma == 'en':
+                    pregunta = "What are the books written by Don Miguel Alvarez del Toro about the fauna of Chiapas and what are their titles?"
+                else:
+                    pregunta = "¿Cuáles son los libros que escribió Don Miguel Álvarez del Toro sobre la fauna de Chiapas y cómo se llaman?"
+
+        # Caso 3: Pregunta biológica sin sujeto (se inyecta la última especie activa)
+        patron_bio_sin_sujeto = r'^(cuantos?\s+anos?\s+vive|cuanto\s+tiempo\s+vive|cuanto\s+vive|que\s+come|que\s+comen|cuanto\s+pesa|cuanto\s+mide|donde\s+vive|donde\s+viven|how\s+long\s+does\s+it\s+live|what\s+does\s+it\s+eat|where\s+does\s+it\s+live|how\s+much\s+does\s+it\s+weigh)$'
+        if re.search(patron_bio_sin_sujeto, p_clean_sub):
+            if ESTADO_ULTIMO_TURNO.get("ultima_especie"):
+                esp = ESTADO_ULTIMO_TURNO["ultima_especie"]
+                if idioma == 'en':
+                    pregunta = f"{pregunta.strip('? ')} the {esp}?"
+                else:
+                    esp_art = esp if esp.lower().startswith(("el ", "la ", "los ", "las ")) else f"el {esp}"
+                    pregunta = f"¿{p_clean_sub} {esp_art}?"
+
+    res = _procesar_logica_hibrida_interna(pregunta, idioma=idioma)
+    actualizar_memoria_turno(pregunta, res)
+    return res
+
 # --- Endpoints Web ---
 @app.route('/')
 def index():
@@ -1616,7 +1989,7 @@ def ingestar_documentos():
     Protegido con clave de administrador (INGEST_SECRET en variables de entorno).
     """
     secret = os.getenv('INGEST_SECRET', '')
-    token  = request.headers.get('X-Ingest-Token', '') or request.json.get('token', '') if request.is_json else request.form.get('token', '')
+    token  = request.headers.get('X-Ingest-Token', '') or (request.json.get('token', '') if request.is_json else request.form.get('token', ''))
     if secret and token != secret:
         return jsonify({'error': 'No autorizado'}), 401
 

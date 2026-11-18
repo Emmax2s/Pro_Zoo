@@ -1601,6 +1601,49 @@ Respuesta directa al visitante:"""
 def index():
     return render_template('index.html')
 
+@app.route('/ingestar', methods=['POST'])
+def ingestar_documentos():
+    """
+    Endpoint para re-procesar los documentos de documentos_zoomat/ hacia ChromaDB.
+    Se llama después de agregar/modificar archivos en la carpeta montada en Docker.
+    Protegido con clave de administrador (INGEST_SECRET en variables de entorno).
+    """
+    secret = os.getenv('INGEST_SECRET', '')
+    token  = request.headers.get('X-Ingest-Token', '') or request.json.get('token', '') if request.is_json else request.form.get('token', '')
+    if secret and token != secret:
+        return jsonify({'error': 'No autorizado'}), 401
+
+    try:
+        import subprocess
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        result = subprocess.run(
+            ['python', 'ingesta_datos.py'],
+            cwd=base_dir,
+            capture_output=True,
+            text=True,
+            timeout=600
+        )
+        if result.returncode == 0:
+            return jsonify({'status': 'ok', 'mensaje': 'Ingesta completada', 'detalle': result.stdout[-2000:]})
+        else:
+            return jsonify({'status': 'error', 'mensaje': result.stderr[-2000:]}), 500
+    except subprocess.TimeoutExpired:
+        return jsonify({'status': 'error', 'mensaje': 'Tiempo de ingesta agotado (>10 min)'}), 504
+    except Exception as e:
+        return jsonify({'status': 'error', 'mensaje': str(e)}), 500
+
+@app.route('/documentos', methods=['GET'])
+def listar_documentos():
+    """Lista los archivos disponibles en documentos_zoomat/ para verificar que están montados."""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    carpeta  = os.path.join(base_dir, 'documentos_zoomat')
+    archivos = []
+    for root, dirs, files in os.walk(carpeta):
+        for f in files:
+            ruta_rel = os.path.relpath(os.path.join(root, f), carpeta)
+            archivos.append(ruta_rel)
+    return jsonify({'total': len(archivos), 'archivos': sorted(archivos)})
+
 @app.route('/chat', methods=['POST'])
 def chat():
     # 0. Idioma solicitado (es / en)

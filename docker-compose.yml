@@ -140,11 +140,15 @@ services:
       # Flask
       CHATBOT_PORT: 5000
       FLASK_ENV: production
+      # Clave para proteger el endpoint /ingestar (pon una clave segura en .env)
+      INGEST_SECRET: ${INGEST_SECRET:-mi_clave_ingesta_secreta}
     ports:
       - "5000:5000"
     volumes:
-      - ./chatbot/chroma_db_zoomat:/app/chroma_db_zoomat
+      # Documentos fuente: se editan localmente, el contenedor los ve en tiempo real
       - ./chatbot/documentos_zoomat:/app/documentos_zoomat
+      # ChromaDB: persistido como volumen Docker para sobrevivir reinicios
+      - chroma_db_local:/app/chroma_db_zoomat
 
   # ─────────────────────────────────────────
   # 6. LLM — Ollama (Llama 3.1)
@@ -196,3 +200,4 @@ volumes:
   chroma_data:
   uploads_data:
   ollama_data:          # Modelos LLM descargados (llama3.1 pesa ~4 GB)
+  chroma_db_local:      # ChromaDB procesada desde documentos_zoomat/

@@ -140,6 +140,10 @@ services:
       # Flask
       CHATBOT_PORT: 8000
       FLASK_ENV: production
+      # CORS: permite peticiones desde Godot u otros orígenes
+      # Usa "*" para permitir todo, o especifica dominios separados por coma:
+      # ej: "http://192.168.1.50:8080,https://zoomat.gob.mx"
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
       # Clave para proteger el endpoint /ingestar (pon una clave segura en .env)
       INGEST_SECRET: ${INGEST_SECRET:-mi_clave_ingesta_secreta}
     ports:

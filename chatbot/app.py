@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
 import os
 import sys
 import time
@@ -20,6 +21,12 @@ import enrutador_semantico
 
 # Configuramos Flask y le decimos que la carpeta 'assets' será accesible públicamente
 app = Flask(__name__, static_folder='assets', static_url_path='/assets')
+
+# CORS: permite que Godot (u otros orígenes) consuman la API del chatbot
+# CORS_ORIGINS en .env puede ser "*" (cualquiera) o una lista de dominios:
+# ej: "http://192.168.1.50:8080,https://zoomat.gob.mx"
+_cors_origins = os.getenv("CORS_ORIGINS", "*")
+CORS(app, origins=_cors_origins.split(",") if _cors_origins != "*" else "*")
 
 DIR_LOGS = "logs"
 os.makedirs("assets", exist_ok=True)

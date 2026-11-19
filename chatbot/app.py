@@ -662,20 +662,30 @@ def preguntar_a_llama(prompt_usuario, instrucciones_sistema=""):
 
     ollama_host = os.getenv("OLLAMA_HOST", "localhost")
     ollama_port = os.getenv("OLLAMA_PORT", "11434")
+    modelo = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
+    try:
+        num_ctx = int(os.getenv("OLLAMA_NUM_CTX", "4096"))
+    except (ValueError, TypeError):
+        num_ctx = 4096
+    try:
+        ollama_timeout = int(os.getenv("OLLAMA_TIMEOUT", "120"))
+    except (ValueError, TypeError):
+        ollama_timeout = 120
     url = f"http://{ollama_host}:{ollama_port}/api/generate" 
     payload = {
-        "model": "llama3.1",
+        "model": modelo,
         "system": instrucciones_sistema,
         "prompt": prompt_usuario,
         "stream": False,
         "options": {
             "temperature": 0.0,
-            "seed": 42
+            "seed": 42,
+            "num_ctx": num_ctx
         }
     }
     for intento in range(3):
         try:
-            respuesta = requests.post(url, json=payload, timeout=60)
+            respuesta = requests.post(url, json=payload, timeout=ollama_timeout)
             if respuesta.status_code == 200:
                 texto_respuesta = respuesta.json().get("response", "Error al procesar la respuesta.").strip()
                 # Limpieza profunda: eliminamos pensamientos entre paréntesis, comillas, asteriscos y saltos de línea

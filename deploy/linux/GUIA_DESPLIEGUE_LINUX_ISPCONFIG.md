@@ -49,6 +49,35 @@ echo "=== SERVICIOS WEB Y BASES ACTIVAS ===" && systemctl is-active apache2 ngin
 * **Almacenamiento:** Mínimo **15 GB SSD** libres (4.7 GB para el modelo Ollama, 1 GB para el acervo biológico y base ChromaDB, 3 GB para dependencias de Node.js y virtualenv de Python).
 * **CPU:** Mínimo **4 núcleos físicos / 8 hilos** (Intel Xeon o AMD EPYC modernos). En modo CPU, una respuesta de Llama 3.1 8B tarda entre 2 y 4 segundos; con GPU NVIDIA compatible con CUDA la latencia baja a < 0.8 segundos.
 
+### 1.4. Ajuste de Memoria para VM de 8 GB RAM (Perfil Linux 1.3: 2 vCPU · 8 GB RAM · 450 GB HDD)
+Si el servidor es una Máquina Virtual con 8 GB de RAM y almacenamiento HDD (ej. catálogo Linux 1.3), el sistema está completamente optimizado para operar de forma ágil y estable aplicando los siguientes ajustes de arquitectura:
+
+* **Modelo LLM de 3B Parámetros:** Se sustituye el modelo de 8B por un modelo compacto de 3B parámetros (`qwen2.5:3b` o `llama3.2:3b`), reduciendo drásticamente la huella del LLM a solo **~1.9 - 2.0 GB** en RAM.
+* **Modelo Permanente en RAM (`OLLAMA_KEEP_ALIVE=-1`):** En discos mecánicos HDD, recargar el modelo desde disco causaría retrasos de 15 a 30 segundos por consulta. Manteniéndolo fijo en RAM, la inferencia responde de forma inmediata sin fricción de I/O de disco.
+* **Swap de Seguridad (4 GB):** Se habilita un archivo `/swapfile` de 4 GB con `vm.swappiness=10` para blindar el sistema contra el *OOM Killer* ante picos de concurrencia, sin sobrecargar el HDD.
+* **Gunicorn Concurrente para 2 vCPU:** Gunicorn se ejecuta con `1 worker` y `4 hilos` (`-w 1 --threads 4 --timeout 180`), compartiendo los ~1.2 GB de ChromaDB y spaCy entre hilos concurrentes.
+* **Reindexación con Liberación de Recursos:** La rutina semanal `reindexar_semanal.sh` detiene temporalmente tanto `zoomat-chatbot.service` como `ollama.service`, liberando ~2.6 GB adicionales de RAM durante el proceso de ingesta de PyTorch y HuggingFace.
+
+#### Ajustes Recomendados en Motores de Base de Datos para 8 GB RAM
+Para evitar que las bases de datos compitan agresivamente por la memoria del sistema operativo y del LLM, se recomiendan los siguientes parámetros:
+
+1. **PostgreSQL (`/etc/postgresql/16/main/postgresql.conf`):**
+   ```ini
+   shared_buffers = 256MB
+   work_mem = 4MB
+   maintenance_work_mem = 64MB
+   effective_cache_size = 1GB
+   ```
+   Reinicia el servicio tras modificar: `sudo systemctl restart postgresql`
+
+2. **MySQL / MariaDB (`/etc/mysql/my.cnf` o `/etc/mysql/mariadb.conf.d/50-server.cnf`):**
+   ```ini
+   [mysqld]
+   innodb_buffer_pool_size = 128M
+   max_connections = 50
+   ```
+   Reinicia el servicio tras modificar: `sudo systemctl restart mysql` o `sudo systemctl restart mariadb`
+
 ---
 
 ## 2. Fase 1 — Prerrequisitos Manuales (Instalación del Administrador)
@@ -90,13 +119,13 @@ curl -fsSL https://ollama.com/install.sh | sh
 # 2. Habilitar e iniciar el servicio systemd
 sudo systemctl enable --now ollama
 
-# 3. Descargar el modelo oficial de 8B
-ollama pull llama3.1
+# 3. Descargar el modelo oficial seleccionado (llama3.2:3b para VM de 8 GB RAM o llama3.1 para 16 GB+)
+ollama pull llama3.2:3b
 
 # 4. Probar que responda en local
 curl -X POST http://127.0.0.1:11434/api/generate \
   -H "Content-Type: application/json" \
-  -d '{"model": "llama3.1", "prompt": "hola", "stream": false}'
+  -d '{"model": "llama3.2:3b", "prompt": "hola", "stream": false}'
 ```
 
 ### 2.4. PostgreSQL 16+ (Base de Datos del Portal Web)
@@ -237,9 +266,14 @@ FRAME_ANCESTORS=frame-ancestors 'self' https://www.zoomat.chiapas.gob.mx https:/
 # Clave secreta para desencadenar la ingesta manual por endpoint
 INGEST_SECRET=PEGA_AQUI_OTRA_CLAVE_ALEATORIA
 
-# Conexión local al servidor Ollama (LLM Llama 3.1)
+# Conexión local al servidor Ollama
 OLLAMA_HOST=127.0.0.1
 OLLAMA_PORT=11434
+
+# Modelo LLM seleccionado (optimizado para VM de 8 GB RAM: llama3.2:3b con 4096 tokens de contexto)
+OLLAMA_MODEL=llama3.2:3b
+OLLAMA_NUM_CTX=4096
+OLLAMA_TIMEOUT=150
 
 # Base de datos logística MySQL
 DB_HOST=localhost
@@ -299,9 +333,9 @@ sudo bash /opt/Pro_Zoo/deploy/linux/deploy_linux.sh
    - Pre-renderiza los 6 audios rápidos estáticos (`costos.mp3`, `horarios.mp3`, `banos.mp3` y versiones en inglés).
 6. **Servicios del Sistema (systemd):**
    - Registra y activa `prozoo-backend.service` (Node.js Express en `127.0.0.1:4000`).
-   - Registra y activa `zoomat-chatbot.service` ejecutando Gunicorn con `-w 1 --threads 8 --timeout 120 -b 127.0.0.1:8000 app:app` (concurrente, memoria compartida de ~1.2 GB y timeout tolerante a inferencia CPU).
+   - Registra y activa `zoomat-chatbot.service` ejecutando Gunicorn con `-w 1 --threads 4 --timeout 180 -b 127.0.0.1:8000 app:app` (optimizado para 2 vCPU y 8 GB RAM, memoria compartida de ~1.2 GB y timeout tolerante a inferencia CPU).
 7. **Tarea Programada Semanal (Cron):**
-   - Genera el script `/opt/Pro_Zoo/chatbot/reindexar_semanal.sh` con control de excepciones `trap` para asegurar que el servicio `zoomat-chatbot.service` se encienda siempre, incluso si la ingesta falla.
+   - Genera el script `/opt/Pro_Zoo/chatbot/reindexar_semanal.sh` con control de excepciones `trap` que detiene temporalmente tanto `zoomat-chatbot.service` como `ollama.service` para liberar ~2.6 GB de RAM durante la ingesta vectorial, asegurando que ambos servicios se restablezcan automáticamente al concluir o ante cualquier fallo.
    - Registra la tarea en el `crontab` de root para ejecutarse cada lunes a las 02:00 AM.
 
 ---
@@ -334,8 +368,8 @@ Accede al panel: **ISPConfig → Sitios (Sites) → zoomat.chiapas.gob.mx → Op
 2. En ISPConfig, dentro de la caja de **Directivas de Apache**, pega el siguiente bloque:
 
 ```apache
-# Aumentar timeout para soportar inferencia LLM en CPU de Llama 3.1
-ProxyTimeout 120
+# Aumentar timeout para soportar inferencia LLM en CPU (modelos 3B con timeout de 180s)
+ProxyTimeout 180
 
 # Proxy hacia la API REST del Backend (Express en puerto 4000)
 ProxyPass /api http://127.0.0.1:4000/api
@@ -358,8 +392,8 @@ ProxyPassReverse /uploads http://127.0.0.1:4000/uploads
 Si el sitio web está configurado bajo Nginx puro en ISPConfig, pega el siguiente bloque dentro de **Directivas de Nginx**:
 
 ```nginx
-proxy_read_timeout 120s;
-proxy_connect_timeout 120s;
+proxy_read_timeout 180s;
+proxy_connect_timeout 180s;
 
 location /api/ {
     proxy_pass http://127.0.0.1:4000/api/;

@@ -147,3 +147,12 @@ La integración incluye 4 mecanismos coordinados para abrir y cerrar la ventana 
 4. Prueba hacer una consulta de texto (ej. *"¿Cuáles son los costos?"*) o toca un chip de sugerencia rápida.
 5. Mantén presionado el botón del micrófono, habla en español o inglés y suéltalo para confirmar que la `Web Speech API` capture y envíe la pregunta sin bloqueos de permisos.
 6. Cierra la ventana modal con la tecla `Esc`, el botón `X` o el botón del encabezado, y vuelve a abrirla para confirmar que el historial permanece intacto.
+
+---
+
+## 7. Despliegue en Producción (Linux + ISPConfig)
+
+Para el despliegue nativo en servidores de producción bajo el dominio oficial `https://www.zoomat.chiapas.gob.mx/` (con servicios `systemd`, Gunicorn, Node.js y proxy inverso en ISPConfig):
+* **Guía Completa de Despliegue Paso a Paso:** [deploy/linux/GUIA_DESPLIEGUE_LINUX_ISPCONFIG.md](deploy/linux/GUIA_DESPLIEGUE_LINUX_ISPCONFIG.md)
+* **Script de Instalación Automatizada:** [deploy/linux/deploy_linux.sh](deploy/linux/deploy_linux.sh)
+* **Especificación Técnica y Arquitectura:** [CONTEXTO_PROYECTO_PRO_ZOO.md](CONTEXTO_PROYECTO_PRO_ZOO.md)

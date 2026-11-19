@@ -1,9 +1,11 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
+from werkzeug.middleware.proxy_fix import ProxyFix
 import os
 import sys
 import time
 import random
+import uuid
 from datetime import datetime
 import requests
 import speech_recognition as sr
@@ -19,19 +21,99 @@ import motor_rag
 import motor_mysql           
 import enrutador_semantico   
 
+# Directorios base y persistencia
+DIR_BASE = os.path.dirname(os.path.abspath(__file__))
+DIR_ASSETS = os.path.join(DIR_BASE, "assets")
+DIR_LOGS = os.path.join(DIR_BASE, "logs")
+DIR_UPLOADS = os.path.join(DIR_BASE, "uploads")
+
+os.makedirs(DIR_ASSETS, exist_ok=True)
+os.makedirs(DIR_UPLOADS, exist_ok=True)
+os.makedirs(DIR_LOGS, exist_ok=True)
+
 # Configuramos Flask y le decimos que la carpeta 'assets' será accesible públicamente
 app = Flask(__name__, static_folder='assets', static_url_path='/assets')
 
-# CORS: permite que Godot (u otros orígenes) consuman la API del chatbot
-# CORS_ORIGINS en .env puede ser "*" (cualquiera) o una lista de dominios:
-# ej: "http://192.168.1.50:8080,https://zoomat.gob.mx"
+# ProxyFix: respeta cabeceras de proxy inverso HTTPS y subrutas (X-Forwarded-Proto, X-Forwarded-Prefix)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
+# CORS: permite que la web u otros orígenes autorizados consuman la API del chatbot
 _cors_origins = os.getenv("CORS_ORIGINS", "*")
 CORS(app, origins=_cors_origins.split(",") if _cors_origins != "*" else "*")
 
-DIR_LOGS = "logs"
-os.makedirs("assets", exist_ok=True)
-os.makedirs("uploads", exist_ok=True)
-os.makedirs(DIR_LOGS, exist_ok=True)
+# Inyección de cabeceras de seguridad CSP y eliminación de X-Frame-Options restrictivo
+@app.after_request
+def aplicar_cabeceras_seguridad(response):
+    """
+    Garantiza que el Asistente Virtual pueda ser embebido como iframe tanto en desarrollo local
+    como en los dominios oficiales de producción sin restricciones de X-Frame-Options.
+    """
+    response.headers.pop("X-Frame-Options", None)
+
+    frame_ancestors_default = (
+        "frame-ancestors 'self' "
+        "https://www.zoomat.chiapas.gob.mx https://zoomat.chiapas.gob.mx "
+        "https://pruzo.me https://www.pruzo.me "
+        "http://localhost:* http://127.0.0.1:*"
+    )
+    frame_ancestors = os.getenv("FRAME_ANCESTORS", frame_ancestors_default)
+
+    csp_existente = response.headers.get("Content-Security-Policy", "")
+    if csp_existente:
+        if "frame-ancestors" not in csp_existente:
+            response.headers["Content-Security-Policy"] = f"{csp_existente}; {frame_ancestors}"
+    else:
+        response.headers["Content-Security-Policy"] = frame_ancestors
+
+    return response
+
+# Candado de seguridad: lista blanca de recursos que jamás deben ser eliminados
+ARCHIVOS_PROTEGIDOS_ASSETS = {
+    "costos.mp3",
+    "costos_en.mp3",
+    "horarios.mp3",
+    "horarios_en.mp3",
+    "banos.mp3",
+    "banos_en.mp3",
+    "bot_avatar.png",
+    "bot_avatar2.png",
+    "bot_avatar3.png",
+    "logo_fondo.png",
+}
+
+def limpiar_audios_temporales(max_antiguedad_segundos=300):
+    """
+    Elimina audios temporales antiguos generados dinámicamente en assets/.
+    CANDADO DE SEGURIDAD:
+    - Borra ÚNICAMENTE archivos que comiencen estrictamente con 'resp_' y terminen en '.mp3'.
+    - Jamás toca archivos de ARCHIVOS_PROTEGIDOS_ASSETS ni imágenes PNG u otros recursos.
+    - Captura cualquier OSError para evitar interrupciones por bloqueos de archivo.
+    """
+    try:
+        directorio = DIR_ASSETS if os.path.isdir(DIR_ASSETS) else "assets"
+        if not os.path.isdir(directorio):
+            return
+
+        ahora = time.time()
+        for nombre in os.listdir(directorio):
+            # CANDADO ESTRICTO DE NOMBRE Y EXTENSIÓN
+            if not (nombre.startswith("resp_") and nombre.endswith(".mp3")):
+                continue
+            if nombre in ARCHIVOS_PROTEGIDOS_ASSETS:
+                continue
+
+            ruta_archivo = os.path.join(directorio, nombre)
+            if not os.path.isfile(ruta_archivo):
+                continue
+
+            try:
+                mtime = os.path.getmtime(ruta_archivo)
+                if (ahora - mtime) > max_antiguedad_segundos:
+                    os.remove(ruta_archivo)
+            except OSError:
+                pass
+    except OSError:
+        pass
 
 # --- Funciones Auxiliares ---
 def registrar_log(pregunta, respuesta, tiempo_segundos=None, idioma='es', **kwargs):
@@ -551,7 +633,7 @@ async def generar_audio_hibrido(texto, nombre_archivo, idioma='es'):
         tld_gtts = 'com.mx'
         etiqueta_voz = "es-MX Jorge"
     
-    ruta_salida = f"assets/{nombre_archivo}"
+    ruta_salida = os.path.join(DIR_ASSETS, os.path.basename(nombre_archivo))
     
     try:
         # INTENTO A: Microsoft Edge TTS
@@ -2078,8 +2160,10 @@ def chat():
     tiempo_respuesta = time.time() - inicio_tiempo
     registrar_log(pregunta, respuesta_ia, tiempo_respuesta, idioma=idioma)
 
-    # 3. Generar audio con el sistema Híbrido en la nube
-    nombre_audio = f"respuesta_{idioma}.mp3" if idioma == 'en' else "respuesta.mp3"
+    # 3. Generar audio dinámico con UUID y limpieza de archivos temporales
+    limpiar_audios_temporales(max_antiguedad_segundos=300)
+    id_unico = uuid.uuid4().hex[:10]
+    nombre_audio = f"resp_{id_unico}_{idioma}.mp3"
     asyncio.run(generar_audio_hibrido(respuesta_ia, nombre_audio, idioma=idioma))
 
     # 4. Devolver respuesta al frontend

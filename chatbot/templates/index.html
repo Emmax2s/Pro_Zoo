@@ -284,7 +284,7 @@
             content: "";
             position: absolute;
             top: 7%; left: 7%; right: 7%; bottom: 7%; 
-            background-image: url('/assets/logo_fondo.png'); 
+            background-image: url('assets/logo_fondo.png'); 
             background-position: center;
             background-repeat: no-repeat;
             background-size: contain;      
@@ -701,7 +701,7 @@
     <!-- Encabezado con textura de madera rústica -->
     <div class="header-bar">
         <div class="header-info">
-            <img src="/assets/bot_avatar.png" alt="Avatar ZooMAT" class="header-logo-badge" id="header-avatar">
+            <img src="assets/bot_avatar.png" alt="Avatar ZooMAT" class="header-logo-badge" id="header-avatar">
             <div class="header-titles">
                 <span class="header-title">Asistente ZooMAT</span>
                 <span class="header-status">
@@ -767,13 +767,26 @@
         }
     }
     
+    // =========================================================================
+    // RESOLUCIÓN DINÁMICA DE RUTAS RELATIVAS (SOPORTE DE SUBRUTAS Y PROXY INVERSO)
+    // =========================================================================
+    const basePath = window.location.pathname.endsWith('/') 
+        ? window.location.pathname 
+        : window.location.pathname + '/';
+
+    function resolveAsset(ruta) {
+        if (!ruta) return ruta;
+        const limpia = ruta.startsWith('/') ? ruta.slice(1) : ruta;
+        return basePath + limpia;
+    }
+    
     // =========================================
     // SISTEMA DE ROTACIÓN DINÁMICA DE AVATARES
     // =========================================
     const AVATARES_BOT = [
-        '/assets/bot_avatar.png',
-        '/assets/bot_avatar2.png',
-        '/assets/bot_avatar3.png'
+        resolveAsset('/assets/bot_avatar.png'),
+        resolveAsset('/assets/bot_avatar2.png'),
+        resolveAsset('/assets/bot_avatar3.png')
     ];
 
     // Precarga de imágenes en memoria para transiciones instantáneas sin parpadeo
@@ -994,7 +1007,8 @@
         const loadingRow = addMessage("", "system", true);
         
         try {
-            const response = await fetch('/chat', { method: 'POST', body: formData });
+            const chatEndpoint = resolveAsset('chat');
+            const response = await fetch(chatEndpoint, { method: 'POST', body: formData });
             const data = await response.json();
             
             if (loadingRow.parentNode) {
@@ -1005,7 +1019,8 @@
                 addMessage(data.error, "system");
             } else {
                 addMessage(data.respuesta, "bot");
-                audioPlayer.src = data.audio_url + "?t=" + new Date().getTime(); 
+                const audioUrl = resolveAsset(data.audio_url);
+                audioPlayer.src = audioUrl + "?t=" + new Date().getTime(); 
                 audioPlayer.play();
             }
         } catch (error) {

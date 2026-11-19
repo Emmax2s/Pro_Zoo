@@ -2,9 +2,16 @@ import { useState, useEffect } from "react";
 import { X, ExternalLink } from "lucide-react";
 import chatLauncherLogo from "../../assets/chat-launcher.jpg";
 
+const rawChatbotUrl =
+  (import.meta.env.VITE_CHATBOT_URL as string | undefined)?.trim() ||
+  (import.meta.env.PROD ? "https://www.zoomat.chiapas.gob.mx/chatbot/" : "http://localhost:8000");
+
+// Normaliza la URL para subrutas: si incluye una ruta (ej. /chatbot) y no termina en '/', se le añade '/'
+// para garantizar la correcta resolución de rutas relativas dentro del iframe
 const CHATBOT_URL =
-  (import.meta.env.VITE_CHATBOT_URL as string | undefined) ||
-  (import.meta.env.PROD ? "https://chatbot.pruzo.me" : "http://localhost:8000");
+  rawChatbotUrl.includes("://") && !rawChatbotUrl.endsWith("/") && rawChatbotUrl.split("/").length > 3
+    ? `${rawChatbotUrl}/`
+    : rawChatbotUrl;
 
 export function PublicChatButton() {
   const [isOpen, setIsOpen] = useState(false);
